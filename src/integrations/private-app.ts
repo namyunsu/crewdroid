@@ -6,8 +6,11 @@ import { join } from "node:path";
 import { adb } from "../adb.ts";
 
 export const PRIVATE_APP_BASE_PORT = 5570; // TECH_SERIALS in private-app tests/e2e/multi/harness.ts
-// Three aspect ratios (1080x2340, 1812x2176, 1080x2520) on API 31/34/36; the APK's minSdk is 24.
-export const PRIVATE_APP_PROFILES = ["s22", "fold5-main", "flip7-main"];
+// Three aspect ratios (1080x2340, 1812x2176, 1080x2520) on API 34/34/36; the APK's minSdk is 24.
+// AI NOTE: not s22 (API 31): on the API 31 ATD image the private-app call screen (SurfaceViews) is black in every GPU mode tried
+// (host, swiftshader_indirect, angle_indirect, guest, cold boot, no camera) and screenrecord shows a grey window (T13-3).
+// s24ultra is the same 1080x2340 size on API 34.
+export const PRIVATE_APP_PROFILES = ["s24ultra", "fold5-main", "flip7-main"];
 export const private-appServerDir = () => process.env.ISB_PRIVATE_APP_SERVER || join(import.meta.dirname, "..", "..", "..", "private-app", "private-app-server");
 
 export interface SpecRun { ok: boolean; exit: number; wallSeconds: number; testSeconds: number | null; totalSeconds: number | null; output: string }

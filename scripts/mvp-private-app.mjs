@@ -1,5 +1,5 @@
 // T11 verify: node scripts/mvp-private-app.mjs [--runs 3]
-// `crewdroid up --count 3 --base-port 5570` (3 aspect ratios, API 31/34/36) -> 60 s idle sample -> private-app
+// `crewdroid up --count 3 --base-port 5570` (3 aspect ratios, API 34/34/36) -> 60 s idle sample -> private-app
 // `npm run e2e:multi -- --grep @techs` N times in a row on the same devices (run 1 is screen-recorded -> docs/demo/techs.gif)
 // -> down. Writes docs/measurements/mvp.json + mvp.md (old path vs crewdroid). Exit 0 only if all N runs pass and the GIF is <= 10 MB.
 import { execFile } from "node:child_process";
