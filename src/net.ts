@@ -52,7 +52,7 @@ const pidFile = (serial: string) => join(tmpdir(), "crewdroid", `flaky-${assertS
 export function stopFlaky(serial: string) {
   const f = pidFile(serial);
   if (!existsSync(f)) return false;
-  try { process.kill(Number(readFileSync(f, "utf8"))); } catch {}
+  try { process.kill(Number(readFileSync(f, "utf8"))); } catch (e) { if ((e as NodeJS.ErrnoException).code !== "ESRCH") throw e; } // ESRCH = loop already exited
   rmSync(f, { force: true });
   return true;
 }
