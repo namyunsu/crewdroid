@@ -26,3 +26,4 @@
 2026-10-24 | 다른 세션이 에뮬레이터를 쓰는 중에 autopilot이 verify를 돌려 포트 충돌 | env: 에뮬레이터 동시 사용 잠금 없음
 2026-10-24 | 다른 세션의 t15b/loop.mts가 5570 에뮬레이터를 점유해 shift 107·108 검증 불가 | env broken
 2026-10-24 | 다른 세션의 loop.mts+에뮬레이터가 몇 shift째 점유해 autopilot이 빈 shift 반복 | env broken (세션 간 에뮬레이터 점유 조율 규칙 없음)
+2026-10-24 | 다른 세션 loop.mts가 5570 에뮬레이터를 계속 점유해 shift가 빈 채 반복 | env broken
