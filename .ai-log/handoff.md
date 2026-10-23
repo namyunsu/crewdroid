@@ -8,3 +8,4 @@ T15 현황: idle 6.63GiB / running 7GiB ≤ 8GiB, 부팅 평균 6.73s (T04 7.13s
 미커밋: src/avd.ts·cli.ts·snapshot.ts·slim.ts, scripts/check-disk.mjs, docs/measurements/*.
 - shift 131: 여전히 PID 18224 loop.mts + 에뮬레이터 3대(5570/5572/5574) 점유, 보류.
 - shift 132: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류. 사람이 해당 세션을 끝내야 재개됨.
+- shift 133: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
