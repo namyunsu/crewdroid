@@ -58,3 +58,21 @@ Finished Todos, moved here by autopilot.
   verify: `node scripts/check-net.mjs --count 2`
 
   commit: T05: net state switching (ce38af5)
+
+- [x] T06 [KO] mobile-mcp · Maestro 연결
+  area: .mcp.json, flows/, scripts/check-mcp.mjs, CLAUDE.md (Commands)
+  model: sonnet
+  review: required
+  accept: Install Maestro CLI (approved) and add project `.mcp.json` with mobile-mcp (`npx -y @mobilenext/mobile-mcp@<pinned>`) and `maestro mcp`. `scripts/check-mcp.mjs` starts mobile-mcp over stdio as an MCP client, lists devices and confirms the crewdroid serials appear, then takes one accessibility snapshot of the probe app on a chosen emulator serial. `flows/probe-upload.yaml` (Maestro) opens the probe app, triggers an upload and asserts the success text; it runs with `maestro test --device "<s1>,<s2>" --shard-all 2` on two different profiles. Document in CLAUDE.md how to target one device in each tool and that a USB phone may appear in their device lists — always pass an `emulator-*` serial. Record how `maestro mcp`'s `run` picks a device.
+  verify: `npx tsx src/cli.ts up --count 2 && node scripts/check-mcp.mjs && npx tsx src/cli.ts down`
+
+  commit: T06: mobile-mcp + maestro wiring, probe-upload flow, check-mcp (4015b96)
+
+- [x] T09 [KO] 샘플 앱 오프라인 저장·동기화 시나리오
+  area: probe-app/ (rename the user-facing part to "sample app" inside the same module), scripts/check-offline.mjs
+  model: opus
+  review: required
+  accept: The app keeps an outbox (Room or files) of photos/edits: actions while offline are saved locally and sent when the network returns (idempotency key per action, retry with backoff); an upload cut mid-transfer is retried; the app restarted while offline (`am force-stop` + relaunch) keeps its outbox and syncs later; two devices edit the same record while one is offline and the server's response (409 in clean mode) is surfaced in logcat `CrewProbe CONFLICT <id>`. All triggers are adb broadcasts so scripts and Maestro can drive them.
+  verify: `node scripts/check-offline.mjs` (2 mixed devices: offline save -> restart offline -> online -> server has exactly the expected rows; concurrent edit -> one CONFLICT line)
+
+  commit: T09: sample app outbox, offline sync, conflict logging (b2b75f1)

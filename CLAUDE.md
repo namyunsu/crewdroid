@@ -10,6 +10,7 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 - `npm test` -> `# fail 0`
 - `npx tsx src/cli.ts <cmd> --json`
 - `node scripts/check-mcp.mjs` (after `up --count 2`) -> `OK: mobile-mcp and maestro mcp reach the crewdroid emulators`
+- `node scripts/check-offline.mjs [--server-port N]` (boots its own 2 emulators) -> `OK: offline outbox claims hold`
 - Maestro (`scoop install maestro`, one device): `maestro test --device emulator-5580 flows/probe-upload.yaml`; two profiles at once: `--device "emulator-5580,emulator-5582" --shard-all 2` -> `Passed: 2/2`. The flow needs the sample server on :5599 and the current probe APK installed.
 - mobile-mcp (`.mcp.json`, needs `MOBILEMCP_LEGACY_ROBOT=1`): every tool takes `device: "emulator-<port>"`. `maestro mcp`: `run`/`inspect_screen`/`take_screenshot` take `device_id: "emulator-<port>"` (required; no default device).
 
