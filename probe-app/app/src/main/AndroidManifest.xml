@@ -7,6 +7,11 @@
         <intent><action android:name="android.intent.action.GET_CONTENT" /><data android:mimeType="image/*" /></intent>
     </queries>
     <application android:label="CrewProbe" android:usesCleartextTraffic="true">
-        <activity android:name=".ProbeActivity" android:exported="true" />
+        <activity android:name=".ProbeActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
