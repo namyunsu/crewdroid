@@ -101,3 +101,23 @@ Finished Todos, moved here by autopilot.
   accept: T01 launches the emulator with Node `spawn(..., { detached: true, windowsHide: true })`; on Windows the grandchild `qemu-system-x86_64-headless.exe` still opens a visible console window (user saw it 2026-10-23). Move emulator launch into one shared function used by every command (measure/up/prepare/identity) that starts it hidden the way private-app avd-up.ps1 does (`powershell Start-Process -WindowStyle Hidden`, or an equivalent that hides grandchildren) and still returns/locates the PID for kill. No visible window while any crewdroid command runs.
   verify: `node scripts/check-hidden.mjs` (starts one crewdroid emulator, lists processes named emulator*/qemu* and asserts every one has MainWindowHandle 0 via `Get-Process`, then kills it)
   commit: T12: f6c3da0
+
+- [x] T13 [AUTO] Demo GIF shows all 3 devices live (FR-11 follow-up to T11)
+  origin: auto-plan (docs/demo/techs.gif frames checked 2026-10-23: left panel API 32 is black for the whole run, right panel API 36 stays frozen on the `screenrecord --bugreport` intro text; only the middle panel shows the app)
+  area: src/integrations/private-app.ts (recording), scripts/mvp-private-app.mjs (GIF build), scripts/check-demo-gif.mjs (new), docs/demo/techs.gif, docs/measurements/mvp.*
+  model: sonnet
+  review: required
+  accept: Find why 2 of 3 `screenrecord` captures show no app frames (e.g. recording starts before the app is foreground, screenrecord emits frames only on change, `wm size` vs recorder size, per-API screenrecord behaviour) and fix the capture so every panel shows the private-app app during the call. `mvp-private-app.mjs` writes each panel's x-range and the source serial/profile/API into `mvp.json` `gif.panels`. New `scripts/check-demo-gif.mjs` reads `mvp.json` + `docs/demo/techs.gif` with ffmpeg and fails unless, for every panel, frames in the second half of the GIF are (a) not flat (luma range > 40) and (b) different from the panel's first frame; and the 3 panels' width/height ratios are pairwise different. It must exit 1 on the current GIF (left black, right frozen). Same rules as T11: private-app untouched, old-avd-1..3 not launched, `--base-port 5570` only here, all emulators killed at the end. GIF <= 10 MB.
+  verify: `node scripts/mvp-private-app.mjs --runs 3 && node scripts/check-demo-gif.mjs` (runs 3 keeps the T11 pass count and table in mvp.md) -> `OK: demo GIF has 3 live panels`
+  manual: GIF 를 열어 3대 모두 앱 화면과 통화 진행이 보이는지 눈으로 확인
+  commit: 1a8d7bb
+
+- [x] T14 [KO] ATD 화면이 그려지지 않음 (창은 부팅 로고에서 멈춤, screencap 전부 검정)
+  origin: human /brief 2026-10-23 22:00. User opened crew-android-36 (5590) and crew-android-34 (5592) with a window: the window stayed on the "android" boot logo while `sys.boot_completed=1`, the private-app LoginActivity was top-resumed and `uiautomator dump` listed its texts. `adb exec-out screencap -p` was all black on both, also with `-gpu swiftshader_indirect`, after KEYCODE_WAKEUP, and after `adb root; stop; start`. T11's GIF showed one live panel out of three, so some path does render.
+  area: src/emulator.ts, src/up.ts, src/avd.ts (AVD config / launch flags), scripts/check-render.mjs, docs/adr/0003-image.md
+  model: opus
+  review: required
+  accept: Find the root cause (ATD build property, AVD config.ini `hw.*`, launch flag, snapshot from a no-window boot, or other) and record it with evidence in ADR 0003. After the fix, every `crewdroid up` device on all three images (API 31/34/36) renders: screencap of a launched app is not uniform black, and a window opened with `--window` (new flag on `up`, shows the emulator window for a human) shows the app, not the boot logo. If ATD cannot render at all, say so in the ADR and propose the lightest image that does (with its size) — BLOCKED for the user's approval before downloading anything over ~0.9GB.
+  verify: `node scripts/check-render.mjs` (up 3 mixed devices, start the probe/sample app on each, screencap, fail if any image is >99% one colour; down)
+
+  commit: 9bdd4ae
