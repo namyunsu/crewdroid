@@ -12,3 +12,4 @@ T15 현황: idle 6.63GiB / running 7GiB ≤ 8GiB, 부팅 평균 6.73s (T04 7.13s
 - shift 134: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
 - shift 135: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
 - shift 136: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
+- shift 138: 이전 loop.mts는 사라졌으나 다른 세션이 check-scenario(PID 26880)+crew 에뮬레이터 3대(5580~5584)를 돌리는 중이라 보류. 끝난 뒤 T15 verify(mvp-private-app --runs 1, check-disk) 재개.
