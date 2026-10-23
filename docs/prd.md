@@ -83,3 +83,4 @@ UI 없음(CLI). 샘플 앱은 시험용 최소 화면이라 디자인 단계 생
 | 날짜 | 출처 | 변경 |
 |---|---|---|
 | 2026-10-23 | docs/source/ 세 파일 + /brief 문답 | 최초 작성. MVP=techs.multi.ts, private-app 수정 안 함, Node+TS, 샘플 서버로 판정 검증 |
+| 2026-10-23 | autopilot /brief auto, reviewer 승인 1건 | T13: 데모 GIF 3대 모두 앱 화면이 보이게(FR-11 보완). 요구사항 변경 없음 |
