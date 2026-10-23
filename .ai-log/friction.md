@@ -18,3 +18,4 @@
 2026-10-24 | 옛 세션이 T15 를 점유해 shift 가 연속으로 빈 채 끝남 | env broken
 2026-10-24 | 옛 세션이 에뮬레이터를 잡고 있어 shift 2회 연속 빈 shift | env: 같은 PC 에서 수동 세션과 autopilot 동시 실행
 2026-10-24 02:02 | 에뮬레이터 점유로 shift 연속 대기 | env broken: 옛 세션 PID 28620 이 CPU·포트를 계속 점유
+2026-10-24 | 다른 세션이 T15 파일을 직접 수정 중이라 autopilot 이 shift 51~56 연속 빈손 | env broken: 사람 세션과 autopilot 동시 작업
