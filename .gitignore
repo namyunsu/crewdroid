@@ -1,0 +1,16 @@
+.env*
+node_modules/
+dist/
+*.tsbuildinfo
+test-results/
+probe-app/.gradle/
+probe-app/build/
+probe-app/app/build/
+probe-app/local.properties
+sample/server/data/
+.ai-log/*
+!.ai-log/status.md
+!.ai-log/handoff.md
+!.ai-log/friction.md
+!.ai-log/REPORT.md
+!.ai-log/heartbeat-*.md
