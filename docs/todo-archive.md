@@ -41,3 +41,11 @@ Finished Todos, moved here by autopilot.
   verify: `node scripts/check-hammer.mjs`
   commit: T08: 594767e
 
+
+- [x] T04 [KO] 기종·버전 혼합 N대 경량 기동 + 전후 수치 비교
+  area: src/profiles.ts, profiles/galaxy.json, src/up.ts, src/cli.ts, scripts/check-up.mjs, docs/measurements/after.md
+  model: opus
+  review: required
+  accept: `profiles/galaxy.json` holds the 10 profiles from `docs/source/research-samsung-screens.md` (name, width, height, density, min Android) with a `densitySource` field (`blisk`/`yesviz`/`chrome`/`unverified`) — values unconfirmed by a real device stay marked. Download up to 2 more `google_atd` images (e.g. API 31 and 36; ADR 0003 decides). `crewdroid up --count N [--profiles a,b,..] [--base-port] [--json]` starts N `-read-only` instances with `-no-window -no-audio -no-boot-anim -cores 2 -memory 2048`, never two with the same profile+API while N <= profile count, applies `wm size`/`wm density` after boot, waits for `sys.boot_completed`, prints serial/profile/API per device. `crewdroid down` kills only crewdroid instances (by port range / AVD name `crew-*`). `crewdroid measure --up 3` measures the same metrics as T01; `docs/measurements/after.md` puts T01 baseline and this side by side (disk total, boot s, RAM MB, CPU %) with the delta.
+  verify: `npx tsx src/cli.ts up --count 3 --json > docs/measurements/up.json && node scripts/check-up.mjs docs/measurements/up.json && npx tsx src/cli.ts measure --up 3 --json --out docs/measurements/after.json && node scripts/check-measure.mjs docs/measurements/after.json 3 && npx tsx src/cli.ts down`
+  commit: T04: 0018d89
