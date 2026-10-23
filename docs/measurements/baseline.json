@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-23T08:09:00.550Z",
+  "pc": {
+    "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "cores": 16,
+    "ramGB": 64,
+    "os": "win32 10.0.26300"
+  },
+  "emulatorVersion": "37.1.11.0",
+  "idleSeconds": 60,
+  "devices": [
+    {
+      "avd": "old-avd-1",
+      "serial": "emulator-5580",
+      "avdDirBytes": 6247652024,
+      "diskBytes": 15022154184,
+      "bootSeconds": 31.6,
+      "ramMB": 2843,
+      "cpuPercent": 347.1
+    },
+    {
+      "avd": "old-avd-2",
+      "serial": "emulator-5582",
+      "avdDirBytes": 5903447065,
+      "diskBytes": 5903447065,
+      "bootSeconds": 27.4,
+      "ramMB": 2813,
+      "cpuPercent": 334.9
+    },
+    {
+      "avd": "old-avd-3",
+      "serial": "emulator-5584",
+      "avdDirBytes": 5632715423,
+      "diskBytes": 5632715423,
+      "bootSeconds": 23.3,
+      "ramMB": 2797,
+      "cpuPercent": 317.5
+    }
+  ]
+}
