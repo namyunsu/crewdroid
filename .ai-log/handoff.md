@@ -1,4 +1,4 @@
-# Handoff (2026-10-24 01:44, shift 10)
+# Handoff (2026-10-24 01:45, shift 11)
 이번 shift: 일 못 함. 옛 shift(PID 28620)가 slim --json·에뮬(PID 7324, API36 :5580)을 아직 돌림(미커밋 src/avd.ts·cli.ts·snapshot.ts·slim.ts 가 그 작업물). 누구도 죽이지 않음.
 다음: 옛 shift 종료 후 T15 재개(미커밋 변경 확인부터).
 다음: 옛 shift 가 끝나거나 사람이 PID 28620 을 정리한 뒤 T15 재개 (T15 → T16 → T17 → T18 → T19).
