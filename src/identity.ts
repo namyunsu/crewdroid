@@ -64,7 +64,7 @@ export async function makeDistinct(serial: string, idx: number): Promise<string[
   else {
     writeFileSync(tmp, Buffer.from(buf.replaceAll(key, `${hex(idx)}`.repeat(32).toUpperCase()), "latin1"));
     await adb(serial, ["push", tmp, ssaid]);
-    await adb(serial, ["shell", `chown system:system ${ssaid}; restorecon ${ssaid}; setprop sys.boot_completed 0; stop; start`]);
+    await adb(serial, ["shell", `chown system:system ${ssaid}; restorecon ${ssaid}; setprop sys.boot_completed 0; stop; start || true`]); // AI NOTE: API 31 ATD fails to start 'zygote_secondary' (64-bit only) but the framework comes back; waitBoot below is the real check
     await sleep(5000);
     await waitBoot(serial, Date.now(), 120000);
     await sleep(5000);

@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-23T09:34:15.249Z",
+  "pc": {
+    "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "cores": 16,
+    "ramGB": 64,
+    "os": "win32 10.0.26300"
+  },
+  "emulatorVersion": "37.1.11.0",
+  "idleSeconds": 60,
+  "diskTotalBytes": 41483473232,
+  "devices": [
+    {
+      "avd": "crew-android-31-google_atd",
+      "serial": "emulator-5580",
+      "profile": "s22",
+      "api": 31,
+      "avdDirBytes": 15071146672,
+      "diskBytes": 19543794888,
+      "bootSeconds": 9.1,
+      "readySeconds": 33.8,
+      "ramMB": 2901,
+      "cpuPercent": 22
+    },
+    {
+      "avd": "crew-android-34-google_atd",
+      "serial": "emulator-5582",
+      "profile": "s24ultra",
+      "api": 34,
+      "avdDirBytes": 5209118550,
+      "diskBytes": 13967908279,
+      "bootSeconds": 6.1,
+      "readySeconds": 32.2,
+      "ramMB": 3278,
+      "cpuPercent": 21.7
+    },
+    {
+      "avd": "crew-android-36-google_atd",
+      "serial": "emulator-5584",
+      "profile": "s26ultra",
+      "api": 36,
+      "avdDirBytes": 5907161135,
+      "diskBytes": 7971770065,
+      "bootSeconds": 6.2,
+      "readySeconds": 33.3,
+      "ramMB": 3340,
+      "cpuPercent": 66.1
+    }
+  ]
+}

@@ -14,7 +14,7 @@ export interface Device {
   bootSeconds: number; ramMB: number; cpuPercent: number;
 }
 
-function dirBytes(p: string): number {
+export function dirBytes(p: string): number {
   let n = 0;
   for (const e of readdirSync(p, { withFileTypes: true })) {
     const f = join(p, e.name);
@@ -31,18 +31,20 @@ function avdDir(name: string): string {
   return d;
 }
 
-function sysImageDir(avd: string): string {
+export function sysImageDir(avd: string): string {
   const m = readFileSync(join(avd, "config.ini"), "utf8").match(/^image\.sysdir\.1\s*=\s*(.+)$/m);
   if (!m) throw new Error("image.sysdir.1 missing in config.ini");
   return resolve(sdkRoot(), m[1].trim());
 }
 
-// Win32 process rows (emulator launcher + qemu child) whose command line names this AVD.
-async function procs(avd: string): Promise<{ ws: number; cpu: number }> {
-  const ps = `$r=@(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match '(^|[ @"])${avd}([ "]|$)' -and $_.Name -match 'emulator|qemu' } | ForEach-Object { $p=Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue; if($p){ [pscustomobject]@{ws=$p.WorkingSet64;cpu=$p.TotalProcessorTime.TotalSeconds} } }); ConvertTo-Json -Compress -InputObject @($r)`;
+const avdRe = (avd: string) => `(^|[ @"])${avd}([ "]|$)`;
+
+// Win32 process rows (emulator launcher + qemu child) whose command line matches `re` (PowerShell regex).
+export async function procs(re: string): Promise<{ ws: number; cpu: number }> {
+  const ps = `$r=@(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match '${re}' -and $_.Name -match 'emulator|qemu' } | ForEach-Object { $p=Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue; if($p){ [pscustomobject]@{ws=$p.WorkingSet64;cpu=$p.TotalProcessorTime.TotalSeconds} } }); ConvertTo-Json -Compress -InputObject @($r)`;
   const { stdout } = await run("powershell", ["-NoProfile", "-Command", ps], { windowsHide: true });
   const rows = JSON.parse(stdout.trim() || "[]") as { ws: number; cpu: number }[];
-  if (!rows.length) throw new Error(`no emulator process found for ${avd}`);
+  if (!rows.length) throw new Error(`no emulator process found for ${re}`);
   return { ws: rows.reduce((a, r) => a + r.ws, 0), cpu: rows.reduce((a, r) => a + r.cpu, 0) };
 }
 
@@ -72,10 +74,10 @@ export async function measure(avds: string[], basePort: number, idleSec = 60) {
       await sleep(3000); // AI NOTE: launching 3 emulators in the same instant intermittently hung one at startup (log stops after GPU init); a 3 s stagger avoids it
     }
     const boots = await Promise.all(started.map((s) => waitBoot(s.serial, s.t0)));
-    const before = await Promise.all(started.map((s) => procs(s.avd)));
+    const before = await Promise.all(started.map((s) => procs(avdRe(s.avd))));
     const w0 = Date.now();
     await sleep(idleSec * 1000);
-    const after = await Promise.all(started.map((s) => procs(s.avd)));
+    const after = await Promise.all(started.map((s) => procs(avdRe(s.avd))));
     const wall = (Date.now() - w0) / 1000;
 
     const imgSeen = new Set<string>();

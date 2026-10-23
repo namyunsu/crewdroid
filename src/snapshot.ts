@@ -34,11 +34,15 @@ export async function prepare(image: string, port = 5580) {
   const serial = `emulator-${port}`;
   if (!existsSync(probeApk())) throw new Error(`probe apk missing: ${probeApk()} (run gradlew assembleDebug in probe-app/)`);
   try {
-    start(name, port, false);
+    start(name, port, false, ["-no-snapshot-load"]); // cold boot: re-preparing must not start from the old snapshot
     const bootSeconds = await waitBoot(serial, Date.now());
     await sleep(10000); // let boot-time jobs settle so the snapshot is clean
     await adb(serial, ["install", "-r", probeApk()], 120000);
     await adb(serial, ["shell", "pm", "grant", PKG, "android.permission.CAMERA"]);
+    // AI NOTE: on an API 31 clone restored from a non-root snapshot, `adb root` leaves the device offline for good;
+    // saving the snapshot with adbd already root makes the clone's `adb root` a no-op.
+    await adb(serial, ["root"], 20000);
+    await sleep(3000);
     await adb(serial, ["emu", "avd", "snapshot", "save", SNAPSHOT], 120000);
     return { avd: name, snapshot: SNAPSHOT, bootSeconds };
   } finally {

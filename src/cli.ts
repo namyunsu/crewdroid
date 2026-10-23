@@ -5,6 +5,7 @@ import { judge } from "./judge.ts";
 import { prepare } from "./snapshot.ts";
 import { identity } from "./identity.ts";
 import { hammer } from "./hammer.ts";
+import { down, measureUp, up } from "./up.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -13,7 +14,7 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
-    image: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false },
+    image: { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
   },
@@ -22,8 +23,10 @@ const { positionals, values } = parseArgs({
 async function main() {
   const [cmd] = positionals;
   if (cmd === "measure") {
-    if (!values.avd) throw new Error("--avd a,b,c required");
-    const r = await measure(values.avd.split(","), Number(values["base-port"]), Number(values["idle-seconds"]));
+    if (!values.avd && !values.up) throw new Error("--avd a,b,c or --up N required");
+    const r = values.up
+      ? await measureUp(Number(values.up), Number(values["base-port"]), Number(values["idle-seconds"]), values.profiles?.split(","))
+      : await measure(values.avd!.split(","), Number(values["base-port"]), Number(values["idle-seconds"]));
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
     console.log(values.json ? text : r.devices.map((d) => `${d.avd} disk=${d.diskBytes} boot=${d.bootSeconds}s ram=${d.ramMB}MB cpu=${d.cpuPercent}%`).join("\n"));
@@ -49,6 +52,16 @@ async function main() {
     console.log(values.json || cmd === "prepare" ? text : `collisions: ${(r as any).collisions.join(",") || "none"}; still same after: ${(r as any).stillSame.join(",") || "none"}`);
     return;
   }
+  if (cmd === "up") {
+    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","));
+    console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density}`).join("\n"));
+    return;
+  }
+  if (cmd === "down") {
+    const r = await down();
+    console.log(values.json ? JSON.stringify(r) : `killed ${r.killed.length} processes (ports: ${r.ports.join(",") || "none"})`);
+    return;
+  }
   if (cmd === "hammer") {
     if (!values.url) throw new Error("--url <base> required");
     const r = await hammer({ url: values.url, users: Number(values.users), repeat: Number(values.repeat), jitter: Number(values.jitter), retryRate: Number(values["retry-rate"]), seed: Number(values.seed), rules: values.rules });
@@ -61,7 +74,7 @@ async function main() {
     if (!r.judge.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: measure, judge, prepare, identity, hammer)`);
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer)`);
 }
 
 main().catch((e) => {
