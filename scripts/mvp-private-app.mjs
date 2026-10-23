@@ -73,10 +73,24 @@ const gif = join(root, "docs/demo/techs.gif");
 mkdirSync(join(root, "docs/demo"), { recursive: true });
 if (result.videos?.length === 3) {
   for (const [h, fps] of [[480, 8], [400, 6], [320, 5], [240, 4]]) {
-    const scaled = result.videos.map((_, i) => `[${i}:v]fps=${fps},scale=-2:${h}[v${i}]`).join(";");
+    // AI NOTE: frame 0 of every --bugreport recording is the "Android screenrecord v1.4" intro text. A static/black screen emits no
+    // frames, so it stays up until the first real frame (18.9 s on the API 36 device in T11): drop it, keep the original pts.
+    const scaled = result.videos.map((_, i) => `[${i}:v]select='gt(n,0)',fps=${fps},scale=-2:${h}[v${i}]`).join(";");
     const fc = `${scaled};[v0][v1][v2]hstack=inputs=3,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer`;
     await run("ffmpeg", ["-y", "-loglevel", "error", ...result.videos.flatMap((f) => ["-i", f]), "-filter_complex", fc, gif], { windowsHide: true, maxBuffer: 2 ** 26 });
     result.gif = { path: "docs/demo/techs.gif", height: h, fps, bytes: statSync(gif).size };
+    // panel x-ranges: scale=-2:h gives each video width = h * w / h0 rounded to even; they must add up to the GIF width
+    const dim = async (f) => (await run("ffprobe", ["-v", "error", "-select_streams", "v", "-show_entries", "stream=width,height", "-of", "csv=p=0", f], { windowsHide: true })).stdout.trim().split(",").map(Number);
+    let x = 0;
+    result.gif.panels = [];
+    for (const [i, f] of result.videos.entries()) {
+      const [w0, h0] = await dim(f);
+      const width = 2 * Math.round((h * w0) / h0 / 2);
+      const d = result.devices[i];
+      result.gif.panels.push({ serial: d.serial, profile: d.profile, api: d.api, x, width, height: h });
+      x += width;
+    }
+    if ((await dim(gif))[0] !== x) throw new Error(`panel widths ${x} != gif width`);
     if (result.gif.bytes <= 10 * 2 ** 20) break;
   }
 }

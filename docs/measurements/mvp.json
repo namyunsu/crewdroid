@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-23T11:30:30.306Z",
+  "date": "2026-10-23T13:47:47.571Z",
   "runsWanted": 3,
   "profiles": [
     "s22",
@@ -15,10 +15,10 @@
       "size": "1080x2340@480",
       "avd": "crew-android-31-google_atd",
       "diskBytes": 19543794888,
-      "bootSeconds": 9.1,
-      "readySeconds": 33.8,
-      "ramMB": 2767,
-      "cpuPercent": 13.8
+      "bootSeconds": 22.1,
+      "readySeconds": 46.7,
+      "ramMB": 2924,
+      "cpuPercent": 108.6
     },
     {
       "serial": "emulator-5572",
@@ -27,11 +27,11 @@
       "api": 34,
       "size": "1812x2176@420",
       "avd": "crew-android-34-google_atd",
-      "diskBytes": 13967908314,
-      "bootSeconds": 6.1,
-      "readySeconds": 33.8,
-      "ramMB": 3135,
-      "cpuPercent": 16.1
+      "diskBytes": 13967908509,
+      "bootSeconds": 6.3,
+      "readySeconds": 32.8,
+      "ramMB": 3273,
+      "cpuPercent": 30.8
     },
     {
       "serial": "emulator-5574",
@@ -40,11 +40,11 @@
       "api": 36,
       "size": "1080x2520@480",
       "avd": "crew-android-36-google_atd",
-      "diskBytes": 7971770065,
-      "bootSeconds": 31.4,
-      "readySeconds": 58.6,
-      "ramMB": 3335,
-      "cpuPercent": 67
+      "diskBytes": 7971770257,
+      "bootSeconds": 6.3,
+      "readySeconds": 33.5,
+      "ramMB": 3336,
+      "cpuPercent": 53.6
     }
   ],
   "runs": [
@@ -52,49 +52,49 @@
       "run": 1,
       "ok": true,
       "exit": 0,
-      "wallSeconds": 60.3,
-      "testSeconds": 37,
-      "totalSeconds": 59.6,
-      "emuCpuPercent": 304.8,
-      "emuRamMB": 9738,
-      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (37.0s)\nAVD_DOWN_OK\n\n  1 passed (59.6s)\nE2E_MULTI_OK\n"
+      "wallSeconds": 63.7,
+      "testSeconds": 41.5,
+      "totalSeconds": 66,
+      "emuCpuPercent": 311.9,
+      "emuRamMB": 10316,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (41.5s)\nAVD_DOWN_OK\n\n  1 passed (1.1m)\nE2E_MULTI_OK\n"
     },
     {
       "run": 2,
       "ok": true,
       "exit": 0,
-      "wallSeconds": 56.7,
-      "testSeconds": 34.9,
-      "totalSeconds": 56,
-      "emuCpuPercent": 206,
-      "emuRamMB": 7432,
-      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (34.9s)\nAVD_DOWN_OK\n\n  1 passed (56.0s)\nE2E_MULTI_OK\n"
+      "wallSeconds": 61,
+      "testSeconds": 39,
+      "totalSeconds": 60,
+      "emuCpuPercent": 197.9,
+      "emuRamMB": 7726,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (39.0s)\nAVD_DOWN_OK\n\n  1 passed (1.0m)\nE2E_MULTI_OK\n"
     },
     {
       "run": 3,
       "ok": true,
       "exit": 0,
-      "wallSeconds": 56.2,
-      "testSeconds": 34.5,
-      "totalSeconds": 55.5,
-      "emuCpuPercent": 219.4,
-      "emuRamMB": 5988,
-      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (34.5s)\nAVD_DOWN_OK\n\n  1 passed (55.5s)\nE2E_MULTI_OK\n"
+      "wallSeconds": 59.1,
+      "testSeconds": 37,
+      "totalSeconds": 58.4,
+      "emuCpuPercent": 201.6,
+      "emuRamMB": 6161,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (37.0s)\nAVD_DOWN_OK\n\n  1 passed (58.4s)\nE2E_MULTI_OK\n"
     }
   ],
   "videos": [
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-aUzWVS\\emulator-5570.mp4",
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-aUzWVS\\emulator-5572.mp4",
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-aUzWVS\\emulator-5574.mp4"
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-iw1OSZ\\emulator-5570.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-iw1OSZ\\emulator-5572.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-iw1OSZ\\emulator-5574.mp4"
   ],
   "down": {
     "killed": [
-      28884,
-      10580,
-      25908,
-      26000,
-      26200,
-      28512
+      10656,
+      14836,
+      1232,
+      3004,
+      412,
+      20892
     ],
     "ports": [
       5570,
@@ -106,7 +106,33 @@
     "path": "docs/demo/techs.gif",
     "height": 480,
     "fps": 8,
-    "bytes": 1411461
+    "bytes": 837346,
+    "panels": [
+      {
+        "serial": "emulator-5570",
+        "profile": "s22",
+        "api": 31,
+        "x": 0,
+        "width": 222,
+        "height": 480
+      },
+      {
+        "serial": "emulator-5572",
+        "profile": "fold5-main",
+        "api": 34,
+        "x": 222,
+        "width": 400,
+        "height": 480
+      },
+      {
+        "serial": "emulator-5574",
+        "profile": "flip7-main",
+        "api": 36,
+        "x": 622,
+        "width": 206,
+        "height": 480
+      }
+    ]
   },
   "ok": true,
   "old": {
