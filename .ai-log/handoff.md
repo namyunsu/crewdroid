@@ -1,4 +1,4 @@
-# Handoff (2026-10-24 shift 117)
+# Handoff (2026-10-24 shift 119)
 shift 108~117: 다른 세션의 node loop2.mts(PID 31112, 포트 5570)와 에뮬레이터 3대가 살아 있어 아무것도 돌리지 않음. 정리되면 재개.
 이번 shift: 진행 못 함. check-scenario는 다른 세션이 끝냄(OK: BUGGY 3/3 잡고 clean 3/3 통과) [확인함 .ai-log/evidence/T15-master.txt].
 그 뒤 내가 slim·check-disk·mvp-private-app를 돌렸으나 다른 세션이 5570 포트에서 t15b/loop.mts(에뮬레이터)를 돌리는 중이라 충돌 → T15-final.txt는 무효(재실행 필요).
