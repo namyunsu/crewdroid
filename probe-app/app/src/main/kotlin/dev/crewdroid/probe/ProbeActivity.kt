@@ -15,12 +15,10 @@ import android.os.HandlerThread
 import android.provider.MediaStore
 import android.util.Log
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id [--es url URL] [--es file PATH]
+// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id [--es url URL] [--es file PATH]
 // upload extras: --ei size N (N zero-ish bytes instead of a file), --es key IDEMPOTENCY_KEY, --es client X_CLIENT_ID
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
@@ -32,7 +30,7 @@ class ProbeActivity : Activity() {
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
-        val check = intent.getStringExtra("check") ?: return finish()
+        val check = intent.getStringExtra("check") ?: return sample()
         when (check) {
             "camera" -> Thread { report("CAMERA", camera()); runOnUiThread { finish() } }.start()
             "picker" -> picker()
@@ -48,6 +46,13 @@ class ProbeActivity : Activity() {
             }.start()
             else -> { report(check.uppercase(), "fail unknown check"); finish() }
         }
+    }
+
+    // Plain launch (launcher / am start without extras) = the sample app screen; it stays open so the outbox thread keeps running.
+    private fun sample() {
+        Outbox.init(this)
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        setContentView(android.widget.TextView(this).apply { text = "Crew sample app\noutbox: ${Outbox.size()} pending"; textSize = 20f; setPadding(48, 96, 48, 48) })
     }
 
     private fun report(name: String, result: String) { Log.i(tag, "$name $result") }
@@ -128,34 +133,14 @@ class ProbeActivity : Activity() {
     private fun upload(url: String, path: String?, size: Int, key: String?, client: String?): String {
         val file = path?.let { File(it) } ?: cameraJpeg
         val payload = if (size > 0) ByteArray(size) { (it % 251).toByte() } else if (file.exists()) file.readBytes() else ByteArray(4096) { (it % 251).toByte() }
-        val boundary = "----crew${System.nanoTime()}"
         return try {
-            val c = URL(url).openConnection() as HttpURLConnection
-            c.requestMethod = "POST"; c.doOutput = true; c.connectTimeout = 10000; c.readTimeout = 20000
+            val (type, body) = multipart(file.name, payload)
             // sample server (sample/server/app.ts) requires both headers
-            c.setRequestProperty("x-client-id", client ?: android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "probe")
-            c.setRequestProperty("idempotency-key", key ?: java.util.UUID.randomUUID().toString())
-            c.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-            val head = "--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"${file.name}\"\r\nContent-Type: image/jpeg\r\n\r\n".toByteArray()
-            val tail = "\r\n--$boundary--\r\n".toByteArray()
-            c.setFixedLengthStreamingMode(head.size + payload.size + tail.size)
-            // AI NOTE: a stalled socket (net nodata mid-transfer) never errors by itself and HttpURLConnection has no write timeout,
-            // so a watchdog drops the connection when no byte moved for 10 s.
-            val last = java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis())
-            val done = java.util.concurrent.atomic.AtomicBoolean(false)
-            Thread { while (!done.get()) { Thread.sleep(1000); if (System.currentTimeMillis() - last.get() > 10000) { c.disconnect(); break } } }.start()
-            try {
-                c.outputStream.use { o ->
-                    o.write(head)
-                    var i = 0
-                    while (i < payload.size) { val n = minOf(16384, payload.size - i); o.write(payload, i, n); i += n; last.set(System.currentTimeMillis()) }
-                    o.write(tail)
-                }
-                last.set(System.currentTimeMillis())
-                val code = c.responseCode
-                done.set(true)
-                return if (code in 200..299) "ok ${payload.size}" else "fail http $code"
-            } finally { done.set(true) }
+            val (code, _) = http("POST", url, mapOf(
+                "x-client-id" to (client ?: android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "probe"),
+                "idempotency-key" to (key ?: java.util.UUID.randomUUID().toString()),
+                "Content-Type" to type), body)
+            if (code in 200..299) "ok ${payload.size}" else "fail http $code"
         } catch (e: Exception) { "fail ${e.javaClass.simpleName}: ${e.message}".replace('\n', ' ') }
     }
 }
