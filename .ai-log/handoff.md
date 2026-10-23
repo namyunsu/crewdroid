@@ -10,3 +10,5 @@ T15 현황: idle 6.63GiB / running 7GiB ≤ 8GiB, 부팅 평균 6.73s (T04 7.13s
 - shift 132: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류. 사람이 해당 세션을 끝내야 재개됨.
 - shift 133: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
 - shift 134: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
+- shift 135: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
+- shift 136: 동일하게 PID 18224 loop.mts + 에뮬레이터 3대 점유, 보류.
