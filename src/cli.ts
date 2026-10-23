@@ -7,6 +7,7 @@ import { identity } from "./identity.ts";
 import { hammer } from "./hammer.ts";
 import { flakyLoop, setNet, type NetState } from "./net.ts";
 import { down, measureUp, up } from "./up.ts";
+import { runScenario } from "./scenario.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -18,6 +19,7 @@ const { positionals, values } = parseArgs({
     image: { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
+    "server-port": { type: "string", default: "5599" },
   },
 });
 
@@ -83,7 +85,22 @@ async function main() {
     if (!r.judge.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer, net)`);
+  if (cmd === "run") {
+    const [, file] = positionals;
+    if (!file) throw new Error("usage: run <scenario.json> [--seed N] [--count 3] [--server-port 5599] [--out file]");
+    const r = await runScenario(file, { count: Number(values.count), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]) });
+    const text = JSON.stringify(r, null, 2);
+    if (values.out) writeFileSync(values.out, text + "\n");
+    if (values.json) console.log(text);
+    else {
+      for (const d of r.devices) console.log(`${d.serial} ${d.profile} API ${d.api} net: ${d.network.map((x) => `${x.t}s ${x.state}`).join(", ")} | ${Object.entries(d.log).map(([k, n]) => `${k}=${n}`).join(" ")}`);
+      for (const v of r.judge.violations) console.log(`VIOLATION ${v.table} ${v.rule}: ${v.message}`);
+      console.log(`${r.ok ? "OK" : "FAIL"}: drained=${r.drained} (${r.drainSeconds}s) violations=${r.judge.violations.length} wall=${r.wallSeconds}s peak cpu=${r.host.peakCpuPercent}% ram=${r.host.peakRamMB}MB seed=${r.seed}`);
+    }
+    if (!r.ok) process.exitCode = 1;
+    return;
+  }
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer, net, run)`);
 }
 
 main().catch((e) => {

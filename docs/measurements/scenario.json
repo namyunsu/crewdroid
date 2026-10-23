@@ -1,0 +1,1483 @@
+[
+  {
+    "buggy": true,
+    "seed": 1,
+    "exit": 1,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 1,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-23T11:05:41.726Z",
+      "ok": false,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 2.3,
+              "state": "airplane"
+            },
+            {
+              "t": 13.3,
+              "state": "online"
+            },
+            {
+              "t": 16.4,
+              "state": "nodata"
+            },
+            {
+              "t": 26,
+              "state": "online"
+            },
+            {
+              "t": 28.4,
+              "state": "slow"
+            },
+            {
+              "t": 38,
+              "state": "online"
+            },
+            {
+              "t": 42.4,
+              "state": "flaky"
+            },
+            {
+              "t": 54.6,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 4,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 4,
+              "state": "nodata"
+            },
+            {
+              "t": 15.3,
+              "state": "online"
+            },
+            {
+              "t": 19.8,
+              "state": "slow"
+            },
+            {
+              "t": 31.7,
+              "state": "online"
+            },
+            {
+              "t": 36.2,
+              "state": "flaky"
+            },
+            {
+              "t": 44,
+              "state": "online"
+            },
+            {
+              "t": 46.8,
+              "state": "airplane"
+            },
+            {
+              "t": 57.9,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 10,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 3.6,
+              "state": "slow"
+            },
+            {
+              "t": 15.6,
+              "state": "online"
+            },
+            {
+              "t": 19,
+              "state": "flaky"
+            },
+            {
+              "t": 31.2,
+              "state": "online"
+            },
+            {
+              "t": 34,
+              "state": "airplane"
+            },
+            {
+              "t": 46.1,
+              "state": "online"
+            },
+            {
+              "t": 48.9,
+              "state": "nodata"
+            },
+            {
+              "t": 56.3,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 11,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": false,
+        "rules": 3,
+        "violations": [
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=0; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-0"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 2,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-0"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 5,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-2"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=0; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-1"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 2,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-0"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=2; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 2,
+                "version": 3,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-2"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 2,
+                "version": 5,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-1"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=6; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 6,
+                "version": 7,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-4"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 6,
+                "version": 8,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-4"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 6,
+                "version": 10,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-5"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=8; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 9,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-5"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 11,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-5"
+              }
+            ]
+          }
+        ]
+      },
+      "wallSeconds": 114,
+      "host": {
+        "peakCpuPercent": 44,
+        "peakRamMB": 29250,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  },
+  {
+    "buggy": false,
+    "seed": 1,
+    "exit": 0,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 1,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-23T11:07:49.799Z",
+      "ok": true,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 2.3,
+              "state": "airplane"
+            },
+            {
+              "t": 13.3,
+              "state": "online"
+            },
+            {
+              "t": 16.4,
+              "state": "nodata"
+            },
+            {
+              "t": 26.1,
+              "state": "online"
+            },
+            {
+              "t": 28.5,
+              "state": "slow"
+            },
+            {
+              "t": 38.1,
+              "state": "online"
+            },
+            {
+              "t": 42.5,
+              "state": "flaky"
+            },
+            {
+              "t": 54.7,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 11,
+            "RETRY": 9,
+            "CONFLICT": 5,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 4,
+              "state": "nodata"
+            },
+            {
+              "t": 15.3,
+              "state": "online"
+            },
+            {
+              "t": 19.8,
+              "state": "slow"
+            },
+            {
+              "t": 31.6,
+              "state": "online"
+            },
+            {
+              "t": 36.1,
+              "state": "flaky"
+            },
+            {
+              "t": 43.9,
+              "state": "online"
+            },
+            {
+              "t": 46.7,
+              "state": "airplane"
+            },
+            {
+              "t": 57.9,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 12,
+            "RETRY": 7,
+            "CONFLICT": 4,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 3.6,
+              "state": "slow"
+            },
+            {
+              "t": 15.6,
+              "state": "online"
+            },
+            {
+              "t": 18.9,
+              "state": "flaky"
+            },
+            {
+              "t": 31.1,
+              "state": "online"
+            },
+            {
+              "t": 33.9,
+              "state": "airplane"
+            },
+            {
+              "t": 46.1,
+              "state": "online"
+            },
+            {
+              "t": 48.8,
+              "state": "nodata"
+            },
+            {
+              "t": 56.3,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 13,
+            "RETRY": 11,
+            "CONFLICT": 3,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": true,
+        "rules": 3,
+        "violations": []
+      },
+      "wallSeconds": 122,
+      "host": {
+        "peakCpuPercent": 47,
+        "peakRamMB": 29066,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  },
+  {
+    "buggy": true,
+    "seed": 2,
+    "exit": 1,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 2,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-23T11:10:00.275Z",
+      "ok": false,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 3,
+              "state": "airplane"
+            },
+            {
+              "t": 12.4,
+              "state": "online"
+            },
+            {
+              "t": 18.4,
+              "state": "nodata"
+            },
+            {
+              "t": 26,
+              "state": "online"
+            },
+            {
+              "t": 30.2,
+              "state": "slow"
+            },
+            {
+              "t": 37.3,
+              "state": "online"
+            },
+            {
+              "t": 39.7,
+              "state": "flaky"
+            },
+            {
+              "t": 50.9,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 0,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 3.6,
+              "state": "nodata"
+            },
+            {
+              "t": 9.5,
+              "state": "online"
+            },
+            {
+              "t": 14.8,
+              "state": "slow"
+            },
+            {
+              "t": 23.5,
+              "state": "online"
+            },
+            {
+              "t": 27.7,
+              "state": "flaky"
+            },
+            {
+              "t": 34.3,
+              "state": "online"
+            },
+            {
+              "t": 36.6,
+              "state": "airplane"
+            },
+            {
+              "t": 45.9,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 10,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 2.1,
+              "state": "slow"
+            },
+            {
+              "t": 10.2,
+              "state": "online"
+            },
+            {
+              "t": 13.3,
+              "state": "flaky"
+            },
+            {
+              "t": 20,
+              "state": "online"
+            },
+            {
+              "t": 22.8,
+              "state": "airplane"
+            },
+            {
+              "t": 29.2,
+              "state": "online"
+            },
+            {
+              "t": 33,
+              "state": "nodata"
+            },
+            {
+              "t": 39.2,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 8,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": false,
+        "rules": 3,
+        "violations": [
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=0; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-0"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 3,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-0"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=0; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-0"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 4,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-1"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=1; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 1,
+                "version": 2,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-2"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 1,
+                "version": 2,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-1"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=3; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 3,
+                "version": 5,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-3"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 3,
+                "version": 6,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-4"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=5; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 5,
+                "version": 7,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-2"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 5,
+                "version": 8,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-4"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=4; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 5,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-6"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 6,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-3"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 7,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-5"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=7; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 7,
+                "version": 8,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-7"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 7,
+                "version": 9,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-7"
+              }
+            ]
+          }
+        ]
+      },
+      "wallSeconds": 125,
+      "host": {
+        "peakCpuPercent": 46,
+        "peakRamMB": 28182,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  },
+  {
+    "buggy": false,
+    "seed": 2,
+    "exit": 0,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 2,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-23T11:11:51.193Z",
+      "ok": true,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 3,
+              "state": "airplane"
+            },
+            {
+              "t": 12.4,
+              "state": "online"
+            },
+            {
+              "t": 18.4,
+              "state": "nodata"
+            },
+            {
+              "t": 25.9,
+              "state": "online"
+            },
+            {
+              "t": 30.2,
+              "state": "slow"
+            },
+            {
+              "t": 37.3,
+              "state": "online"
+            },
+            {
+              "t": 39.6,
+              "state": "flaky"
+            },
+            {
+              "t": 50.9,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 12,
+            "RETRY": 9,
+            "CONFLICT": 4,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 3.6,
+              "state": "nodata"
+            },
+            {
+              "t": 9.4,
+              "state": "online"
+            },
+            {
+              "t": 14.8,
+              "state": "slow"
+            },
+            {
+              "t": 23.4,
+              "state": "online"
+            },
+            {
+              "t": 27.7,
+              "state": "flaky"
+            },
+            {
+              "t": 34.3,
+              "state": "online"
+            },
+            {
+              "t": 36.6,
+              "state": "airplane"
+            },
+            {
+              "t": 45.8,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 11,
+            "RETRY": 10,
+            "CONFLICT": 5,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 2.1,
+              "state": "slow"
+            },
+            {
+              "t": 10.2,
+              "state": "online"
+            },
+            {
+              "t": 13.3,
+              "state": "flaky"
+            },
+            {
+              "t": 20,
+              "state": "online"
+            },
+            {
+              "t": 22.7,
+              "state": "airplane"
+            },
+            {
+              "t": 29.2,
+              "state": "online"
+            },
+            {
+              "t": 33,
+              "state": "nodata"
+            },
+            {
+              "t": 39.2,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 14,
+            "RETRY": 8,
+            "CONFLICT": 2,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": true,
+        "rules": 3,
+        "violations": []
+      },
+      "wallSeconds": 105,
+      "host": {
+        "peakCpuPercent": 43,
+        "peakRamMB": 28228,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  },
+  {
+    "buggy": true,
+    "seed": 3,
+    "exit": 1,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 3,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-23T11:13:52.868Z",
+      "ok": false,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 4,
+              "state": "airplane"
+            },
+            {
+              "t": 15.8,
+              "state": "online"
+            },
+            {
+              "t": 21.5,
+              "state": "nodata"
+            },
+            {
+              "t": 28.1,
+              "state": "online"
+            },
+            {
+              "t": 30.8,
+              "state": "slow"
+            },
+            {
+              "t": 41,
+              "state": "online"
+            },
+            {
+              "t": 45.1,
+              "state": "flaky"
+            },
+            {
+              "t": 50.4,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 5,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 5.1,
+              "state": "nodata"
+            },
+            {
+              "t": 15,
+              "state": "online"
+            },
+            {
+              "t": 18.6,
+              "state": "slow"
+            },
+            {
+              "t": 25.1,
+              "state": "online"
+            },
+            {
+              "t": 28,
+              "state": "flaky"
+            },
+            {
+              "t": 38.9,
+              "state": "online"
+            },
+            {
+              "t": 41.5,
+              "state": "airplane"
+            },
+            {
+              "t": 47.4,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 6,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 3.9,
+              "state": "slow"
+            },
+            {
+              "t": 10.1,
+              "state": "online"
+            },
+            {
+              "t": 15.2,
+              "state": "flaky"
+            },
+            {
+              "t": 23.7,
+              "state": "online"
+            },
+            {
+              "t": 29.6,
+              "state": "airplane"
+            },
+            {
+              "t": 41,
+              "state": "online"
+            },
+            {
+              "t": 46.4,
+              "state": "nodata"
+            },
+            {
+              "t": 58.3,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 12,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": false,
+        "rules": 3,
+        "violations": [
+          {
+            "rule": "count(acks)",
+            "table": "uploads",
+            "message": "missing 1 of 24 expected key values (table has 23 rows)",
+            "rows": [
+              {
+                "id": "4e1530c9-1ded-4868-923b-90c6f5ddd344",
+                "key": "f58a72d4-be73-41d9-94d2-5f6332e547c5",
+                "clientId": "caec0ef41bba6928"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r1\" all based on baseVersion=0; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-0"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 2,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-1"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 3,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-2"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=1; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 1,
+                "version": 2,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-1"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 1,
+                "version": 3,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-0"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 1,
+                "version": 4,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-1"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=4; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 7,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-2"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 8,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-3"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=3; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 3,
+                "version": 4,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-4"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 3,
+                "version": 6,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-4"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=4; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 4,
+                "version": 5,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-5"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 4,
+                "version": 7,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-5"
+              }
+            ]
+          }
+        ]
+      },
+      "wallSeconds": 116,
+      "host": {
+        "peakCpuPercent": 47,
+        "peakRamMB": 28280,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  },
+  {
+    "buggy": false,
+    "seed": 3,
+    "exit": 0,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 3,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-23T11:15:54.955Z",
+      "ok": true,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 4,
+              "state": "airplane"
+            },
+            {
+              "t": 15.8,
+              "state": "online"
+            },
+            {
+              "t": 21.5,
+              "state": "nodata"
+            },
+            {
+              "t": 28.1,
+              "state": "online"
+            },
+            {
+              "t": 30.7,
+              "state": "slow"
+            },
+            {
+              "t": 41,
+              "state": "online"
+            },
+            {
+              "t": 45.1,
+              "state": "flaky"
+            },
+            {
+              "t": 50.3,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 13,
+            "RETRY": 10,
+            "CONFLICT": 3,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 5.1,
+              "state": "nodata"
+            },
+            {
+              "t": 15,
+              "state": "online"
+            },
+            {
+              "t": 18.6,
+              "state": "slow"
+            },
+            {
+              "t": 25.1,
+              "state": "online"
+            },
+            {
+              "t": 28,
+              "state": "flaky"
+            },
+            {
+              "t": 38.9,
+              "state": "online"
+            },
+            {
+              "t": 41.4,
+              "state": "airplane"
+            },
+            {
+              "t": 47.4,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 9,
+            "RETRY": 9,
+            "CONFLICT": 7,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 3.9,
+              "state": "slow"
+            },
+            {
+              "t": 10.1,
+              "state": "online"
+            },
+            {
+              "t": 15.1,
+              "state": "flaky"
+            },
+            {
+              "t": 23.6,
+              "state": "online"
+            },
+            {
+              "t": 29.6,
+              "state": "airplane"
+            },
+            {
+              "t": 40.9,
+              "state": "online"
+            },
+            {
+              "t": 46.4,
+              "state": "nodata"
+            },
+            {
+              "t": 58.2,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 14,
+            "RETRY": 9,
+            "CONFLICT": 2,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": true,
+        "rules": 3,
+        "violations": []
+      },
+      "wallSeconds": 116,
+      "host": {
+        "peakCpuPercent": 46,
+        "peakRamMB": 28487,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  }
+]

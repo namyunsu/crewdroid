@@ -40,7 +40,7 @@ async function restore(serial: string) {
 }
 
 // ---- flaky: per-device seeded schedule, run by a detached worker so `net <serial> flaky` returns at once ----
-function mulberry32(a: number) {
+export function mulberry32(a: number) {
   return () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 // Seed mixes in the emulator port, so two devices given the same --seed still never share a schedule.
