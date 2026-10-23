@@ -1,5 +1,5 @@
-# Handoff (2026-10-24 shift 56)
-이번 shift(51~56): 일 안 함. 다른 세션이 slim.ts·snapshot.ts 를 02:06 까지 수정 중. 충돌 방지로 대기.
+# Handoff (2026-10-24 shift 70)
+이번 shift(51~70): 일 안 함. 다른 세션이 T15 를 02:16 까지 계속 수정 중이고 에뮬레이터 프로세스도 떠 있음. 충돌 방지로 대기.
 다음: 옛 세션 종료 후 T15 재개(미커밋 변경 src/avd.ts·cli.ts·snapshot.ts·slim.ts, scripts/check-disk.mjs 확인부터). 순서 T15 → T16 → T17 → T18 → T19.
 T15 이어받기 메모:
 - 이미지 sparse 완료(.sha256 있음): 31 4107→1267MiB, 34 8203→1235, 36 1811→1469.
