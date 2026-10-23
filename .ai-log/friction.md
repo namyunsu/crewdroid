@@ -37,3 +37,4 @@
 2026-10-24 | 다른 세션의 loop.mts·에뮬레이터가 포트를 계속 점유해 shift가 비어 돎 | env broken
 2026-10-24 03:42 | 에뮬레이터 점유로 shift 빈손 | env broken (다른 세션 check-scenario 실행 중)
 2026-10-24 03:42 | 다른 세션이 에뮬레이터를 계속 점유해 shift 낭비 | env broken: 동시 세션 충돌
+2026-10-24 03:43 | 다른 세션의 check-scenario가 에뮬레이터를 계속 점유해 shift가 비어 있음 | env broken
