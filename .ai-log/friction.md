@@ -28,3 +28,4 @@
 2026-10-24 | 다른 세션의 loop.mts+에뮬레이터가 몇 shift째 점유해 autopilot이 빈 shift 반복 | env broken (세션 간 에뮬레이터 점유 조율 규칙 없음)
 2026-10-24 | 다른 세션 loop.mts가 5570 에뮬레이터를 계속 점유해 shift가 빈 채 반복 | env broken
 2026-10-24 | 다른 세션의 node loop2.mts 와 에뮬레이터 3대가 shift 108~113 내내 살아 있어 T15 검증 불가 | env broken
+2026-10-24 02:56 | 117 | 보류 | loop2.mts(PID 31112) 생존, T15 대기
