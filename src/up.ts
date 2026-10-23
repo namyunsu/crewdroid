@@ -19,7 +19,7 @@ export interface UpDevice {
   wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[];
 }
 
-export async function up(count: number, basePort = 5580, names?: string[]) {
+export async function up(count: number, basePort = 5580, names?: string[], window = false) {
   const all = loadProfiles();
   const profiles = names ? names.map((n) => all.find((p) => p.name === n) ?? (() => { throw new Error(`unknown profile '${n}' (have: ${all.map((p) => p.name).join(",")})`); })()) : all;
   const slots = assign(count, profiles, atdImages());
@@ -38,13 +38,16 @@ export async function up(count: number, basePort = 5580, names?: string[]) {
   try {
     const t0s: number[] = [];
     for (const [i, s] of slots.entries()) {
-      await start(avdName(s.image), ports[i], true, ["-no-boot-anim"]);
+      await start(avdName(s.image), ports[i], true, ["-no-boot-anim"], window);
       t0s.push(Date.now());
       await sleep(3000);
     }
     const devices = await Promise.all(slots.map(async (s, i): Promise<UpDevice> => {
       const serial = serials[i];
       const bootSeconds = await waitBoot(serial, t0s[i]);
+      // AI NOTE: ATD's /system/build.prop sets debug.hwui.drawing_enabled=0, so apps never post a frame (screencap black,
+      // window stuck on the boot logo). Not persist.*: set on every boot; apps started after this draw (ADR 0003).
+      await adb(serial, ["shell", "setprop", "debug.hwui.drawing_enabled", "1"]);
       await sleep(5000);
       await adb(serial, ["root"], 20000); // makeDistinct edits /data/system and wlan0 (see identity.ts)
       await sleep(3000);

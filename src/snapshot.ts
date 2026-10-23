@@ -15,9 +15,9 @@ export const probeApk = () => join(import.meta.dirname, "..", "probe-app/app/bui
 export const SNAPSHOT = "default_boot"; // quickboot snapshot name; -read-only instances load it automatically
 
 // AI NOTE: no -no-snapshot here (avd.ts launchArgs has it): snapshots must stay enabled to save/load default_boot.
-export function start(name: string, port: number, readOnly: boolean, extra: string[] = []) {
-  const args = ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-gpu", "host", "-camera-back", "emulated", "-cores", "2", "-memory", "2048", ...(readOnly ? ["-read-only"] : ["-no-snapshot-save"]), ...extra];
-  return launchEmulator(args, join(tmpdir(), `crewdroid-${name}-${port}.log`));
+export function start(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false) {
+  const args = ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", "host", "-camera-back", "emulated", "-cores", "2", "-memory", "2048", ...(readOnly ? ["-read-only"] : ["-no-snapshot-save"]), ...extra];
+  return launchEmulator(args, join(tmpdir(), `crewdroid-${name}-${port}.log`), window);
 }
 
 export async function killAll(name: string, serials: string[]) {

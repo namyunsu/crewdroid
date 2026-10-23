@@ -9,9 +9,9 @@ const q = (s: string) => `'${s.replace(/'/g, "''")}'`;
 // Returns the launcher PID; down()/killAll() match instances by their `crew-*` command line, not by this PID.
 // AI NOTE: powershell's stdout/stderr are ignored and the PID goes through a file. With execFile, the emulator
 // inherited the pipe and the promise never resolved (up hung after launch).
-export async function launchEmulator(args: string[], log: string): Promise<number> {
+export async function launchEmulator(args: string[], log: string, window = false): Promise<number> {
   const pidFile = `${log}.pid`;
-  const ps = `$p = Start-Process -FilePath ${q(emulatorPath())} -ArgumentList @(${args.map(q).join(",")}) -WindowStyle Hidden -PassThru -RedirectStandardOutput ${q(log)} -RedirectStandardError ${q(log + ".err")}; Set-Content -LiteralPath ${q(pidFile)} -Value $p.Id`;
+  const ps = `$p = Start-Process -FilePath ${q(emulatorPath())} -ArgumentList @(${args.map(q).join(",")}) -WindowStyle ${window ? "Minimized" : "Hidden"} -PassThru -RedirectStandardOutput ${q(log)} -RedirectStandardError ${q(log + ".err")}; Set-Content -LiteralPath ${q(pidFile)} -Value $p.Id`;
   await new Promise<void>((ok, fail) => {
     const p = spawn("powershell", ["-NoProfile", "-Command", ps], { stdio: "ignore", windowsHide: true });
     p.on("error", fail);
