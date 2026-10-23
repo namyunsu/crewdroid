@@ -5,6 +5,7 @@ import { judge } from "./judge.ts";
 import { prepare } from "./snapshot.ts";
 import { identity } from "./identity.ts";
 import { hammer } from "./hammer.ts";
+import { flakyLoop, setNet, type NetState } from "./net.ts";
 import { down, measureUp, up } from "./up.ts";
 
 const { positionals, values } = parseArgs({
@@ -62,6 +63,14 @@ async function main() {
     console.log(values.json ? JSON.stringify(r) : `killed ${r.killed.length} processes (ports: ${r.ports.join(",") || "none"})`);
     return;
   }
+  if (cmd === "net") {
+    const [, serial, state] = positionals;
+    if (!serial || !state) throw new Error("usage: net <serial> airplane|nodata|slow|flaky|online [--seed N]");
+    if (state === "flaky-loop") return flakyLoop(serial, Number(values.seed)); // internal: detached worker started by `net flaky`
+    const r = await setNet(serial, state as NetState, Number(values.seed));
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} -> ${state}`);
+    return;
+  }
   if (cmd === "hammer") {
     if (!values.url) throw new Error("--url <base> required");
     const r = await hammer({ url: values.url, users: Number(values.users), repeat: Number(values.repeat), jitter: Number(values.jitter), retryRate: Number(values["retry-rate"]), seed: Number(values.seed), rules: values.rules });
@@ -74,7 +83,7 @@ async function main() {
     if (!r.judge.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer)`);
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer, net)`);
 }
 
 main().catch((e) => {
