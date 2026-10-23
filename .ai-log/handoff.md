@@ -52,3 +52,4 @@ T15 현황: idle 6.63GiB / running 7GiB ≤ 8GiB, 부팅 평균 6.73s (T04 7.13s
 - shift 178: 여전히 다른 세션의 check-scenario(PID 30832)+crew 에뮬레이터 3대(5580~5584) 점유, 보류.
 - shift 179: 여전히 다른 세션의 check-scenario(PID 30832)+crew 에뮬레이터 3대(5580~5584) 점유, 보류.
 - shift 182: 여전히 다른 세션의 check-scenario(PID 30832)+crew 에뮬레이터 3대(5580~5584) 점유, 보류.
+- 2026-10-24 04:08 shift 183: 다른 세션의 mvp-private-app --runs 1(PID 32404)+에뮬레이터 3대(5570~5574) 점유, 보류
