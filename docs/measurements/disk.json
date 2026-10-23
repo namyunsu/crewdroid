@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-23T17:34:30.386Z",
+  "maxGiB": 8,
+  "idle": {
+    "images": [
+      {
+        "image": "android-31/google_atd",
+        "imageBytes": 954242981,
+        "avdBytes": 1027115277
+      },
+      {
+        "image": "android-34/google_atd",
+        "imageBytes": 974184531,
+        "avdBytes": 1358125325
+      },
+      {
+        "image": "android-36/google_atd",
+        "imageBytes": 1185872860,
+        "avdBytes": 1623873653
+      }
+    ],
+    "tempBytes": 56,
+    "totalBytes": 7123414683
+  },
+  "running": {
+    "images": [
+      {
+        "image": "android-31/google_atd",
+        "imageBytes": 954242981,
+        "avdBytes": 1027115277
+      },
+      {
+        "image": "android-34/google_atd",
+        "imageBytes": 974184531,
+        "avdBytes": 1358125325
+      },
+      {
+        "image": "android-36/google_atd",
+        "imageBytes": 1185872860,
+        "avdBytes": 1623873653
+      }
+    ],
+    "tempBytes": 394672756,
+    "totalBytes": 7518087383
+  },
+  "devices": [
+    {
+      "serial": "emulator-5580",
+      "profile": "s22",
+      "api": 31,
+      "bootSeconds": 9.6
+    },
+    {
+      "serial": "emulator-5582",
+      "profile": "s24ultra",
+      "api": 34,
+      "bootSeconds": 6.4
+    },
+    {
+      "serial": "emulator-5584",
+      "profile": "s26ultra",
+      "api": 36,
+      "bootSeconds": 4.2
+    }
+  ],
+  "boot": {
+    "t04Mean": 7.13,
+    "mean": 6.73
+  },
+  "ok": true
+}

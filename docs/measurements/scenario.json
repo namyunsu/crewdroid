@@ -8,7 +8,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 1,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-23T11:05:41.726Z",
+      "date": "2026-10-23T17:37:16.338Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -26,31 +26,31 @@
               "state": "airplane"
             },
             {
-              "t": 13.3,
+              "t": 13.4,
               "state": "online"
             },
             {
-              "t": 16.4,
+              "t": 16.6,
               "state": "nodata"
             },
             {
-              "t": 26,
+              "t": 26.4,
               "state": "online"
             },
             {
-              "t": 28.4,
+              "t": 28.9,
               "state": "slow"
             },
             {
-              "t": 38,
+              "t": 38.5,
               "state": "online"
             },
             {
-              "t": 42.4,
+              "t": 42.9,
               "state": "flaky"
             },
             {
-              "t": 54.6,
+              "t": 55.1,
               "state": "online"
             }
           ],
@@ -58,7 +58,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 4,
+            "RETRY": 5,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -76,31 +76,31 @@
               "state": "nodata"
             },
             {
-              "t": 15.3,
+              "t": 15.5,
               "state": "online"
             },
             {
-              "t": 19.8,
+              "t": 20.1,
               "state": "slow"
             },
             {
-              "t": 31.7,
+              "t": 32.1,
               "state": "online"
             },
             {
-              "t": 36.2,
+              "t": 36.8,
               "state": "flaky"
             },
             {
-              "t": 44,
+              "t": 44.7,
               "state": "online"
             },
             {
-              "t": 46.8,
+              "t": 47.6,
               "state": "airplane"
             },
             {
-              "t": 57.9,
+              "t": 58.8,
               "state": "online"
             }
           ],
@@ -108,7 +108,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 10,
+            "RETRY": 9,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -126,31 +126,31 @@
               "state": "slow"
             },
             {
-              "t": 15.6,
+              "t": 15.8,
               "state": "online"
             },
             {
-              "t": 19,
+              "t": 19.3,
               "state": "flaky"
             },
             {
-              "t": 31.2,
+              "t": 31.6,
               "state": "online"
             },
             {
-              "t": 34,
+              "t": 34.5,
               "state": "airplane"
             },
             {
-              "t": 46.1,
+              "t": 46.9,
               "state": "online"
             },
             {
-              "t": 48.9,
+              "t": 49.7,
               "state": "nodata"
             },
             {
-              "t": 56.3,
+              "t": 57.2,
               "state": "online"
             }
           ],
@@ -158,7 +158,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 11,
+            "RETRY": 10,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -289,10 +289,10 @@
           }
         ]
       },
-      "wallSeconds": 114,
+      "wallSeconds": 117,
       "host": {
-        "peakCpuPercent": 44,
-        "peakRamMB": 29250,
+        "peakCpuPercent": 88,
+        "peakRamMB": 29017,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -307,7 +307,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 1,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-23T11:07:49.799Z",
+      "date": "2026-10-23T17:39:27.600Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -325,40 +325,40 @@
               "state": "airplane"
             },
             {
-              "t": 13.3,
+              "t": 13.4,
               "state": "online"
             },
             {
-              "t": 16.4,
+              "t": 16.5,
               "state": "nodata"
             },
             {
-              "t": 26.1,
+              "t": 26.3,
               "state": "online"
             },
             {
-              "t": 28.5,
+              "t": 28.7,
               "state": "slow"
             },
             {
-              "t": 38.1,
+              "t": 38.4,
               "state": "online"
             },
             {
-              "t": 42.5,
+              "t": 42.8,
               "state": "flaky"
             },
             {
-              "t": 54.7,
+              "t": 55,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 11,
-            "RETRY": 9,
-            "CONFLICT": 5,
+            "SYNCED": 13,
+            "RETRY": 6,
+            "CONFLICT": 3,
             "DROPPED": 0
           }
         },
@@ -375,31 +375,31 @@
               "state": "nodata"
             },
             {
-              "t": 15.3,
+              "t": 15.4,
               "state": "online"
             },
             {
-              "t": 19.8,
+              "t": 20,
               "state": "slow"
             },
             {
-              "t": 31.6,
+              "t": 32,
               "state": "online"
             },
             {
-              "t": 36.1,
+              "t": 36.6,
               "state": "flaky"
             },
             {
-              "t": 43.9,
+              "t": 44.5,
               "state": "online"
             },
             {
-              "t": 46.7,
+              "t": 47.3,
               "state": "airplane"
             },
             {
-              "t": 57.9,
+              "t": 58.6,
               "state": "online"
             }
           ],
@@ -425,31 +425,31 @@
               "state": "slow"
             },
             {
-              "t": 15.6,
+              "t": 15.8,
               "state": "online"
             },
             {
-              "t": 18.9,
+              "t": 19.2,
               "state": "flaky"
             },
             {
-              "t": 31.1,
+              "t": 31.5,
               "state": "online"
             },
             {
-              "t": 33.9,
+              "t": 34.3,
               "state": "airplane"
             },
             {
-              "t": 46.1,
+              "t": 46.4,
               "state": "online"
             },
             {
-              "t": 48.8,
+              "t": 49.2,
               "state": "nodata"
             },
             {
-              "t": 56.3,
+              "t": 56.8,
               "state": "online"
             }
           ],
@@ -468,10 +468,10 @@
         "rules": 3,
         "violations": []
       },
-      "wallSeconds": 122,
+      "wallSeconds": 125,
       "host": {
-        "peakCpuPercent": 47,
-        "peakRamMB": 29066,
+        "peakCpuPercent": 83,
+        "peakRamMB": 28857,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -486,7 +486,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 2,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-23T11:10:00.275Z",
+      "date": "2026-10-23T17:41:39.525Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -508,27 +508,27 @@
               "state": "online"
             },
             {
-              "t": 18.4,
+              "t": 18.5,
               "state": "nodata"
             },
             {
-              "t": 26,
+              "t": 26.1,
               "state": "online"
             },
             {
-              "t": 30.2,
+              "t": 30.3,
               "state": "slow"
             },
             {
-              "t": 37.3,
+              "t": 37.6,
               "state": "online"
             },
             {
-              "t": 39.7,
+              "t": 39.9,
               "state": "flaky"
             },
             {
-              "t": 50.9,
+              "t": 51.2,
               "state": "online"
             }
           ],
@@ -554,31 +554,31 @@
               "state": "nodata"
             },
             {
-              "t": 9.5,
+              "t": 9.6,
               "state": "online"
             },
             {
-              "t": 14.8,
+              "t": 15,
               "state": "slow"
             },
             {
-              "t": 23.5,
+              "t": 23.8,
               "state": "online"
             },
             {
-              "t": 27.7,
+              "t": 28.1,
               "state": "flaky"
             },
             {
-              "t": 34.3,
+              "t": 34.8,
               "state": "online"
             },
             {
-              "t": 36.6,
+              "t": 37.1,
               "state": "airplane"
             },
             {
-              "t": 45.9,
+              "t": 46.4,
               "state": "online"
             }
           ],
@@ -604,31 +604,31 @@
               "state": "slow"
             },
             {
-              "t": 10.2,
+              "t": 10.3,
               "state": "online"
             },
             {
-              "t": 13.3,
+              "t": 13.4,
               "state": "flaky"
             },
             {
-              "t": 20,
+              "t": 20.2,
               "state": "online"
             },
             {
-              "t": 22.8,
+              "t": 23,
               "state": "airplane"
             },
             {
-              "t": 29.2,
+              "t": 29.6,
               "state": "online"
             },
             {
-              "t": 33,
+              "t": 33.5,
               "state": "nodata"
             },
             {
-              "t": 39.2,
+              "t": 39.7,
               "state": "online"
             }
           ],
@@ -636,7 +636,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 8,
+            "RETRY": 7,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -682,7 +682,7 @@
               {
                 "id": "r1",
                 "baseVersion": 0,
-                "version": 4,
+                "version": 5,
                 "clientId": "a0f1ee5e2b40d993",
                 "value": "emulator-5580-1"
               }
@@ -703,7 +703,7 @@
               {
                 "id": "r1",
                 "baseVersion": 1,
-                "version": 2,
+                "version": 3,
                 "clientId": "7b63461dff7631bc",
                 "value": "emulator-5584-1"
               }
@@ -712,19 +712,19 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=3; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=4; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
-                "baseVersion": 3,
-                "version": 5,
+                "baseVersion": 4,
+                "version": 6,
                 "clientId": "7b63461dff7631bc",
                 "value": "emulator-5584-3"
               },
               {
                 "id": "r1",
-                "baseVersion": 3,
-                "version": 6,
+                "baseVersion": 4,
+                "version": 8,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-4"
               }
@@ -733,21 +733,21 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=5; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=6; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
-                "baseVersion": 5,
+                "baseVersion": 6,
                 "version": 7,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-2"
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-4"
               },
               {
                 "id": "r1",
-                "baseVersion": 5,
+                "baseVersion": 6,
                 "version": 8,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-4"
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-2"
               }
             ]
           },
@@ -802,10 +802,10 @@
           }
         ]
       },
-      "wallSeconds": 125,
+      "wallSeconds": 126,
       "host": {
-        "peakCpuPercent": 46,
-        "peakRamMB": 28182,
+        "peakCpuPercent": 55,
+        "peakRamMB": 28884,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -820,7 +820,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 2,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-23T11:11:51.193Z",
+      "date": "2026-10-23T17:43:52.532Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -838,40 +838,40 @@
               "state": "airplane"
             },
             {
-              "t": 12.4,
+              "t": 12.5,
               "state": "online"
             },
             {
-              "t": 18.4,
+              "t": 18.5,
               "state": "nodata"
             },
             {
-              "t": 25.9,
+              "t": 26.1,
               "state": "online"
             },
             {
-              "t": 30.2,
+              "t": 30.3,
               "state": "slow"
             },
             {
-              "t": 37.3,
+              "t": 37.5,
               "state": "online"
             },
             {
-              "t": 39.6,
+              "t": 39.8,
               "state": "flaky"
             },
             {
-              "t": 50.9,
+              "t": 51.1,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 12,
-            "RETRY": 9,
-            "CONFLICT": 4,
+            "SYNCED": 13,
+            "RETRY": 0,
+            "CONFLICT": 3,
             "DROPPED": 0
           }
         },
@@ -888,40 +888,40 @@
               "state": "nodata"
             },
             {
-              "t": 9.4,
+              "t": 9.5,
               "state": "online"
             },
             {
-              "t": 14.8,
+              "t": 14.9,
               "state": "slow"
             },
             {
-              "t": 23.4,
+              "t": 23.7,
               "state": "online"
             },
             {
-              "t": 27.7,
+              "t": 28,
               "state": "flaky"
             },
             {
-              "t": 34.3,
+              "t": 34.7,
               "state": "online"
             },
             {
-              "t": 36.6,
+              "t": 37,
               "state": "airplane"
             },
             {
-              "t": 45.8,
+              "t": 46.4,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 11,
-            "RETRY": 10,
-            "CONFLICT": 5,
+            "SYNCED": 13,
+            "RETRY": 7,
+            "CONFLICT": 3,
             "DROPPED": 0
           }
         },
@@ -938,40 +938,40 @@
               "state": "slow"
             },
             {
-              "t": 10.2,
+              "t": 10.3,
               "state": "online"
             },
             {
-              "t": 13.3,
+              "t": 13.4,
               "state": "flaky"
             },
             {
-              "t": 20,
+              "t": 20.2,
               "state": "online"
             },
             {
-              "t": 22.7,
+              "t": 23,
               "state": "airplane"
             },
             {
-              "t": 29.2,
+              "t": 29.5,
               "state": "online"
             },
             {
-              "t": 33,
+              "t": 33.4,
               "state": "nodata"
             },
             {
-              "t": 39.2,
+              "t": 39.5,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 14,
+            "SYNCED": 12,
             "RETRY": 8,
-            "CONFLICT": 2,
+            "CONFLICT": 4,
             "DROPPED": 0
           }
         }
@@ -981,10 +981,10 @@
         "rules": 3,
         "violations": []
       },
-      "wallSeconds": 105,
+      "wallSeconds": 127,
       "host": {
-        "peakCpuPercent": 43,
-        "peakRamMB": 28228,
+        "peakCpuPercent": 54,
+        "peakRamMB": 28755,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -999,7 +999,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 3,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-23T11:13:52.868Z",
+      "date": "2026-10-23T17:45:55.127Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -1017,31 +1017,31 @@
               "state": "airplane"
             },
             {
-              "t": 15.8,
+              "t": 15.9,
               "state": "online"
             },
             {
-              "t": 21.5,
+              "t": 21.7,
               "state": "nodata"
             },
             {
-              "t": 28.1,
+              "t": 28.3,
               "state": "online"
             },
             {
-              "t": 30.8,
+              "t": 31,
               "state": "slow"
             },
             {
-              "t": 41,
+              "t": 41.3,
               "state": "online"
             },
             {
-              "t": 45.1,
+              "t": 45.4,
               "state": "flaky"
             },
             {
-              "t": 50.4,
+              "t": 50.7,
               "state": "online"
             }
           ],
@@ -1067,31 +1067,31 @@
               "state": "nodata"
             },
             {
-              "t": 15,
+              "t": 15.2,
               "state": "online"
             },
             {
-              "t": 18.6,
+              "t": 18.8,
               "state": "slow"
             },
             {
-              "t": 25.1,
+              "t": 25.5,
               "state": "online"
             },
             {
-              "t": 28,
+              "t": 28.5,
               "state": "flaky"
             },
             {
-              "t": 38.9,
+              "t": 39.5,
               "state": "online"
             },
             {
-              "t": 41.5,
+              "t": 42.2,
               "state": "airplane"
             },
             {
-              "t": 47.4,
+              "t": 48.1,
               "state": "online"
             }
           ],
@@ -1099,7 +1099,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 6,
+            "RETRY": 7,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -1117,31 +1117,31 @@
               "state": "slow"
             },
             {
-              "t": 10.1,
+              "t": 10.2,
               "state": "online"
             },
             {
-              "t": 15.2,
+              "t": 15.3,
               "state": "flaky"
             },
             {
-              "t": 23.7,
+              "t": 23.9,
               "state": "online"
             },
             {
-              "t": 29.6,
+              "t": 29.9,
               "state": "airplane"
             },
             {
-              "t": 41,
+              "t": 41.2,
               "state": "online"
             },
             {
-              "t": 46.4,
+              "t": 46.8,
               "state": "nodata"
             },
             {
-              "t": 58.3,
+              "t": 58.6,
               "state": "online"
             }
           ],
@@ -1149,7 +1149,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 12,
+            "RETRY": 8,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -1165,9 +1165,9 @@
             "message": "missing 1 of 24 expected key values (table has 23 rows)",
             "rows": [
               {
-                "id": "4e1530c9-1ded-4868-923b-90c6f5ddd344",
-                "key": "f58a72d4-be73-41d9-94d2-5f6332e547c5",
-                "clientId": "caec0ef41bba6928"
+                "id": "8e3019f2-63f4-4bab-8d31-4bb21ea37b04",
+                "key": "b61eb542-8022-4016-8aed-96d6ce8a467c",
+                "clientId": "7b63461dff7631bc"
               }
             ]
           },
@@ -1272,6 +1272,27 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=8; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 9,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-3"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 10,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-5"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
             "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=4; all but one were overwritten",
             "rows": [
               {
@@ -1289,13 +1310,34 @@
                 "value": "emulator-5582-5"
               }
             ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=8; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 8,
+                "version": 9,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-7"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 8,
+                "version": 10,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-6"
+              }
+            ]
           }
         ]
       },
-      "wallSeconds": 116,
+      "wallSeconds": 117,
       "host": {
-        "peakCpuPercent": 47,
-        "peakRamMB": 28280,
+        "peakCpuPercent": 52,
+        "peakRamMB": 28220,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -1310,7 +1352,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 3,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-23T11:15:54.955Z",
+      "date": "2026-10-23T17:47:57.480Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -1328,31 +1370,31 @@
               "state": "airplane"
             },
             {
-              "t": 15.8,
+              "t": 15.9,
               "state": "online"
             },
             {
-              "t": 21.5,
+              "t": 21.7,
               "state": "nodata"
             },
             {
-              "t": 28.1,
+              "t": 28.3,
               "state": "online"
             },
             {
-              "t": 30.7,
+              "t": 31,
               "state": "slow"
             },
             {
-              "t": 41,
+              "t": 41.2,
               "state": "online"
             },
             {
-              "t": 45.1,
+              "t": 45.3,
               "state": "flaky"
             },
             {
-              "t": 50.3,
+              "t": 50.6,
               "state": "online"
             }
           ],
@@ -1360,7 +1402,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 13,
-            "RETRY": 10,
+            "RETRY": 5,
             "CONFLICT": 3,
             "DROPPED": 0
           }
@@ -1378,40 +1420,40 @@
               "state": "nodata"
             },
             {
-              "t": 15,
+              "t": 15.2,
               "state": "online"
             },
             {
-              "t": 18.6,
+              "t": 18.8,
               "state": "slow"
             },
             {
-              "t": 25.1,
+              "t": 25.5,
               "state": "online"
             },
             {
-              "t": 28,
+              "t": 28.5,
               "state": "flaky"
             },
             {
-              "t": 38.9,
+              "t": 39.5,
               "state": "online"
             },
             {
-              "t": 41.4,
+              "t": 42.2,
               "state": "airplane"
             },
             {
-              "t": 47.4,
+              "t": 48.2,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 9,
-            "RETRY": 9,
-            "CONFLICT": 7,
+            "SYNCED": 10,
+            "RETRY": 7,
+            "CONFLICT": 6,
             "DROPPED": 0
           }
         },
@@ -1428,31 +1470,31 @@
               "state": "slow"
             },
             {
-              "t": 10.1,
+              "t": 10.2,
               "state": "online"
             },
             {
-              "t": 15.1,
+              "t": 15.3,
               "state": "flaky"
             },
             {
-              "t": 23.6,
+              "t": 23.9,
               "state": "online"
             },
             {
-              "t": 29.6,
+              "t": 29.9,
               "state": "airplane"
             },
             {
-              "t": 40.9,
+              "t": 41.3,
               "state": "online"
             },
             {
-              "t": 46.4,
+              "t": 46.8,
               "state": "nodata"
             },
             {
-              "t": 58.2,
+              "t": 58.7,
               "state": "online"
             }
           ],
@@ -1473,8 +1515,8 @@
       },
       "wallSeconds": 116,
       "host": {
-        "peakCpuPercent": 46,
-        "peakRamMB": 28487,
+        "peakCpuPercent": 56,
+        "peakRamMB": 28154,
         "totalRamMB": 65462,
         "cores": 16
       }
