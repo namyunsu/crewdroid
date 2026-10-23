@@ -1,0 +1,7 @@
+{
+  "rules": [
+    { "table": "uploads", "rule": "unique(key)" },
+    { "table": "uploads", "rule": "count(acks)", "on": "key" },
+    { "table": "writes", "rule": "noLostUpdate(id,baseVersion)" }
+  ]
+}
