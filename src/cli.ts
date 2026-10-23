@@ -2,6 +2,7 @@ import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { measure } from "./measure.ts";
 import { judge } from "./judge.ts";
+import { hammer } from "./hammer.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -10,6 +11,8 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
+    url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
+    jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
   },
 });
 
@@ -34,7 +37,19 @@ async function main() {
     if (!r.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: measure, judge)`);
+  if (cmd === "hammer") {
+    if (!values.url) throw new Error("--url <base> required");
+    const r = await hammer({ url: values.url, users: Number(values.users), repeat: Number(values.repeat), jitter: Number(values.jitter), retryRate: Number(values["retry-rate"]), seed: Number(values.seed), rules: values.rules });
+    if (values.json) console.log(JSON.stringify(r, null, 2));
+    else {
+      console.log(`requests=${r.requests} errors=${r.errors} conflicts=${r.conflicts} retries=${r.retries} ${r.seconds.toFixed(1)}s ${r.throughput} req/s seed=${r.seed}`);
+      for (const v of r.judge.violations) console.log(`VIOLATION ${v.table} ${v.rule}: ${v.message}`);
+      console.log(r.judge.ok ? `OK: ${r.judge.rules} rules, 0 violations` : `FAIL: ${r.judge.violations.length} violations`);
+    }
+    if (!r.judge.ok) process.exitCode = 1;
+    return;
+  }
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: measure, judge, hammer)`);
 }
 
 main().catch((e) => {
