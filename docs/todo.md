@@ -17,13 +17,6 @@ Wave 2026-10-23 autopilot /brief auto (plan 1).
 
 Wave 2026-10-23 human /brief — lightness regressed (T04: disk +56 % with 3 versions, RAM +14 %); user: "RAM 이랑 디스크 확 줄여야지, 무조건". New FR-12 (disk <= 8 GB for 3 mixed devices) and FR-13 (host RAM <= 4.2 GB for 3). Measured 2026-10-23 by /brief (`du`): ATD system.img is stored fully allocated — API 34 8.1 GB, API 31 4.1 GB, API 36 1.8 GB, though the API 34 zip is ~0.7 GB (mostly zero blocks); each crew AVD's `snapshots/` is 3.5-4.7 GB (quickboot RAM image of `hw.ramSize=2048` + more); `disk.dataPartition.size=10G`; config still has `hw.audioInput/Output=yes`, most sensors on, `hw.gpu.enabled=no`. Order: T13 -> T14 -> T15 -> T16 (all touch AVD config/launch; T14 may change gpu/image settings T15/T16 then measure). Both T15 and T16 re-run `check-up`, `check-scenario` and `mvp-private-app --runs 1` so nothing that passed breaks. Never touch old-avd-1..3 or the android-33 google_apis image (deletion needs the user's yes).
 
-- [ ] T15 [KO] 디스크 3대 ≤ 8GB (FR-12)
-  area: src/avd.ts, src/snapshot.ts, src/slim.ts (new), src/cli.ts, scripts/check-disk.mjs, docs/measurements/slim.md
-  model: opus
-  review: required
-  accept: `crewdroid slim` (also run by `prepare`) makes crewdroid's disk small without changing behaviour. Candidates, each measured before/after with real allocation (`fsutil file layout` / `GetCompressedFileSize` / `du`, not file length): (1) system images stored sparse — rewrite each `system-images/*/google_atd/x86_64/*.img` as an NTFS sparse file (zero ranges deallocated) or another lossless form the emulator still boots; keep a checksum so the content is provably identical; (2) quickboot snapshot slimmed — smaller `hw.ramSize` (from T16 if done, else 1536), one snapshot only (`default_boot`), delete stale ones, try emulator snapshot compression if available; (3) `disk.dataPartition.size` 2G for new AVDs; (4) anything else found (e.g. dedupe identical files across images by hard link). Report each knob's saving in `docs/measurements/slim.md`. Result: 3 images (API 31/34/36) + 3 base AVDs + 3 running clones' temp files <= 8 GB allocated, and boot time not worse than T04 by more than 20 %.
-  verify: `npx tsx src/cli.ts slim --json && node scripts/check-disk.mjs --max-gb 8 && npx tsx src/cli.ts up --count 3 --json > docs/measurements/up.json && node scripts/check-up.mjs docs/measurements/up.json && npx tsx src/cli.ts down && node scripts/check-scenario.mjs && node scripts/mvp-private-app.mjs --runs 1`
-
 - [ ] T16 [KO] 호스트 RAM 3대 ≤ 4.2GB (FR-13)
   area: src/avd.ts, src/emulator.ts, src/measure.ts, src/up.ts, scripts/check-ram.mjs, docs/measurements/ram.md
   model: opus

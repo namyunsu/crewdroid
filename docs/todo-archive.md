@@ -121,3 +121,11 @@ Finished Todos, moved here by autopilot.
   verify: `node scripts/check-render.mjs` (up 3 mixed devices, start the probe/sample app on each, screencap, fail if any image is >99% one colour; down)
 
   commit: 9bdd4ae
+
+- [x] T15 [KO] 디스크 3대 ≤ 8GB (FR-12)
+  area: src/avd.ts, src/snapshot.ts, src/slim.ts (new), src/cli.ts, scripts/check-disk.mjs, docs/measurements/slim.md
+  model: opus
+  review: required
+  accept: `crewdroid slim` (also run by `prepare`) makes crewdroid's disk small without changing behaviour. Candidates, each measured before/after with real allocation (`fsutil file layout` / `GetCompressedFileSize` / `du`, not file length): (1) system images stored sparse — rewrite each `system-images/*/google_atd/x86_64/*.img` as an NTFS sparse file (zero ranges deallocated) or another lossless form the emulator still boots; keep a checksum so the content is provably identical; (2) quickboot snapshot slimmed — smaller `hw.ramSize` (from T16 if done, else 1536), one snapshot only (`default_boot`), delete stale ones, try emulator snapshot compression if available; (3) `disk.dataPartition.size` 2G for new AVDs; (4) anything else found (e.g. dedupe identical files across images by hard link). Report each knob's saving in `docs/measurements/slim.md`. Result: 3 images (API 31/34/36) + 3 base AVDs + 3 running clones' temp files <= 8 GB allocated, and boot time not worse than T04 by more than 20 %.
+  verify: `npx tsx src/cli.ts slim --json && node scripts/check-disk.mjs --max-gb 8 && npx tsx src/cli.ts up --count 3 --json > docs/measurements/up.json && node scripts/check-up.mjs docs/measurements/up.json && npx tsx src/cli.ts down && node scripts/check-scenario.mjs && node scripts/mvp-private-app.mjs --runs 1`
+  commit: 91db64f
