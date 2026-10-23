@@ -3,3 +3,4 @@
 2026-10-23 | 워커가 CLAUDE.md 를 시프트 중간에 수정(프롬프트 캐시 무효) | rule missing: 브리프에 CLAUDE.md 편집 금지 안 적음(T06)
 2026-10-23 | 워커 중단으로 T10 검증 미완 → 마스터가 재실행(약 12분) | tool limit: 워커 핸드백 강제 신호
 2026-10-23 | 서브에이전트가 임시 파일을 %TEMP% 에 남김(삭제 거부) | tool limit
+2026-10-24 01:35 | 옛 shift(PID 28620)가 살아 있는데 watchdog 이 dead 로 판정해 새 shift 를 띄움 | env broken / tool limit
