@@ -1,0 +1,129 @@
+{
+  "date": "2026-10-23T11:30:30.306Z",
+  "runsWanted": 3,
+  "profiles": [
+    "s22",
+    "fold5-main",
+    "flip7-main"
+  ],
+  "devices": [
+    {
+      "serial": "emulator-5570",
+      "profile": "s22",
+      "model": "Galaxy S22",
+      "api": 31,
+      "size": "1080x2340@480",
+      "avd": "crew-android-31-google_atd",
+      "diskBytes": 19543794888,
+      "bootSeconds": 9.1,
+      "readySeconds": 33.8,
+      "ramMB": 2767,
+      "cpuPercent": 13.8
+    },
+    {
+      "serial": "emulator-5572",
+      "profile": "fold5-main",
+      "model": "Galaxy Z Fold5 main",
+      "api": 34,
+      "size": "1812x2176@420",
+      "avd": "crew-android-34-google_atd",
+      "diskBytes": 13967908314,
+      "bootSeconds": 6.1,
+      "readySeconds": 33.8,
+      "ramMB": 3135,
+      "cpuPercent": 16.1
+    },
+    {
+      "serial": "emulator-5574",
+      "profile": "flip7-main",
+      "model": "Galaxy Z Flip7 main",
+      "api": 36,
+      "size": "1080x2520@480",
+      "avd": "crew-android-36-google_atd",
+      "diskBytes": 7971770065,
+      "bootSeconds": 31.4,
+      "readySeconds": 58.6,
+      "ramMB": 3335,
+      "cpuPercent": 67
+    }
+  ],
+  "runs": [
+    {
+      "run": 1,
+      "ok": true,
+      "exit": 0,
+      "wallSeconds": 60.3,
+      "testSeconds": 37,
+      "totalSeconds": 59.6,
+      "emuCpuPercent": 304.8,
+      "emuRamMB": 9738,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (37.0s)\nAVD_DOWN_OK\n\n  1 passed (59.6s)\nE2E_MULTI_OK\n"
+    },
+    {
+      "run": 2,
+      "ok": true,
+      "exit": 0,
+      "wallSeconds": 56.7,
+      "testSeconds": 34.9,
+      "totalSeconds": 56,
+      "emuCpuPercent": 206,
+      "emuRamMB": 7432,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (34.9s)\nAVD_DOWN_OK\n\n  1 passed (56.0s)\nE2E_MULTI_OK\n"
+    },
+    {
+      "run": 3,
+      "ok": true,
+      "exit": 0,
+      "wallSeconds": 56.2,
+      "testSeconds": 34.5,
+      "totalSeconds": 55.5,
+      "emuCpuPercent": 219.4,
+      "emuRamMB": 5988,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (34.5s)\nAVD_DOWN_OK\n\n  1 passed (55.5s)\nE2E_MULTI_OK\n"
+    }
+  ],
+  "videos": [
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-aUzWVS\\emulator-5570.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-aUzWVS\\emulator-5572.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-aUzWVS\\emulator-5574.mp4"
+  ],
+  "down": {
+    "killed": [
+      28884,
+      10580,
+      25908,
+      26000,
+      26200,
+      28512
+    ],
+    "ports": [
+      5570,
+      5572,
+      5574
+    ]
+  },
+  "gif": {
+    "path": "docs/demo/techs.gif",
+    "height": 480,
+    "fps": 8,
+    "bytes": 1411461
+  },
+  "ok": true,
+  "old": {
+    "baseline": "baseline.json",
+    "spec": [
+      {
+        "source": "private-app/.ai-log/evidence/T29-1.txt",
+        "testSeconds": 96,
+        "totalSeconds": 198,
+        "ok": true
+      },
+      {
+        "source": "private-app/.ai-log/evidence/T29-verify.txt",
+        "testSeconds": 40.8,
+        "totalSeconds": 108,
+        "ok": true
+      }
+    ]
+  }
+}
