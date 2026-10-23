@@ -5,3 +5,4 @@
 2026-10-23 | 서브에이전트가 임시 파일을 %TEMP% 에 남김(삭제 거부) | tool limit
 2026-10-24 01:35 | 옛 shift(PID 28620)가 살아 있는데 watchdog 이 dead 로 판정해 새 shift 를 띄움 | env broken / tool limit
 2026-10-24 | 옛 shift 가 오래 돌아 새 shift 가 연속으로 빈손 종료 | env broken: 두 shift 동시 실행 방지 장치 없음
+2026-10-24 01:46 | 옛 세션이 안 끝난 채 shift 가 반복 시작됨 | env broken / tool limit
