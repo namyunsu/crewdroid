@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-23T09:32:27.903Z",
+  "count": 3,
+  "devices": [
+    {
+      "serial": "emulator-5580",
+      "port": 5580,
+      "avd": "crew-android-31-google_atd",
+      "image": "android-31/google_atd",
+      "api": 31,
+      "belowMinApi": false,
+      "profile": "s22",
+      "model": "Galaxy S22",
+      "width": 1080,
+      "height": 2340,
+      "density": 480,
+      "densitySource": "blisk",
+      "wmSize": "Physical size: 1080x2340",
+      "wmDensity": "Physical density: 420\r\nOverride density: 480",
+      "bootSeconds": 9.1,
+      "readySeconds": 34.2,
+      "distinctNotes": []
+    },
+    {
+      "serial": "emulator-5582",
+      "port": 5582,
+      "avd": "crew-android-34-google_atd",
+      "image": "android-34/google_atd",
+      "api": 34,
+      "belowMinApi": false,
+      "profile": "s24ultra",
+      "model": "Galaxy S24 Ultra (FHD+ default)",
+      "width": 1080,
+      "height": 2340,
+      "density": 450,
+      "densitySource": "blisk",
+      "wmSize": "Physical size: 1080x2340",
+      "wmDensity": "Physical density: 420\r\nOverride density: 450",
+      "bootSeconds": 6.1,
+      "readySeconds": 32.9,
+      "distinctNotes": []
+    },
+    {
+      "serial": "emulator-5584",
+      "port": 5584,
+      "avd": "crew-android-36-google_atd",
+      "image": "android-36/google_atd",
+      "api": 36,
+      "belowMinApi": false,
+      "profile": "s26ultra",
+      "model": "Galaxy S26 Ultra (FHD+ default)",
+      "width": 1080,
+      "height": 2340,
+      "density": 420,
+      "densitySource": "yesviz",
+      "wmSize": "Physical size: 1080x2340",
+      "wmDensity": "Physical density: 420",
+      "bootSeconds": 6.2,
+      "readySeconds": 33,
+      "distinctNotes": []
+    }
+  ]
+}

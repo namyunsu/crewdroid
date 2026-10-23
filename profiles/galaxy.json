@@ -1,0 +1,16 @@
+{
+  "source": "docs/source/research-samsung-screens.md (에뮬레이터 프로필 추천 10개)",
+  "densitySourceValues": "blisk | yesviz | chrome | unverified — no value here is confirmed on a real device yet",
+  "profiles": [
+    { "name": "s22", "model": "Galaxy S22", "width": 1080, "height": 2340, "density": 480, "minAndroid": "12", "minApi": 31, "densitySource": "blisk" },
+    { "name": "s24ultra", "model": "Galaxy S24 Ultra (FHD+ default)", "width": 1080, "height": 2340, "density": 450, "minAndroid": "14", "minApi": 34, "densitySource": "blisk" },
+    { "name": "s26ultra", "model": "Galaxy S26 Ultra (FHD+ default)", "width": 1080, "height": 2340, "density": 420, "minAndroid": "16", "minApi": 36, "densitySource": "yesviz" },
+    { "name": "a16", "model": "Galaxy A16 5G", "width": 1080, "height": 2340, "density": 420, "minAndroid": "14", "minApi": 34, "densitySource": "unverified", "note": "default dpi unknown: 420 (412dp) or 480 (360dp)" },
+    { "name": "fold5-cover", "model": "Galaxy Z Fold5 cover", "width": 904, "height": 2316, "density": 420, "minAndroid": "13", "minApi": 33, "densitySource": "chrome" },
+    { "name": "fold5-main", "model": "Galaxy Z Fold5 main", "width": 1812, "height": 2176, "density": 420, "minAndroid": "13", "minApi": 33, "densitySource": "chrome" },
+    { "name": "flip6-cover", "model": "Galaxy Z Flip6 cover", "width": 720, "height": 748, "density": 320, "minAndroid": "14", "minApi": 34, "densitySource": "unverified", "note": "dpi unknown; 320 gives 360dp" },
+    { "name": "flip7-main", "model": "Galaxy Z Flip7 main", "width": 1080, "height": 2520, "density": 480, "minAndroid": "16", "minApi": 36, "densitySource": "yesviz" },
+    { "name": "fold8-main", "model": "Galaxy Z Fold8 main", "width": 1828, "height": 2448, "density": 420, "minAndroid": "17", "minApi": 37, "densitySource": "unverified", "note": "resolution conflicts between Samsung (1828x2448) and GSMArena (2448x1848); cover 1248x1972 not a separate profile" },
+    { "name": "trifold-main", "model": "Galaxy Z TriFold main", "width": 1584, "height": 2160, "density": 320, "minAndroid": "16", "minApi": 36, "densitySource": "unverified", "note": "dpi unknown; 320 gives 792dp" }
+  ]
+}

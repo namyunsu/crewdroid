@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <queries>
+        <intent><action android:name="android.provider.action.PICK_IMAGES" /></intent>
+        <intent><action android:name="android.intent.action.GET_CONTENT" /><data android:mimeType="image/*" /></intent>
+    </queries>
+    <application android:label="CrewProbe" android:usesCleartextTraffic="true">
+        <activity android:name=".ProbeActivity" android:exported="true" />
+    </application>
+</manifest>
