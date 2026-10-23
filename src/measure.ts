@@ -1,9 +1,10 @@
-import { execFile, spawn } from "node:child_process";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { existsSync, openSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { cpus, release, tmpdir, totalmem } from "node:os";
 import { join, resolve } from "node:path";
 import { adb } from "./adb.ts";
+import { launchEmulator } from "./emulator.ts";
 import { emulatorPath, sdkRoot } from "./sdk.ts";
 
 const run = promisify(execFile);
@@ -67,9 +68,7 @@ export async function measure(avds: string[], basePort: number, idleSec = 60) {
       const port = basePort + 2 * i;
       const serial = `emulator-${port}`;
       // same flags as private-app avd-up.ps1, plus -read-only so the AVD files are never modified
-      const child = spawn(emulatorPath(), ["-avd", avd, "-port", String(port), "-no-window", "-no-audio", "-read-only", "-gpu", "host", "-camera-back", "emulated"],
-        { detached: true, stdio: ["ignore", openSync(join(tmpdir(), `crewdroid-${avd}.log`), "w"), "ignore"], windowsHide: true });
-      child.unref();
+      await launchEmulator(["-avd", avd, "-port", String(port), "-no-window", "-no-audio", "-read-only", "-gpu", "host", "-camera-back", "emulated"], join(tmpdir(), `crewdroid-${avd}.log`));
       started.push({ avd, serial, t0: Date.now() });
       await sleep(3000); // AI NOTE: launching 3 emulators in the same instant intermittently hung one at startup (log stops after GPU init); a 3 s stagger avoids it
     }

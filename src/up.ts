@@ -38,7 +38,7 @@ export async function up(count: number, basePort = 5580, names?: string[]) {
   try {
     const t0s: number[] = [];
     for (const [i, s] of slots.entries()) {
-      start(avdName(s.image), ports[i], true, ["-no-boot-anim"]);
+      await start(avdName(s.image), ports[i], true, ["-no-boot-anim"]);
       t0s.push(Date.now());
       await sleep(3000);
     }

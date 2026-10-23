@@ -1,12 +1,12 @@
-import { execFile, spawn } from "node:child_process";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { existsSync, openSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
 import { avdName, createAvd, imageInstalled, installImage } from "./avd.ts";
+import { launchEmulator } from "./emulator.ts";
 import { waitBoot } from "./measure.ts";
-import { emulatorPath } from "./sdk.ts";
 
 const run = promisify(execFile);
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -17,8 +17,7 @@ export const SNAPSHOT = "default_boot"; // quickboot snapshot name; -read-only i
 // AI NOTE: no -no-snapshot here (avd.ts launchArgs has it): snapshots must stay enabled to save/load default_boot.
 export function start(name: string, port: number, readOnly: boolean, extra: string[] = []) {
   const args = ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-gpu", "host", "-camera-back", "emulated", "-cores", "2", "-memory", "2048", ...(readOnly ? ["-read-only"] : ["-no-snapshot-save"]), ...extra];
-  const log = openSync(join(tmpdir(), `crewdroid-${name}-${port}.log`), "w");
-  spawn(emulatorPath(), args, { detached: true, stdio: ["ignore", log, "ignore"], windowsHide: true }).unref();
+  return launchEmulator(args, join(tmpdir(), `crewdroid-${name}-${port}.log`));
 }
 
 export async function killAll(name: string, serials: string[]) {
@@ -34,7 +33,7 @@ export async function prepare(image: string, port = 5580) {
   const serial = `emulator-${port}`;
   if (!existsSync(probeApk())) throw new Error(`probe apk missing: ${probeApk()} (run gradlew assembleDebug in probe-app/)`);
   try {
-    start(name, port, false, ["-no-snapshot-load"]); // cold boot: re-preparing must not start from the old snapshot
+    await start(name, port, false, ["-no-snapshot-load"]); // cold boot: re-preparing must not start from the old snapshot
     const bootSeconds = await waitBoot(serial, Date.now());
     await sleep(10000); // let boot-time jobs settle so the snapshot is clean
     await adb(serial, ["install", "-r", probeApk()], 120000);
