@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-23T17:35:11.935Z",
+  "date": "2026-10-23T18:37:51.054Z",
   "count": 3,
   "devices": [
     {
@@ -37,7 +37,7 @@
       "wmSize": "Physical size: 1080x2340",
       "wmDensity": "Physical density: 420\r\nOverride density: 450",
       "bootSeconds": 6.3,
-      "readySeconds": 34,
+      "readySeconds": 33.9,
       "distinctNotes": []
     },
     {
@@ -56,7 +56,7 @@
       "wmSize": "Physical size: 1080x2340",
       "wmDensity": "Physical density: 420",
       "bootSeconds": 4.2,
-      "readySeconds": 33.9,
+      "readySeconds": 32.7,
       "distinctNotes": []
     }
   ]

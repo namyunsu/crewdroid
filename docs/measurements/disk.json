@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-23T17:34:30.386Z",
+  "date": "2026-10-23T18:37:10.812Z",
   "maxGiB": 8,
   "idle": {
     "images": [
@@ -32,16 +32,16 @@
       {
         "image": "android-34/google_atd",
         "imageBytes": 974184531,
-        "avdBytes": 1358125325
+        "avdBytes": 1358129137
       },
       {
         "image": "android-36/google_atd",
         "imageBytes": 1185872860,
-        "avdBytes": 1623873653
+        "avdBytes": 1623891184
       }
     ],
-    "tempBytes": 394672756,
-    "totalBytes": 7518087383
+    "tempBytes": 276576884,
+    "totalBytes": 7400012854
   },
   "devices": [
     {
