@@ -40,3 +40,4 @@
 2026-10-24 03:43 | 다른 세션의 check-scenario가 에뮬레이터를 계속 점유해 shift가 비어 있음 | env broken
 2026-10-24 | 다른 세션 check-scenario가 에뮬레이터를 계속 점유해 shift가 빈 채로 끝남 | env broken
 2026-10-24 | 다른 세션이 에뮬레이터·check-scenario 점유해 shift 공회전 | env broken
+2026-10-24 03:48 | 에뮬레이터 점유 반복 | env broken: 다른 세션이 check-scenario로 에뮬레이터 장기 점유
