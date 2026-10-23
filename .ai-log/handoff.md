@@ -1,11 +1,9 @@
-# Handoff (2026-10-23)
-완료: T01 T02 T03 T04 T07 T08 (todo-archive.md 참조). 에뮬레이터는 모두 꺼 둠.
-다음 배치: T05 (에뮬 1개). T12(haiku, 창 숨김)는 에뮬을 쓰므로 다른 에뮬 Todo 와 같은 배치 금지. 이후 T06 → T09 → T10 → T11.
-알아둘 것:
-- sample/server/server.ts(T02 업로드)와 app.ts(T07 판정용)가 둘 다 기본 포트 5599 인 별개 서버. T05/T09/T10 전에 하나로 합칠 것 (app.ts 에 /upload 있음, 프로브 앱이 x-client-id·idempotency-key 헤더를 보내야 함).
-- 에뮬 37.1.11 은 -android-serialno 에서 멈춤: ro.serialno 는 못 바꿈.
-- API 37 ATD 는 0.94GB 라 안 받음: fold8 은 API36 (belowMinApi).
-- density 미확인 프로필 4개 (a16, flip6-cover, fold8-main, trifold-main).
-- up 후 RAM 이 14% 늘어난 이유 [모름].
-- 동시에 다른 autopilot 셸이 돌았을 수 있음 (T02 워커가 check-atd 중복 실행 관찰): 포트 충돌 주의.
-- CLAUDE.md 의 Commands/디렉터리 맵은 아직 갱신 안 됨 (up/down/prepare/identity/judge/hammer, src/avd·snapshot·identity·up·judge·hammer).
+# Handoff (2026-10-24, shift 7)
+이번 shift: 일 못 함. 옛 shift(claude -p, PID 28620, 10-23 22:14 시작)와 그 T15 작업자가 아직 살아서 src/snapshot.ts 를 고치고 에뮬(포트 5580)을 돌림. 새 작업자를 같이 돌리면 AVD 가 깨져 중단. 누구도 죽이지 않음.
+다음: 옛 shift 가 끝나거나 사람이 PID 28620 을 정리한 뒤 T15 재개 (T15 → T16 → T17 → T18 → T19).
+T15 이어받기 메모:
+- 이미지 sparse 완료(.sha256 있음): 31 4107→1267MiB, 34 8203→1235, 36 1811→1469.
+- hw.ramSize=1536 은 API 34 에서 2560 으로 자동 상향됨 → RAM 으로 스냅샷 줄이기 안 통함 [확인함 qemu 로그].
+- default_boot 에 ram.img+ram.bin 중복, 3개 합 ~11GB. ANDROID_SNAPSHOT_COMPRESS 지원 확인. 목표: ram.bin ≤ 0.6GB/개.
+- %TEMP%\AndroidEmulator 에 죽은 클론 TMP*.qcow2 23개(~180MB).
+- 증거: .ai-log/evidence/T15-2.txt. 포트 5599 점유 → --server-port 5595.

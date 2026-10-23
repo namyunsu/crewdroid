@@ -5,7 +5,9 @@ import { judge } from "./judge.ts";
 import { prepare } from "./snapshot.ts";
 import { identity } from "./identity.ts";
 import { hammer } from "./hammer.ts";
+import { flakyLoop, setNet, type NetState } from "./net.ts";
 import { down, measureUp, up } from "./up.ts";
+import { runScenario } from "./scenario.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -14,9 +16,10 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
-    image: { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false },
+    image: { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
+    "server-port": { type: "string", default: "5599" },
   },
 });
 
@@ -53,13 +56,21 @@ async function main() {
     return;
   }
   if (cmd === "up") {
-    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","));
+    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window);
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density}`).join("\n"));
     return;
   }
   if (cmd === "down") {
     const r = await down();
     console.log(values.json ? JSON.stringify(r) : `killed ${r.killed.length} processes (ports: ${r.ports.join(",") || "none"})`);
+    return;
+  }
+  if (cmd === "net") {
+    const [, serial, state] = positionals;
+    if (!serial || !state) throw new Error("usage: net <serial> airplane|nodata|slow|flaky|online [--seed N]");
+    if (state === "flaky-loop") return flakyLoop(serial, Number(values.seed)); // internal: detached worker started by `net flaky`
+    const r = await setNet(serial, state as NetState, Number(values.seed));
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} -> ${state}`);
     return;
   }
   if (cmd === "hammer") {
@@ -74,7 +85,22 @@ async function main() {
     if (!r.judge.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer)`);
+  if (cmd === "run") {
+    const [, file] = positionals;
+    if (!file) throw new Error("usage: run <scenario.json> [--seed N] [--count 3] [--server-port 5599] [--out file]");
+    const r = await runScenario(file, { count: Number(values.count), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]) });
+    const text = JSON.stringify(r, null, 2);
+    if (values.out) writeFileSync(values.out, text + "\n");
+    if (values.json) console.log(text);
+    else {
+      for (const d of r.devices) console.log(`${d.serial} ${d.profile} API ${d.api} net: ${d.network.map((x) => `${x.t}s ${x.state}`).join(", ")} | ${Object.entries(d.log).map(([k, n]) => `${k}=${n}`).join(" ")}`);
+      for (const v of r.judge.violations) console.log(`VIOLATION ${v.table} ${v.rule}: ${v.message}`);
+      console.log(`${r.ok ? "OK" : "FAIL"}: drained=${r.drained} (${r.drainSeconds}s) violations=${r.judge.violations.length} wall=${r.wallSeconds}s peak cpu=${r.host.peakCpuPercent}% ram=${r.host.peakRamMB}MB seed=${r.seed}`);
+    }
+    if (!r.ok) process.exitCode = 1;
+    return;
+  }
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer, net, run)`);
 }
 
 main().catch((e) => {

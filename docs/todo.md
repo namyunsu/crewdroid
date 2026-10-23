@@ -13,45 +13,44 @@ Rules for every Todo:
 - System image downloads approved: `google_atd` x86_64 for at most 3 API levels (each <= ~0.9GB). Anything bigger (google_apis ~1.6-1.9GB) -> BLOCKED with the reason, ask the user.
 Ordering: emulator Todos run one per batch (CPU): T01 -> T02 -> T03 -> T04 -> T05 -> T06 -> T09 -> T10 -> T11. T07 -> T08 need no emulator and may share a batch with one emulator Todo.
 
-- [ ] T05 [KO] 네트워크 상태 전환 (비행기·데이터 끊김·느림·들락날락)
-  area: src/net.ts, src/cli.ts, scripts/check-net.mjs, probe-app/ (download/upload timing broadcast only)
-  model: sonnet
-  review: required
-  accept: `crewdroid net <serial> airplane|nodata|slow|flaky|online [--seed N]`: airplane = airplane mode on (radio + wifi off), nodata = mobile data and wifi off but airplane mode off, slow = emulator console `network speed`/`network delay` set to a very slow profile, flaky = on/off loop with per-device random durations from the seed (two devices never share a schedule) until `online`, online = everything restored. Each state is proven by the probe app: upload of a 1MB file to the sample server fails under airplane/nodata, takes >= 5x the online time under slow, and under flaky at least one upload fails and a later retry succeeds. An upload interrupted mid-transfer (`net nodata` while uploading) is reported as `UPLOAD fail` and the server keeps no partial file.
-  verify: `node scripts/check-net.mjs --count 2`
+Wave 2026-10-23 autopilot /brief auto (plan 1).
 
-- [ ] T06 [KO] mobile-mcp · Maestro 연결
-  area: .mcp.json, flows/, scripts/check-mcp.mjs, CLAUDE.md (Commands)
-  model: sonnet
-  review: required
-  accept: Install Maestro CLI (approved) and add project `.mcp.json` with mobile-mcp (`npx -y @mobilenext/mobile-mcp@<pinned>`) and `maestro mcp`. `scripts/check-mcp.mjs` starts mobile-mcp over stdio as an MCP client, lists devices and confirms the crewdroid serials appear, then takes one accessibility snapshot of the probe app on a chosen emulator serial. `flows/probe-upload.yaml` (Maestro) opens the probe app, triggers an upload and asserts the success text; it runs with `maestro test --device "<s1>,<s2>" --shard-all 2` on two different profiles. Document in CLAUDE.md how to target one device in each tool and that a USB phone may appear in their device lists — always pass an `emulator-*` serial. Record how `maestro mcp`'s `run` picks a device.
-  verify: `npx tsx src/cli.ts up --count 2 && node scripts/check-mcp.mjs && npx tsx src/cli.ts down`
+Wave 2026-10-23 human /brief — lightness regressed (T04: disk +56 % with 3 versions, RAM +14 %); user: "RAM 이랑 디스크 확 줄여야지, 무조건". New FR-12 (disk <= 8 GB for 3 mixed devices) and FR-13 (host RAM <= 4.2 GB for 3). Measured 2026-10-23 by /brief (`du`): ATD system.img is stored fully allocated — API 34 8.1 GB, API 31 4.1 GB, API 36 1.8 GB, though the API 34 zip is ~0.7 GB (mostly zero blocks); each crew AVD's `snapshots/` is 3.5-4.7 GB (quickboot RAM image of `hw.ramSize=2048` + more); `disk.dataPartition.size=10G`; config still has `hw.audioInput/Output=yes`, most sensors on, `hw.gpu.enabled=no`. Order: T13 -> T14 -> T15 -> T16 (all touch AVD config/launch; T14 may change gpu/image settings T15/T16 then measure). Both T15 and T16 re-run `check-up`, `check-scenario` and `mvp-private-app --runs 1` so nothing that passed breaks. Never touch old-avd-1..3 or the android-33 google_apis image (deletion needs the user's yes).
 
-- [ ] T09 [KO] 샘플 앱 오프라인 저장·동기화 시나리오
-  area: probe-app/ (rename the user-facing part to "sample app" inside the same module), scripts/check-offline.mjs
+- [ ] T15 [KO] 디스크 3대 ≤ 8GB (FR-12)
+  area: src/avd.ts, src/snapshot.ts, src/slim.ts (new), src/cli.ts, scripts/check-disk.mjs, docs/measurements/slim.md
   model: opus
   review: required
-  accept: The app keeps an outbox (Room or files) of photos/edits: actions while offline are saved locally and sent when the network returns (idempotency key per action, retry with backoff); an upload cut mid-transfer is retried; the app restarted while offline (`am force-stop` + relaunch) keeps its outbox and syncs later; two devices edit the same record while one is offline and the server's response (409 in clean mode) is surfaced in logcat `CrewProbe CONFLICT <id>`. All triggers are adb broadcasts so scripts and Maestro can drive them.
-  verify: `node scripts/check-offline.mjs` (2 mixed devices: offline save -> restart offline -> online -> server has exactly the expected rows; concurrent edit -> one CONFLICT line)
+  accept: `crewdroid slim` (also run by `prepare`) makes crewdroid's disk small without changing behaviour. Candidates, each measured before/after with real allocation (`fsutil file layout` / `GetCompressedFileSize` / `du`, not file length): (1) system images stored sparse — rewrite each `system-images/*/google_atd/x86_64/*.img` as an NTFS sparse file (zero ranges deallocated) or another lossless form the emulator still boots; keep a checksum so the content is provably identical; (2) quickboot snapshot slimmed — smaller `hw.ramSize` (from T16 if done, else 1536), one snapshot only (`default_boot`), delete stale ones, try emulator snapshot compression if available; (3) `disk.dataPartition.size` 2G for new AVDs; (4) anything else found (e.g. dedupe identical files across images by hard link). Report each knob's saving in `docs/measurements/slim.md`. Result: 3 images (API 31/34/36) + 3 base AVDs + 3 running clones' temp files <= 8 GB allocated, and boot time not worse than T04 by more than 20 %.
+  verify: `npx tsx src/cli.ts slim --json && node scripts/check-disk.mjs --max-gb 8 && npx tsx src/cli.ts up --count 3 --json > docs/measurements/up.json && node scripts/check-up.mjs docs/measurements/up.json && npx tsx src/cli.ts down && node scripts/check-scenario.mjs && node scripts/mvp-private-app.mjs --runs 1`
 
-- [ ] T10 [KO] 다자 현장 시나리오 실행기 (혼합 N대 + 네트워크 섞기 + 판정)
-  area: src/scenario.ts, scenarios/photo-upload.json, src/cli.ts, scripts/check-scenario.mjs, docs/measurements/scenario.md
+- [ ] T16 [KO] 호스트 RAM 3대 ≤ 4.2GB (FR-13)
+  area: src/avd.ts, src/emulator.ts, src/measure.ts, src/up.ts, scripts/check-ram.mjs, docs/measurements/ram.md
   model: opus
   review: required
-  accept: `crewdroid run scenarios/photo-upload.json [--seed]` = up N mixed devices (default 3) -> install sample app -> each device repeats the flow R times with its own random delays while the scenario applies network states per device (airplane, nodata, slow, flaky; schedules differ per device) -> wait for outboxes to drain (timeout) -> `judge` -> `down`. Writes a run report (devices with profile/API, network timeline per device, judge result, wall time, peak host CPU/RAM). Against `BUGGY=1` it reports at least one violation in >= 2 of 3 seeds; against the clean server 3 of 3 pass. Summary table in `docs/measurements/scenario.md`.
-  verify: `node scripts/check-scenario.mjs`
+  accept: First fix the measure: report per emulator process Private Bytes / private working set and shared working set separately, and a 3-device total that counts shared pages once (clones of one snapshot share file-backed pages); keep the old working-set number for comparison with T01. Then sweep knobs one at a time on 3 mixed devices and record each in `docs/measurements/ram.md`: `hw.ramSize` 768/1024/1536, guest low-RAM props (`ro.config.low_ram=true`, smaller `dalvik.vm.heapsize`) if settable on ATD, `vm.heapSize`, audio off in config, unused sensors/front camera off, gpu mode (host vs swiftshader_indirect vs guest — keep whatever T14 needs for rendering), quickboot file-backed RAM on/off (`-feature -QuickbootFileBacked` or equivalent), cold boot vs snapshot. Adopt the smallest combination that still passes `check-scenario` and `mvp-private-app --runs 1` (WebRTC call). Result: 3-device host RAM total <= 4.2 GB by the corrected measure, and the old working-set number also reported. If 4.2 GB cannot be reached without breaking a test, stop BLOCKED with the best number, the knob that broke what, and the remaining options.
+  verify: `node scripts/check-ram.mjs --count 3 --max-mb 4300 && node scripts/check-scenario.mjs && node scripts/mvp-private-app.mjs --runs 1`
 
-- [ ] T11 [KO] MVP — private-app techs.multi.ts 를 crewdroid 기동으로 통과 + 전후 비교 + 데모 GIF
-  area: src/integrations/private-app.ts, scripts/mvp-private-app.mjs, docs/measurements/mvp.md, docs/demo/
-  model: opus
-  review: required
-  accept: Without editing private-app: `crewdroid up --count 3 --base-port 5570` (image per ADR 0003; private-app needs the emulated back camera and WebRTC — use `-gpu host -camera-back emulated` when the image allows; mix profiles, and Android versions the APK's minSdk allows) so `avd-up.ps1` sees emulator-5570/5572/5574 already booted and only installs the APK; then `npm run e2e:multi -- --grep @techs` in `<private-app repo>/private-app-server` passes 3 runs in a row. If private-app' global-setup forces its own AVDs or the spec needs something crewdroid cannot give without editing private-app, stop BLOCKED with the exact line. `docs/measurements/mvp.md`: old path (avd-up.ps1 + old-avd-1..3) vs crewdroid for the same spec — disk, boot, RAM, CPU, spec wall time, pass count. `docs/demo/techs.gif` (<= 10 MB, ffmpeg from `adb shell screenrecord` of the 3 devices side by side).
-  verify: `node scripts/mvp-private-app.mjs --runs 3`
-  manual: 데모 GIF 를 열어 3대 화면이 서로 다른 기종 비율로 보이고 통화가 이어지는지 눈으로 확인
-
-- [ ] T12 [KO] 에뮬레이터 콘솔 창이 화면에 뜨지 않게
-  area: src/emulator.ts (shared launcher), src/measure.ts
+- [ ] T17 [KO] T16 통과 후 옛 AVD 3대 + android-33 google_apis 이미지 삭제
+  origin: user approval in /brief 2026-10-23, verbatim: "T16 까지 통과하면 old-avd-1~3 과 android-33 google_apis 이미지 지워도 돼. 그 전엔 두고."
+  area: docs/infra.md, CLAUDE.md (Gotchas), docs/measurements/slim.md
   model: haiku
-  review: skip
-  accept: T01 launches the emulator with Node `spawn(..., { detached: true, windowsHide: true })`; on Windows the grandchild `qemu-system-x86_64-headless.exe` still opens a visible console window (user saw it 2026-10-23). Move emulator launch into one shared function used by every command (measure/up/prepare/identity) that starts it hidden the way private-app avd-up.ps1 does (`powershell Start-Process -WindowStyle Hidden`, or an equivalent that hides grandchildren) and still returns/locates the PID for kill. No visible window while any crewdroid command runs.
-  verify: `node scripts/check-hidden.mjs` (starts one crewdroid emulator, lists processes named emulator*/qemu* and asserts every one has MainWindowHandle 0 via `Get-Process`, then kills it)
+  review: required
+  accept: Run only when `.ai-log/status.md` shows T15 and T16 DONE (reviewer APPROVE); otherwise stay TODO. Delete exactly: AVDs `old-avd-1`, `old-avd-2`, `old-avd-3` (`avdmanager delete avd -n <name>`, plus their `.ini`) and `system-images;android-33;google_apis;x86_64` (`sdkmanager --uninstall`). Nothing else (no crew-* AVD, no other image). No emulator using them may be running. Record freed GB in `docs/measurements/slim.md`. Update infra.md and CLAUDE.md: the "never delete old-avd" rule is gone; private-app' `avd-up.ps1` would now try to recreate old-avd-N from the missing image, so private-app multi tests must run with `crewdroid up --count 3 --base-port 5570` first (as `scripts/mvp-private-app.mjs` does).
+  verify: `node scripts/mvp-private-app.mjs --runs 1 && node -e "const fs=require('fs'),os=require('os'),p=require('path');const a=p.join(os.homedir(),'.android/avd');const bad=fs.readdirSync(a).filter(f=>/^old-avd-/.test(f));if(bad.length)throw new Error('left: '+bad);console.log('AVD gone')" && node -e "const fs=require('fs');const s=(process.env.ANDROID_SDK_ROOT||'C:/Users/NYS/scoop/apps/android-clt/current')+'/system-images/android-33/google_apis';if(fs.existsSync(s))throw new Error('image left');console.log('image gone')"`
+
+Wave 2026-10-24 human /brief — user: "가로세로규격을 내가 임의로 넣을수도있어야해", screens bigger than the monitor for HMI work, fold/unfold for Fold/Flip ("나머지 기종은 결국 가로세로 길이만 다른거"). New FR-14, FR-15. Both after T16 (they touch `src/up.ts` / AVD config like T14-T16). Screens must render (T14) for the screenshot checks below.
+
+- [ ] T18 [KO] 임의 화면 규격 + 모니터보다 큰 화면 (FR-14)
+  area: src/up.ts, src/profiles.ts, profiles/galaxy.json (schema only), profiles/custom.example.json, src/cli.ts, scripts/check-size.mjs, docs/measurements/size.md, README.md (usage lines)
+  model: sonnet
+  review: required
+  accept: `crewdroid up` takes ad-hoc screens next to named profiles: `--screen 1920x720@160` (WxH@density, density optional -> derived for ~360dp width) and repeatable/comma list, e.g. `--screen 1080x2340@450,3840x2160@320 --count 2`; a user profile file (`--profiles-file my.json`, same schema as galaxy.json, `profiles/custom.example.json` shows an HMI entry) also works. Invalid input (0, negative, non-number, missing x) -> clear error, exit 1, nothing launched. Measure and document in `docs/measurements/size.md` the largest size that boots and renders on API 34/36 ATD (try 3840x2160, 5120x1440, 7680x2160) with boot time and host RAM per size; sizes over the host monitor work headless and in `--window` mode (scaled window, full-resolution screenshot).
+  verify: `node scripts/check-size.mjs` (up 2 devices with `--screen 1920x720@160,3840x2160@320`; `wm size`/`wm density` match; screencap PNG dimensions equal the requested sizes and are not uniform; bad `--screen 0x100` exits 1; down)
+
+- [ ] T19 [KO] 폴드·플립 접기/펴기 (FR-15)
+  area: src/fold.ts, src/cli.ts, src/avd.ts (foldable AVD config if needed), profiles/galaxy.json (fold pairs), scripts/check-fold.mjs, sample app (log configuration changes), docs/adr/0004-fold.md
+  model: opus
+  review: required
+  accept: Fold/Flip profiles carry both screens (cover + main, from research-samsung-screens.md). `crewdroid fold <serial>` / `unfold <serial>` switches cover <-> main so the app gets a real configuration change (new screen size). Find what works on our ATD images and record it in ADR 0004 with evidence: emulator foldable support (`hw.sensor.hinge*` / foldable AVD config + `adb emu fold|unfold`), `cmd device_state state <id>`, or fallback `wm size/density` swap (honest about what the fallback does not emulate: hinge posture, half-open). The sample app logs `CrewProbe CONFIG <w>x<h>` on each configuration change and keeps its outbox/in-progress upload across fold/unfold (a fold during upload is a test case).
+  verify: `node scripts/check-fold.mjs` (up a fold5 + flip6 profile; unfold/fold each; CONFIG lines show both sizes; screencap sizes change; an upload started before a fold completes exactly once on the server; down)

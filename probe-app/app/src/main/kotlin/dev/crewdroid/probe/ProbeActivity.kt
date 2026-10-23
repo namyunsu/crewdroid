@@ -15,12 +15,11 @@ import android.os.HandlerThread
 import android.provider.MediaStore
 import android.util.Log
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id [--es url URL] [--es file PATH]
+// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id [--es url URL] [--es file PATH]
+// upload extras: --ei size N (N zero-ish bytes instead of a file), --es key IDEMPOTENCY_KEY, --es client X_CLIENT_ID
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
     private val tag = "CrewProbe"
@@ -31,17 +30,29 @@ class ProbeActivity : Activity() {
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
-        val check = intent.getStringExtra("check") ?: return finish()
+        val check = intent.getStringExtra("check") ?: return sample()
         when (check) {
             "camera" -> Thread { report("CAMERA", camera()); runOnUiThread { finish() } }.start()
             "picker" -> picker()
             "id" -> { report("ID", "ok " + android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)); finish() }
             "upload" -> Thread {
-                report("UPLOAD", upload(intent.getStringExtra("url") ?: "http://10.0.2.2:5599/upload", intent.getStringExtra("file")))
+                val t0 = System.currentTimeMillis()
+                val r = upload(intent.getStringExtra("url") ?: "http://10.0.2.2:5599/upload", intent.getStringExtra("file"), intent.getIntExtra("size", 0), intent.getStringExtra("key"), intent.getStringExtra("client"))
+                val ms = System.currentTimeMillis() - t0
+                report("UPLOAD", "$r ms=$ms")
+                // timing broadcast (T05): same result for anything that wants it without parsing logcat
+                sendBroadcast(Intent("dev.crewdroid.probe.UPLOAD").setPackage(packageName).putExtra("ok", r.startsWith("ok")).putExtra("ms", ms))
                 runOnUiThread { finish() }
             }.start()
             else -> { report(check.uppercase(), "fail unknown check"); finish() }
         }
+    }
+
+    // Plain launch (launcher / am start without extras) = the sample app screen; it stays open so the outbox thread keeps running.
+    private fun sample() {
+        Outbox.init(this)
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        setContentView(android.widget.TextView(this).apply { text = "Crew sample app\noutbox: ${Outbox.size()} pending"; textSize = 20f; setPadding(48, 96, 48, 48) })
     }
 
     private fun report(name: String, result: String) { Log.i(tag, "$name $result") }
@@ -119,19 +130,16 @@ class ProbeActivity : Activity() {
         finish()
     }
 
-    private fun upload(url: String, path: String?): String {
+    private fun upload(url: String, path: String?, size: Int, key: String?, client: String?): String {
         val file = path?.let { File(it) } ?: cameraJpeg
-        val payload = if (file.exists()) file.readBytes() else ByteArray(4096) { (it % 251).toByte() }
-        val boundary = "----crew${System.nanoTime()}"
+        val payload = if (size > 0) ByteArray(size) { (it % 251).toByte() } else if (file.exists()) file.readBytes() else ByteArray(4096) { (it % 251).toByte() }
         return try {
-            val c = URL(url).openConnection() as HttpURLConnection
-            c.requestMethod = "POST"; c.doOutput = true; c.connectTimeout = 10000; c.readTimeout = 20000
-            c.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-            val head = "--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"${file.name}\"\r\nContent-Type: image/jpeg\r\n\r\n".toByteArray()
-            val tail = "\r\n--$boundary--\r\n".toByteArray()
-            c.setFixedLengthStreamingMode(head.size + payload.size + tail.size)
-            c.outputStream.use { it.write(head); it.write(payload); it.write(tail) }
-            val code = c.responseCode
+            val (type, body) = multipart(file.name, payload)
+            // sample server (sample/server/app.ts) requires both headers
+            val (code, _) = http("POST", url, mapOf(
+                "x-client-id" to (client ?: android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "probe"),
+                "idempotency-key" to (key ?: java.util.UUID.randomUUID().toString()),
+                "Content-Type" to type), body)
             if (code in 200..299) "ok ${payload.size}" else "fail http $code"
         } catch (e: Exception) { "fail ${e.javaClass.simpleName}: ${e.message}".replace('\n', ' ') }
     }

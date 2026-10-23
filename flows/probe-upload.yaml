@@ -1,0 +1,18 @@
+# Opens the probe app, triggers one upload, asserts the sample server received it (the probe app has no UI to read).
+# Run: maestro test --device "emulator-5580,emulator-5582" --shard-all 2 flows/probe-upload.yaml
+#   needs the sample server on :5599 (node --import tsx sample/server/main.ts 5599 <dir>) and the current probe APK installed.
+appId: dev.crewdroid.probe
+env:
+  SERVER: http://127.0.0.1:5599
+---
+- evalScript: ${output.key = 'maestro-' + Date.now() + '-' + Math.floor(Math.random() * 1e6)}
+- launchApp:
+    clearState: true
+    arguments:
+      check: upload
+      url: http://10.0.2.2:5599/upload
+      size: 4096
+      key: ${output.key}
+      client: maestro
+- runScript:
+    file: assert-upload.js

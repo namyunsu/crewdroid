@@ -1,15 +1,15 @@
 // T02 verify: boots the crew ATD AVD, runs CAMERA / PICKER / UPLOAD probe checks, prints a table.
 // Exit 0 only when every check produced a result line (ok or fail both count: this is a measurement).
 // usage: node scripts/check-atd.mjs --image android-34/google_atd --port 5580 [--server-port 5599] [--keep]
-import { spawn, execFileSync } from "node:child_process";
-import { existsSync, openSync, writeFileSync, mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { deflateSync } from "node:zlib";
 import { adb } from "../src/adb.ts";
+import { launchEmulator } from "../src/emulator.ts";
 import { avdName, createAvd, imageInstalled, installImage, launchArgs } from "../src/avd.ts";
-import { emulatorPath } from "../src/sdk.ts";
 import { startServer } from "../sample/server/server.ts";
 
 const { values: v } = parseArgs({ options: { image: { type: "string" }, port: { type: "string", default: "5580" }, "server-port": { type: "string", default: "5599" }, out: { type: "string" } } });
@@ -56,7 +56,7 @@ async function tapFirstImage() {
 }
 
 const rawLines = [], table = [];
-let emu, server;
+let server;
 try {
   if (!imageInstalled(v.image)) await installImage(v.image);
   const name = await createAvd(v.image);
@@ -64,8 +64,7 @@ try {
   const apk = join(root, "probe-app/app/build/outputs/apk/debug/app-debug.apk");
   if (!existsSync(apk)) execFileSync(process.platform === "win32" ? "gradlew.bat" : "./gradlew", ["assembleDebug", "--console=plain"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
 
-  emu = spawn(emulatorPath(), launchArgs(name, port), { detached: true, stdio: ["ignore", openSync(join(tmpdir(), `crewdroid-${name}.log`), "w"), "ignore"], windowsHide: true });
-  emu.unref();
+  await launchEmulator(launchArgs(name, port), join(tmpdir(), `crewdroid-${name}.log`));
   console.error(`booted in ${(await waitBoot()).toFixed(1)}s`);
   await sleep(5000);
   await adb(serial, ["install", "-r", apk], 120000);
