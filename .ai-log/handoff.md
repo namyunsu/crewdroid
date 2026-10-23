@@ -32,3 +32,4 @@ T15 현황: idle 6.63GiB / running 7GiB ≤ 8GiB, 부팅 평균 6.73s (T04 7.13s
 - shift 157: 다른 세션의 mvp-private-app --runs 1(PID 4296)+에뮬레이터 3대(5570~5574) 계속 점유, 보류.
 - shift 158: 다른 세션의 mvp-private-app --runs 1(PID 4296)+에뮬레이터 3대(5570~5574) 계속 점유, 보류.
 - shift 159: 다른 세션의 mvp-private-app --runs 1(PID 4296)+에뮬레이터 3대(5570~5574) 계속 점유, 보류.
+- shift 161: 다른 세션의 'crewdroid up --count 3'(PID 33176)+crew 에뮬레이터 3대(5580~5584) 점유, 보류.
