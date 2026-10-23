@@ -1,4 +1,4 @@
-# Handoff (2026-10-24 shift 14)
+# Handoff (2026-10-24 shift 16)
 이번 shift: 일 못 함. 옛 세션 PID 28620 이 살아 있고 미커밋 src/avd.ts·cli.ts·snapshot.ts·slim.ts 를 방금까지 수정. 누구도 죽이지 않음.
 다음: 옛 세션 종료 후 T15 재개(미커밋 변경 확인부터). 순서 T15 → T16 → T17 → T18 → T19.
 T15 이어받기 메모:

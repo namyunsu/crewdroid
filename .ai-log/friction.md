@@ -7,3 +7,4 @@
 2026-10-24 | 옛 shift 가 오래 돌아 새 shift 가 연속으로 빈손 종료 | env broken: 두 shift 동시 실행 방지 장치 없음
 2026-10-24 01:46 | 옛 세션이 안 끝난 채 shift 가 반복 시작됨 | env broken / tool limit
 2026-10-24 | 옛 세션이 안 끝나 shift 가 빈 채로 반복됨 (shift 12,13) | env broken: 이전 claude 세션 PID 28620 이 autopilot 과 같은 파일을 계속 수정
+2026-10-24 | 옛 세션 PID 28620 이 계속 T15 작업 중이라 shift 가 연속 3회 빈 채 종료 | env: 동시 세션 충돌
