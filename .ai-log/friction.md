@@ -45,3 +45,4 @@
 2026-10-24 03:56 | 다른 세션이 에뮬레이터를 계속 점유해 shift가 비어 끝남 | env broken
 2026-10-24 | 다른 세션이 에뮬레이터를 장시간 점유해 shift가 비어 있음 | env broken / tool limit (세션 간 락 없음)
 2026-10-24 04:03 | 에뮬레이터를 다른 세션이 계속 점유해 shift가 비어 돌아감 | env broken
+2026-10-24 04:07 | 다른 세션이 에뮬레이터·check-scenario를 장시간 점유해 shift가 빈손 반복 | env: 한 번에 하나의 crewdroid 실행 제한

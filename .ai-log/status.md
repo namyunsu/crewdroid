@@ -18,3 +18,4 @@ T17 TODO
 T18 TODO
 T19 TODO
 - shift 180: 여전히 다른 세션의 check-scenario(PID 30832)+crew 에뮬레이터 3대(5580~5584) 점유, 보류.
+- 2026-10-24 04:07 shift 182: 점유 지속, 보류
