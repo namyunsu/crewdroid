@@ -48,3 +48,4 @@
 2026-10-24 04:07 | 다른 세션이 에뮬레이터·check-scenario를 장시간 점유해 shift가 빈손 반복 | env: 한 번에 하나의 crewdroid 실행 제한
 2026-10-24 | 같은 checkout 에서 autopilot 셸 2개 동시 실행 → down() 이 에뮬 죽여 verify 실패 | env broken (tool limit)
 2026-10-24 | T13 가 T14(렌더) 선행 필요한데 todo 순서 반대 | Todo unclear
+2026-10-24 | 같은 checkout 에서 autopilot 셸이 동시에 돌아 T15 verify 를 두 번 실행 | env broken
