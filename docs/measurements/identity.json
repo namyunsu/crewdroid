@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-23T09:04:26.034Z",
+  "image": "android-34/google_atd",
+  "count": 3,
+  "before": [
+    {
+      "serial": "emulator-5580",
+      "androidId": "b1a1a9be7213ba7c",
+      "appAndroidId": "3fdee6ed5e670463",
+      "roSerialno": "EMULATOR37X1X11X0",
+      "roBootSerialno": "EMULATOR37X1X11X0",
+      "wifiMac": "02:15:cc:00:00:00",
+      "hostname": ""
+    },
+    {
+      "serial": "emulator-5582",
+      "androidId": "b1a1a9be7213ba7c",
+      "appAndroidId": "3fdee6ed5e670463",
+      "roSerialno": "EMULATOR37X1X11X0",
+      "roBootSerialno": "EMULATOR37X1X11X0",
+      "wifiMac": "02:15:cc:00:00:00",
+      "hostname": ""
+    },
+    {
+      "serial": "emulator-5584",
+      "androidId": "b1a1a9be7213ba7c",
+      "appAndroidId": "3fdee6ed5e670463",
+      "roSerialno": "EMULATOR37X1X11X0",
+      "roBootSerialno": "EMULATOR37X1X11X0",
+      "wifiMac": "02:15:cc:00:00:00",
+      "hostname": ""
+    }
+  ],
+  "collisions": [
+    "androidId",
+    "appAndroidId",
+    "roSerialno",
+    "roBootSerialno",
+    "wifiMac",
+    "hostname"
+  ],
+  "after": [
+    {
+      "serial": "emulator-5580",
+      "androidId": "c0ffee0000000001",
+      "appAndroidId": "a0f1ee5e2b40d993",
+      "roSerialno": "EMULATOR37X1X11X0",
+      "roBootSerialno": "EMULATOR37X1X11X0",
+      "wifiMac": "02:15:b2:00:00:01",
+      "hostname": "crew-1"
+    },
+    {
+      "serial": "emulator-5582",
+      "androidId": "c0ffee0000000002",
+      "appAndroidId": "caec0ef41bba6928",
+      "roSerialno": "EMULATOR37X1X11X0",
+      "roBootSerialno": "EMULATOR37X1X11X0",
+      "wifiMac": "02:15:b2:00:00:02",
+      "hostname": "crew-2"
+    },
+    {
+      "serial": "emulator-5584",
+      "androidId": "c0ffee0000000003",
+      "appAndroidId": "7b63461dff7631bc",
+      "roSerialno": "EMULATOR37X1X11X0",
+      "roBootSerialno": "EMULATOR37X1X11X0",
+      "wifiMac": "02:15:b2:00:00:03",
+      "hostname": "crew-3"
+    }
+  ],
+  "stillSame": [
+    "roSerialno",
+    "roBootSerialno"
+  ],
+  "notes": []
+}

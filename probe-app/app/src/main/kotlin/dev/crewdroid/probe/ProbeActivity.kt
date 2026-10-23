@@ -20,7 +20,7 @@ import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload [--es url URL] [--es file PATH]
+// Driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id [--es url URL] [--es file PATH]
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
     private val tag = "CrewProbe"
@@ -35,6 +35,7 @@ class ProbeActivity : Activity() {
         when (check) {
             "camera" -> Thread { report("CAMERA", camera()); runOnUiThread { finish() } }.start()
             "picker" -> picker()
+            "id" -> { report("ID", "ok " + android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)); finish() }
             "upload" -> Thread {
                 report("UPLOAD", upload(intent.getStringExtra("url") ?: "http://10.0.2.2:5599/upload", intent.getStringExtra("file")))
                 runOnUiThread { finish() }

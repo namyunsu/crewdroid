@@ -46,7 +46,7 @@ async function procs(avd: string): Promise<{ ws: number; cpu: number }> {
   return { ws: rows.reduce((a, r) => a + r.ws, 0), cpu: rows.reduce((a, r) => a + r.cpu, 0) };
 }
 
-async function waitBoot(serial: string, t0: number, timeoutMs = 540000): Promise<number> {
+export async function waitBoot(serial: string, t0: number, timeoutMs = 540000): Promise<number> {
   let last = "";
   while (Date.now() - t0 < timeoutMs) {
     try {

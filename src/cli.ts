@@ -2,6 +2,8 @@ import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { measure } from "./measure.ts";
 import { judge } from "./judge.ts";
+import { prepare } from "./snapshot.ts";
+import { identity } from "./identity.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -10,6 +12,7 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
+    image: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false },
   },
 });
 
@@ -34,7 +37,16 @@ async function main() {
     if (!r.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: measure, judge)`);
+  if (cmd === "prepare" || cmd === "identity") {
+    if (!values.image) throw new Error("--image android-34/google_atd required");
+    const port = Number(values["base-port"]);
+    const r = cmd === "prepare" ? await prepare(values.image, port) : await identity(values.image, Number(values.count), port, !values["no-distinct"]);
+    const text = JSON.stringify(r, null, 2);
+    if (values.out) writeFileSync(values.out, text + "\n");
+    console.log(values.json || cmd === "prepare" ? text : `collisions: ${(r as any).collisions.join(",") || "none"}; still same after: ${(r as any).stillSame.join(",") || "none"}`);
+    return;
+  }
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: measure, judge, prepare, identity)`);
 }
 
 main().catch((e) => {
