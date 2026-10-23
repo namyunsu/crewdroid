@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-23T18:37:51.054Z",
+  "date": "2026-10-23T19:13:41.154Z",
   "count": 3,
   "devices": [
     {
@@ -18,7 +18,7 @@
       "wmSize": "Physical size: 1080x2340",
       "wmDensity": "Physical density: 420\r\nOverride density: 480",
       "bootSeconds": 9.6,
-      "readySeconds": 35.6,
+      "readySeconds": 35.5,
       "distinctNotes": []
     },
     {
@@ -37,7 +37,7 @@
       "wmSize": "Physical size: 1080x2340",
       "wmDensity": "Physical density: 420\r\nOverride density: 450",
       "bootSeconds": 6.3,
-      "readySeconds": 33.9,
+      "readySeconds": 34,
       "distinctNotes": []
     },
     {
@@ -55,8 +55,8 @@
       "densitySource": "yesviz",
       "wmSize": "Physical size: 1080x2340",
       "wmDensity": "Physical density: 420",
-      "bootSeconds": 4.2,
-      "readySeconds": 32.7,
+      "bootSeconds": 7.3,
+      "readySeconds": 36.5,
       "distinctNotes": []
     }
   ]

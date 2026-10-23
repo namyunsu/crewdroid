@@ -53,7 +53,7 @@ export async function waitBoot(serial: string, t0: number, timeoutMs = 540000): 
   let last = "";
   while (Date.now() - t0 < timeoutMs) {
     try {
-      if ((await adb(serial, ["shell", "getprop", "sys.boot_completed"], 5000)) === "1") { console.error(`${serial} booted`); return (Date.now() - t0) / 1000; }
+      if ((await adb(serial, ["shell", "getprop", "sys.boot_completed"], 5000, false)) === "1") { console.error(`${serial} booted`); return (Date.now() - t0) / 1000; }
     } catch (e) { last = String(e).slice(0, 200); }
     await sleep(1000);
   }

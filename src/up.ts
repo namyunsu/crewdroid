@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { existsSync } from "node:fs";
-import { cpus, release, totalmem } from "node:os";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { cpus, release, tmpdir, totalmem } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
 import { avdHome, avdName } from "./avd.ts";
@@ -19,13 +19,28 @@ export interface UpDevice {
   wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[];
 }
 
+// One crewdroid run drives the emulators at a time. down() kills every crew-* instance, so a second run started meanwhile
+// (two autopilot shifts on one checkout, 2026-10-24) killed the first run's clones mid-setup -> "device offline" (T15).
+// The owner is the first process that calls up()/down(); child processes inherit CREWDROID_OWNER and share it.
+// A dead owner PID frees the lock (e.g. after `crewdroid up` exits with its emulators left running).
+export const LOCK = () => process.env.CREWDROID_LOCK || join(tmpdir(), "crewdroid-emulators.lock");
+const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch (e: any) { return e.code === "EPERM"; } };
+export function claimEmulators() {
+  const me = process.env.CREWDROID_OWNER || String(process.pid);
+  const owner = existsSync(LOCK()) ? readFileSync(LOCK(), "utf8").trim() : "";
+  if (owner && owner !== me && alive(Number(owner))) throw new Error(`another crewdroid run (pid ${owner}) is using the emulators; wait for it to finish (lock ${LOCK()})`);
+  writeFileSync(LOCK(), me);
+  process.env.CREWDROID_OWNER = me;
+}
+
 export async function up(count: number, basePort = 5580, names?: string[], window = false) {
+  claimEmulators();
   const all = loadProfiles();
   const profiles = names ? names.map((n) => all.find((p) => p.name === n) ?? (() => { throw new Error(`unknown profile '${n}' (have: ${all.map((p) => p.name).join(",")})`); })()) : all;
   const slots = assign(count, profiles, atdImages());
   const ports = slots.map((_, i) => basePort + 2 * i);
   for (const p of ports) {
-    if (await adb(`emulator-${p}`, ["get-state"], 5000).then(() => true, () => false)) throw new Error(`emulator-${p} already running (crewdroid down?)`);
+    if (await adb(`emulator-${p}`, ["get-state"], 5000, false).then(() => true, () => false)) throw new Error(`emulator-${p} already running (crewdroid down?)`);
   }
   // Each image needs a base AVD with a saved quickboot snapshot; prepare() makes it once (boots writable on basePort).
   for (const image of new Set(slots.map((s) => s.image))) {
@@ -107,6 +122,7 @@ export async function measureUp(count: number, basePort = 5580, idleSec = 60, na
 
 // Kills only crewdroid instances: emulator/qemu processes whose command line names an AVD `crew-*`.
 export async function down(): Promise<{ killed: number[]; ports: number[] }> {
+  claimEmulators();
   const list = async () => {
     const ps = `ConvertTo-Json -Compress -InputObject @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'emulator|qemu' -and $_.CommandLine -match '(^|[ @"])crew-[^ "]+([ "]|$)' } | ForEach-Object { [pscustomobject]@{ pid = $_.ProcessId; cmd = $_.CommandLine } })`;
     const { stdout } = await run("powershell", ["-NoProfile", "-Command", ps], { windowsHide: true });

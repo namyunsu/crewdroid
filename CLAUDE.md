@@ -34,6 +34,7 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 - ATD images have no Chrome/camera app/gallery/launcher; see `docs/adr/0003-image.md` once T02 writes it.
 - Long-running emulators drift to ~5 host cores each (private-app T21): measure on fresh boots.
 - Emulator host address from the device: `10.0.2.2`.
+- One crewdroid run at a time: `down()` kills every `crew-*` instance, so two sessions on one checkout kill each other's clones ("device offline"). `up`/`down`/`slim`/`prepare` take `%TEMP%\crewdroid-emulators.lock` (owner PID); to hold it across a chain of commands, `export CREWDROID_OWNER=$(cat /proc/$$/winpid)` first.
 
 ## Conventions
 - Every command supports `--json` and exits non-zero on failure. No hard-coded SDK paths (use `src/sdk.ts`).

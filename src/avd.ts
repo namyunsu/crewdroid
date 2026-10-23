@@ -31,9 +31,12 @@ export async function installImage(image: string) {
   await exec(`"${bat("sdkmanager")}"`, [`"${imagePackage(image)}"`], "y\n".repeat(10));
 }
 
-const CONFIG: Record<string, string> = {
+export const RAM_MB = 1536; // guest RAM (hw.ramSize and -memory); the quickboot RAM image scales with it (T15)
+export const DATA_PARTITION = "2G"; // userdata size; was 10G. AI NOTE: emulator 37.1 rewrites it to 6G at boot (T15, slim.md)
+
+export const CONFIG: Record<string, string> = {
   "hw.lcd.width": "1080", "hw.lcd.height": "2340", "hw.lcd.density": "420",
-  "hw.cpu.ncore": "2", "hw.ramSize": "2048", "hw.camera.back": "emulated",
+  "hw.cpu.ncore": "2", "hw.ramSize": String(RAM_MB), "hw.camera.back": "emulated", "disk.dataPartition.size": DATA_PARTITION,
 };
 
 // Creates the crewdroid AVD (idempotent) and returns its name. -cores/-memory are also passed at launch (see launchArgs).
@@ -54,4 +57,4 @@ export async function createAvd(image: string): Promise<string> {
 }
 
 export const launchArgs = (name: string, port: number) =>
-  ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-no-snapshot", "-gpu", "host", "-camera-back", "emulated", "-cores", "2", "-memory", "2048"];
+  ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-no-snapshot", "-gpu", "host", "-camera-back", "emulated", "-cores", "2", "-memory", String(RAM_MB)];

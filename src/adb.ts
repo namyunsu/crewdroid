@@ -10,8 +10,21 @@ export function assertSerial(serial: string): string {
   return serial;
 }
 
-export async function adb(serial: string, args: string[], timeoutMs = 30000): Promise<string> {
+// adb's own transport errors: the command never reached the device's service, so running it again is safe.
+// AI NOTE: seen once in 4 scenario runs (T15-2, `am broadcast` -> "error: closed", no other run on the host, emulator alive);
+// cause [모름]. Pollers that expect "offline" during boot pass retry=false so boot times are not stretched.
+const TRANSPORT = /error: closed|device offline/;
+
+export async function adb(serial: string, args: string[], timeoutMs = 30000, retry = true): Promise<string> {
   assertSerial(serial);
-  const { stdout } = await run(adbPath(), ["-s", serial, ...args], { timeout: timeoutMs, windowsHide: true });
-  return stdout.trim();
+  for (let i = 0; ; i++) {
+    try {
+      const { stdout } = await run(adbPath(), ["-s", serial, ...args], { timeout: timeoutMs, windowsHide: true });
+      return stdout.trim();
+    } catch (e: any) {
+      if (!retry || i >= 2 || !TRANSPORT.test(`${e.stderr ?? ""}${e.message ?? ""}`)) throw e;
+      console.error(`adb ${serial} ${args[0]}: ${String(e.stderr || e.message).trim().split("\n").at(-1)}; retry ${i + 1}/2 in 3 s`);
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
 }
