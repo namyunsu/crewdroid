@@ -8,7 +8,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 1,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-24T00:05:59.449Z",
+      "date": "2026-10-25T15:52:44.936Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -26,31 +26,31 @@
               "state": "airplane"
             },
             {
-              "t": 14.5,
+              "t": 14,
               "state": "online"
             },
             {
-              "t": 18,
+              "t": 17.5,
               "state": "nodata"
             },
             {
-              "t": 29.3,
+              "t": 28,
               "state": "online"
             },
             {
-              "t": 32.1,
+              "t": 30.9,
               "state": "slow"
             },
             {
-              "t": 42.2,
+              "t": 40.9,
               "state": "online"
             },
             {
-              "t": 46.7,
+              "t": 45.3,
               "state": "flaky"
             },
             {
-              "t": 59.7,
+              "t": 57.7,
               "state": "online"
             }
           ],
@@ -58,7 +58,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 4,
+            "RETRY": 6,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -76,31 +76,31 @@
               "state": "nodata"
             },
             {
-              "t": 15.6,
+              "t": 15.4,
               "state": "online"
             },
             {
-              "t": 20.2,
+              "t": 19.9,
               "state": "slow"
             },
             {
-              "t": 32.1,
+              "t": 31.8,
               "state": "online"
             },
             {
-              "t": 36.8,
+              "t": 36.4,
               "state": "flaky"
             },
             {
-              "t": 44.6,
+              "t": 44.2,
               "state": "online"
             },
             {
-              "t": 47.3,
+              "t": 46.9,
               "state": "airplane"
             },
             {
-              "t": 58.6,
+              "t": 58.2,
               "state": "online"
             }
           ],
@@ -108,7 +108,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 0,
+            "RETRY": 8,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -130,27 +130,27 @@
               "state": "online"
             },
             {
-              "t": 19.6,
+              "t": 19.5,
               "state": "flaky"
             },
             {
-              "t": 31.8,
+              "t": 31.7,
               "state": "online"
             },
             {
-              "t": 34.7,
+              "t": 34.6,
               "state": "airplane"
             },
             {
-              "t": 46.9,
+              "t": 46.7,
               "state": "online"
             },
             {
-              "t": 49.9,
+              "t": 49.6,
               "state": "nodata"
             },
             {
-              "t": 57.8,
+              "t": 57.7,
               "state": "online"
             }
           ],
@@ -158,7 +158,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 7,
+            "RETRY": 4,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -192,21 +192,63 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=5; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=0; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
-                "baseVersion": 5,
-                "version": 6,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-1"
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-1"
               },
               {
                 "id": "r1",
-                "baseVersion": 5,
-                "version": 7,
+                "baseVersion": 0,
+                "version": 4,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-0"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=3; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 3,
+                "version": 4,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-2"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 3,
+                "version": 8,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-5"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=3; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 3,
+                "version": 5,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-3"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 3,
+                "version": 7,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-4"
               }
             ]
           },
@@ -225,7 +267,7 @@
               {
                 "id": "r2",
                 "baseVersion": 4,
-                "version": 9,
+                "version": 6,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-4"
               }
@@ -233,10 +275,10 @@
           }
         ]
       },
-      "wallSeconds": 213,
+      "wallSeconds": 202,
       "host": {
-        "peakCpuPercent": 58,
-        "peakRamMB": 23601,
+        "peakCpuPercent": 51,
+        "peakRamMB": 25512,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -251,7 +293,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 1,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-24T00:09:30.886Z",
+      "date": "2026-10-25T15:56:09.246Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -269,40 +311,40 @@
               "state": "airplane"
             },
             {
-              "t": 13.9,
+              "t": 14.4,
               "state": "online"
             },
             {
-              "t": 17.5,
+              "t": 17.7,
               "state": "nodata"
             },
             {
-              "t": 27.6,
+              "t": 27.8,
               "state": "online"
             },
             {
-              "t": 30.2,
+              "t": 30.5,
               "state": "slow"
             },
             {
-              "t": 40.1,
+              "t": 40.5,
               "state": "online"
             },
             {
-              "t": 44.6,
+              "t": 44.9,
               "state": "flaky"
             },
             {
-              "t": 56.9,
+              "t": 57.3,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 11,
-            "RETRY": 7,
-            "CONFLICT": 5,
+            "SYNCED": 15,
+            "RETRY": 10,
+            "CONFLICT": 1,
             "DROPPED": 0
           }
         },
@@ -327,15 +369,15 @@
               "state": "slow"
             },
             {
-              "t": 31.9,
+              "t": 31.8,
               "state": "online"
             },
             {
-              "t": 36.5,
+              "t": 36.4,
               "state": "flaky"
             },
             {
-              "t": 44.3,
+              "t": 44.2,
               "state": "online"
             },
             {
@@ -343,16 +385,16 @@
               "state": "airplane"
             },
             {
-              "t": 58.3,
+              "t": 58.2,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 14,
-            "RETRY": 9,
-            "CONFLICT": 2,
+            "SYNCED": 12,
+            "RETRY": 7,
+            "CONFLICT": 4,
             "DROPPED": 0
           }
         },
@@ -369,23 +411,23 @@
               "state": "slow"
             },
             {
-              "t": 15.9,
+              "t": 15.8,
               "state": "online"
             },
             {
-              "t": 19.4,
+              "t": 19.3,
               "state": "flaky"
             },
             {
-              "t": 31.7,
+              "t": 31.6,
               "state": "online"
             },
             {
-              "t": 34.6,
+              "t": 34.5,
               "state": "airplane"
             },
             {
-              "t": 46.7,
+              "t": 46.6,
               "state": "online"
             },
             {
@@ -393,16 +435,16 @@
               "state": "nodata"
             },
             {
-              "t": 57.9,
+              "t": 57.6,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 13,
+            "SYNCED": 12,
             "RETRY": 5,
-            "CONFLICT": 3,
+            "CONFLICT": 4,
             "DROPPED": 0
           }
         }
@@ -412,10 +454,10 @@
         "rules": 3,
         "violations": []
       },
-      "wallSeconds": 205,
+      "wallSeconds": 198,
       "host": {
-        "peakCpuPercent": 54,
-        "peakRamMB": 23249,
+        "peakCpuPercent": 48,
+        "peakRamMB": 25284,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -430,7 +472,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 2,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-24T00:13:05.539Z",
+      "date": "2026-10-25T15:59:49.940Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -448,31 +490,31 @@
               "state": "airplane"
             },
             {
-              "t": 13.1,
+              "t": 13.7,
               "state": "online"
             },
             {
-              "t": 19.7,
+              "t": 20.9,
               "state": "nodata"
             },
             {
-              "t": 27.5,
+              "t": 29.7,
               "state": "online"
             },
             {
-              "t": 31.9,
+              "t": 34.3,
               "state": "slow"
             },
             {
-              "t": 39.9,
+              "t": 42,
               "state": "online"
             },
             {
-              "t": 42.7,
+              "t": 44.4,
               "state": "flaky"
             },
             {
-              "t": 54.2,
+              "t": 56.1,
               "state": "online"
             }
           ],
@@ -480,7 +522,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 6,
+            "RETRY": 1,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -502,27 +544,27 @@
               "state": "online"
             },
             {
-              "t": 15.3,
+              "t": 15.2,
               "state": "slow"
             },
             {
-              "t": 24.1,
+              "t": 23.9,
               "state": "online"
             },
             {
-              "t": 28.3,
+              "t": 28.2,
               "state": "flaky"
             },
             {
-              "t": 35,
+              "t": 34.8,
               "state": "online"
             },
             {
-              "t": 37.3,
+              "t": 37.1,
               "state": "airplane"
             },
             {
-              "t": 46.6,
+              "t": 46.4,
               "state": "online"
             }
           ],
@@ -530,7 +572,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 10,
+            "RETRY": 6,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -548,31 +590,31 @@
               "state": "slow"
             },
             {
-              "t": 10.7,
+              "t": 10.6,
               "state": "online"
             },
             {
-              "t": 14,
+              "t": 13.8,
               "state": "flaky"
             },
             {
-              "t": 21.1,
+              "t": 20.8,
               "state": "online"
             },
             {
-              "t": 24,
+              "t": 23.6,
               "state": "airplane"
             },
             {
-              "t": 30.7,
+              "t": 30.2,
               "state": "online"
             },
             {
-              "t": 34.7,
+              "t": 34.2,
               "state": "nodata"
             },
             {
-              "t": 41.2,
+              "t": 40.5,
               "state": "online"
             }
           ],
@@ -580,7 +622,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 9,
+            "RETRY": 3,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -605,9 +647,9 @@
               {
                 "id": "r2",
                 "baseVersion": 0,
-                "version": 4,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-0"
+                "version": 1,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-1"
               }
             ]
           },
@@ -635,26 +677,19 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 3 writes to id=\"r1\" all based on baseVersion=4; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=4; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
                 "baseVersion": 4,
                 "version": 5,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-1"
-              },
-              {
-                "id": "r1",
-                "baseVersion": 4,
-                "version": 6,
                 "clientId": "7b63461dff7631bc",
                 "value": "emulator-5584-3"
               },
               {
                 "id": "r1",
                 "baseVersion": 4,
-                "version": 7,
+                "version": 6,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-4"
               }
@@ -663,19 +698,40 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=7; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=2; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 2,
+                "version": 3,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-0"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 2,
+                "version": 5,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-5"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=6; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
-                "baseVersion": 7,
-                "version": 8,
+                "baseVersion": 6,
+                "version": 9,
                 "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-2"
+                "value": "emulator-5580-1"
               },
               {
                 "id": "r1",
-                "baseVersion": 7,
-                "version": 11,
+                "baseVersion": 6,
+                "version": 10,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-6"
               }
@@ -684,30 +740,30 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=4; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=5; all but one were overwritten",
             "rows": [
               {
                 "id": "r2",
-                "baseVersion": 4,
+                "baseVersion": 5,
                 "version": 6,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-6"
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-7"
               },
               {
                 "id": "r2",
-                "baseVersion": 4,
+                "baseVersion": 5,
                 "version": 7,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-3"
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-7"
               }
             ]
           }
         ]
       },
-      "wallSeconds": 209,
+      "wallSeconds": 215,
       "host": {
-        "peakCpuPercent": 60,
-        "peakRamMB": 23228,
+        "peakCpuPercent": 52,
+        "peakRamMB": 24667,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -722,7 +778,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 2,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-24T00:16:28.086Z",
+      "date": "2026-10-25T16:03:17.740Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -740,40 +796,40 @@
               "state": "airplane"
             },
             {
-              "t": 12.9,
+              "t": 12.8,
               "state": "online"
             },
             {
-              "t": 19.3,
+              "t": 19.8,
               "state": "nodata"
             },
             {
-              "t": 27.2,
+              "t": 27.6,
               "state": "online"
             },
             {
-              "t": 31.6,
+              "t": 32,
               "state": "slow"
             },
             {
-              "t": 39.1,
+              "t": 39.4,
               "state": "online"
             },
             {
-              "t": 41.7,
+              "t": 41.8,
               "state": "flaky"
             },
             {
-              "t": 53.1,
+              "t": 53,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 9,
-            "RETRY": 9,
-            "CONFLICT": 7,
+            "SYNCED": 12,
+            "RETRY": 5,
+            "CONFLICT": 4,
             "DROPPED": 0
           }
         },
@@ -794,36 +850,36 @@
               "state": "online"
             },
             {
-              "t": 15,
+              "t": 14.9,
               "state": "slow"
             },
             {
-              "t": 23.7,
+              "t": 23.6,
               "state": "online"
             },
             {
-              "t": 28,
+              "t": 27.9,
               "state": "flaky"
             },
             {
-              "t": 34.6,
+              "t": 34.5,
               "state": "online"
             },
             {
-              "t": 37,
+              "t": 36.9,
               "state": "airplane"
             },
             {
-              "t": 46.2,
+              "t": 46.1,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 15,
-            "RETRY": 6,
-            "CONFLICT": 1,
+            "SYNCED": 14,
+            "RETRY": 11,
+            "CONFLICT": 2,
             "DROPPED": 0
           }
         },
@@ -840,31 +896,31 @@
               "state": "slow"
             },
             {
-              "t": 10.5,
+              "t": 10.9,
               "state": "online"
             },
             {
-              "t": 13.8,
+              "t": 14.3,
               "state": "flaky"
             },
             {
-              "t": 20.7,
+              "t": 21.1,
               "state": "online"
             },
             {
-              "t": 23.4,
+              "t": 24.1,
               "state": "airplane"
             },
             {
-              "t": 30,
+              "t": 30.7,
               "state": "online"
             },
             {
-              "t": 34,
+              "t": 34.6,
               "state": "nodata"
             },
             {
-              "t": 40.4,
+              "t": 40.7,
               "state": "online"
             }
           ],
@@ -872,7 +928,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 14,
-            "RETRY": 7,
+            "RETRY": 5,
             "CONFLICT": 2,
             "DROPPED": 0
           }
@@ -883,10 +939,10 @@
         "rules": 3,
         "violations": []
       },
-      "wallSeconds": 196,
+      "wallSeconds": 202,
       "host": {
-        "peakCpuPercent": 54,
-        "peakRamMB": 23250,
+        "peakCpuPercent": 52,
+        "peakRamMB": 24800,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -901,7 +957,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 3,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-24T00:19:56.028Z",
+      "date": "2026-10-25T16:06:56.641Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -919,31 +975,31 @@
               "state": "airplane"
             },
             {
-              "t": 17.1,
+              "t": 16.4,
               "state": "online"
             },
             {
-              "t": 23.2,
+              "t": 22.5,
               "state": "nodata"
             },
             {
-              "t": 30.3,
+              "t": 29.3,
               "state": "online"
             },
             {
-              "t": 33.2,
+              "t": 32.2,
               "state": "slow"
             },
             {
-              "t": 43.7,
+              "t": 42.9,
               "state": "online"
             },
             {
-              "t": 47.9,
+              "t": 47.1,
               "state": "flaky"
             },
             {
-              "t": 53.4,
+              "t": 52.9,
               "state": "online"
             }
           ],
@@ -951,7 +1007,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 11,
+            "RETRY": 5,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -973,15 +1029,15 @@
               "state": "online"
             },
             {
-              "t": 18.8,
+              "t": 18.7,
               "state": "slow"
             },
             {
-              "t": 25.3,
+              "t": 25.2,
               "state": "online"
             },
             {
-              "t": 28.3,
+              "t": 28.2,
               "state": "flaky"
             },
             {
@@ -1001,7 +1057,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 6,
+            "RETRY": 7,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -1019,31 +1075,31 @@
               "state": "slow"
             },
             {
-              "t": 10.5,
+              "t": 10.4,
               "state": "online"
             },
             {
-              "t": 15.7,
+              "t": 15.5,
               "state": "flaky"
             },
             {
-              "t": 24.5,
+              "t": 24.1,
               "state": "online"
             },
             {
-              "t": 30.6,
+              "t": 30.1,
               "state": "airplane"
             },
             {
-              "t": 42,
+              "t": 41.5,
               "state": "online"
             },
             {
-              "t": 47.6,
+              "t": 47.1,
               "state": "nodata"
             },
             {
-              "t": 59.6,
+              "t": 59,
               "state": "online"
             }
           ],
@@ -1051,7 +1107,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 12,
+            "RETRY": 5,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -1061,23 +1117,6 @@
         "ok": false,
         "rules": 3,
         "violations": [
-          {
-            "rule": "count(acks)",
-            "table": "uploads",
-            "message": "missing 2 of 24 expected key values (table has 22 rows)",
-            "rows": [
-              {
-                "id": "f72c380b-6e97-4d52-b274-818ac819165d",
-                "key": "511b42bb-b0ad-4690-bb81-d53e98e9c4a5",
-                "clientId": "a0f1ee5e2b40d993"
-              },
-              {
-                "id": "2a5d1fa6-1a5d-4344-b070-9fb54af892dc",
-                "key": "819d2547-45e6-4cd9-883f-c48689336f75",
-                "clientId": "7b63461dff7631bc"
-              }
-            ]
-          },
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
@@ -1093,9 +1132,9 @@
               {
                 "id": "r1",
                 "baseVersion": 0,
-                "version": 3,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-2"
+                "version": 2,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-1"
               }
             ]
           },
@@ -1121,7 +1160,7 @@
               {
                 "id": "r2",
                 "baseVersion": 0,
-                "version": 4,
+                "version": 6,
                 "clientId": "a0f1ee5e2b40d993",
                 "value": "emulator-5580-0"
               }
@@ -1130,19 +1169,19 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=2; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=3; all but one were overwritten",
             "rows": [
               {
                 "id": "r2",
-                "baseVersion": 2,
-                "version": 3,
+                "baseVersion": 3,
+                "version": 4,
                 "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-2"
+                "value": "emulator-5584-3"
               },
               {
                 "id": "r2",
-                "baseVersion": 2,
-                "version": 7,
+                "baseVersion": 3,
+                "version": 5,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-2"
               }
@@ -1151,26 +1190,19 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=7; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=6; all but one were overwritten",
             "rows": [
               {
                 "id": "r2",
-                "baseVersion": 7,
-                "version": 8,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-3"
-              },
-              {
-                "id": "r2",
-                "baseVersion": 7,
-                "version": 9,
+                "baseVersion": 6,
+                "version": 7,
                 "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-3"
+                "value": "emulator-5580-1"
               },
               {
                 "id": "r2",
-                "baseVersion": 7,
-                "version": 10,
+                "baseVersion": 6,
+                "version": 9,
                 "clientId": "7b63461dff7631bc",
                 "value": "emulator-5584-5"
               }
@@ -1179,51 +1211,79 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=3; all but one were overwritten",
+            "message": "lost update: 3 writes to id=\"r1\" all based on baseVersion=2; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
-                "baseVersion": 3,
-                "version": 5,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-5"
+                "baseVersion": 2,
+                "version": 3,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-2"
               },
               {
                 "id": "r1",
-                "baseVersion": 3,
-                "version": 6,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-4"
+                "baseVersion": 2,
+                "version": 4,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-4"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 2,
+                "version": 5,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-5"
               }
             ]
           },
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=7; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=9; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 9,
+                "version": 10,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-6"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 9,
+                "version": 12,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-3"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=5; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
-                "baseVersion": 7,
-                "version": 8,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-5"
+                "baseVersion": 5,
+                "version": 6,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-6"
               },
               {
                 "id": "r1",
-                "baseVersion": 7,
-                "version": 9,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-7"
+                "baseVersion": 5,
+                "version": 7,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-4"
               }
             ]
           }
         ]
       },
-      "wallSeconds": 202,
+      "wallSeconds": 213,
       "host": {
-        "peakCpuPercent": 58,
-        "peakRamMB": 23132,
+        "peakCpuPercent": 52,
+        "peakRamMB": 24677,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -1238,7 +1298,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 3,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-24T00:23:30.353Z",
+      "date": "2026-10-25T16:10:27.751Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -1256,40 +1316,40 @@
               "state": "airplane"
             },
             {
-              "t": 16.5,
+              "t": 16.3,
               "state": "online"
             },
             {
-              "t": 23.2,
+              "t": 22.4,
               "state": "nodata"
             },
             {
-              "t": 30,
+              "t": 29.4,
               "state": "online"
             },
             {
-              "t": 32.8,
+              "t": 32.2,
               "state": "slow"
             },
             {
-              "t": 43.4,
+              "t": 42.9,
               "state": "online"
             },
             {
-              "t": 47.6,
+              "t": 47.1,
               "state": "flaky"
             },
             {
-              "t": 53.1,
+              "t": 52.6,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 13,
-            "RETRY": 7,
-            "CONFLICT": 3,
+            "SYNCED": 12,
+            "RETRY": 8,
+            "CONFLICT": 4,
             "DROPPED": 0
           }
         },
@@ -1306,31 +1366,31 @@
               "state": "nodata"
             },
             {
-              "t": 15.2,
+              "t": 15.1,
               "state": "online"
             },
             {
-              "t": 18.9,
+              "t": 18.7,
               "state": "slow"
             },
             {
-              "t": 25.4,
+              "t": 25.3,
               "state": "online"
             },
             {
-              "t": 28.3,
+              "t": 28.2,
               "state": "flaky"
             },
             {
-              "t": 39.3,
+              "t": 39.2,
               "state": "online"
             },
             {
-              "t": 41.9,
+              "t": 41.8,
               "state": "airplane"
             },
             {
-              "t": 47.8,
+              "t": 47.7,
               "state": "online"
             }
           ],
@@ -1338,7 +1398,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 11,
-            "RETRY": 8,
+            "RETRY": 6,
             "CONFLICT": 5,
             "DROPPED": 0
           }
@@ -1356,7 +1416,7 @@
               "state": "slow"
             },
             {
-              "t": 10.7,
+              "t": 10.5,
               "state": "online"
             },
             {
@@ -1364,23 +1424,23 @@
               "state": "flaky"
             },
             {
-              "t": 24.7,
+              "t": 24.8,
               "state": "online"
             },
             {
-              "t": 31.1,
+              "t": 30.9,
               "state": "airplane"
             },
             {
-              "t": 42.5,
+              "t": 42.2,
               "state": "online"
             },
             {
-              "t": 48.3,
+              "t": 47.9,
               "state": "nodata"
             },
             {
-              "t": 60.6,
+              "t": 59.8,
               "state": "online"
             }
           ],
@@ -1388,7 +1448,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 14,
-            "RETRY": 4,
+            "RETRY": 8,
             "CONFLICT": 2,
             "DROPPED": 0
           }
@@ -1399,10 +1459,10 @@
         "rules": 3,
         "violations": []
       },
-      "wallSeconds": 208,
+      "wallSeconds": 205,
       "host": {
-        "peakCpuPercent": 56,
-        "peakRamMB": 23292,
+        "peakCpuPercent": 54,
+        "peakRamMB": 24924,
         "totalRamMB": 65462,
         "cores": 16
       }

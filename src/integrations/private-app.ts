@@ -3,7 +3,6 @@
 // so crewdroid instances on 5570/5572/5574 survive and only get the APK installed.
 import { spawn } from "node:child_process";
 import { join } from "node:path";
-import { adb } from "../adb.ts";
 
 export const PRIVATE_APP_BASE_PORT = 5570; // TECH_SERIALS in private-app tests/e2e/multi/harness.ts
 // Three aspect ratios (1080x2340, 1812x2176, 1080x2520) on API 34/34/36; the APK's minSdk is 24.
@@ -30,7 +29,12 @@ export function runSpec(grep = "@techs", onStart?: () => void): Promise<SpecRun>
     };
     p.stdout.on("data", on);
     p.stderr.on("data", on);
-    p.on("close", (code) => {
+    // AI NOTE: not only "close": private-app' global-setup runs gradlew, and a Gradle daemon it starts fresh inherits npm's
+    // stdout pipe, so "close" never fires (T16-2: hung after E2E_MULTI_OK). Finish 2 s after "exit" so late output still lands.
+    let done = false;
+    const finish = (code: number | null) => {
+      if (done) return;
+      done = true;
       const exit = code ?? 1;
       const sec = (m: RegExpMatchArray | null) => (m ? Math.round(Number(m[1]) * (m[2] === "m" ? 60 : 1) * 10) / 10 : null);
       res({
@@ -38,25 +42,11 @@ export function runSpec(grep = "@techs", onStart?: () => void): Promise<SpecRun>
         wallSeconds: Math.round((Date.now() - t0) / 100) / 10,
         testSeconds: sec(output.match(/ok \d+ .*\(([\d.]+)(s|m)\)/)), totalSeconds: sec(output.match(/\d+ passed \(([\d.]+)(s|m)\)/)),
       });
-    });
+    };
+    p.on("close", finish);
+    p.on("exit", (code) => setTimeout(() => finish(code), 2000));
   });
 }
 
-const REC = "/sdcard/crewdroid-rec.mp4";
-
-// Starts `screenrecord` on each serial; the returned stop() ends them (SIGINT finalizes the mp4) and pulls to dir/<serial>.mp4.
-export function record(serials: string[], dir: string) {
-  // AI NOTE: --bugreport draws a timestamp overlay, so frames keep coming; without it a static screen records 0 frames and fails.
-  const runs = serials.map((s) => adb(s, ["shell", "screenrecord", "--bugreport", "--bit-rate", "4000000", "--time-limit", "180", REC], 200000).catch(() => {}));
-  return async () => {
-    for (const s of serials) await adb(s, ["shell", "pkill", "-INT", "screenrecord"]).catch(() => {});
-    await Promise.all(runs);
-    const files: string[] = [];
-    for (const s of serials) {
-      const f = join(dir, `${s}.mp4`);
-      await adb(s, ["pull", REC, f], 60000);
-      files.push(f);
-    }
-    return files;
-  };
-}
+// Recording lives in src/record.ts (shared); re-exported for scripts/mvp-private-app.mjs.
+export { record } from "../record.ts";

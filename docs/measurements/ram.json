@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-24T00:02:26.029Z",
+  "date": "2026-10-25T15:49:22.571Z",
   "knobs": {
     "ramMB": 896,
     "ramMBByApi": {
@@ -17,24 +17,24 @@
   "idleSeconds": 60,
   "maxMB": 4300,
   "total": {
-    "totalMB": 4123,
-    "privateWsMB": 4096,
+    "totalMB": 4197,
+    "privateWsMB": 4170,
     "sharedPssMB": 27,
     "sharedWsMB": 192,
-    "privateBytesMB": 6229,
-    "oldWsMB": 4289
+    "privateBytesMB": 6400,
+    "oldWsMB": 4362
   },
   "devices": [
     {
       "serial": "emulator-5580",
       "profile": "s22",
       "api": 31,
-      "bootSeconds": 9.7,
-      "privateBytesMB": 1993,
-      "privateWsMB": 1321,
+      "bootSeconds": 86,
+      "privateBytesMB": 2151,
+      "privateWsMB": 1372,
       "sharedWsMB": 64,
       "sharedPssMB": 9,
-      "oldWsMB": 1385,
+      "oldWsMB": 1436,
       "procs": [
         {
           "name": "emulator",
@@ -46,9 +46,9 @@
         },
         {
           "name": "qemu-system-x86_64-headless",
-          "privateBytesMB": 1982,
-          "wsMB": 1374,
-          "privateWsMB": 1319,
+          "privateBytesMB": 2140,
+          "wsMB": 1425,
+          "privateWsMB": 1370,
           "sharedWsMB": 55,
           "sharedPssMB": 8
         }
@@ -58,12 +58,12 @@
       "serial": "emulator-5582",
       "profile": "s24ultra",
       "api": 34,
-      "bootSeconds": 6.4,
-      "privateBytesMB": 2169,
-      "privateWsMB": 1401,
+      "bootSeconds": 97.3,
+      "privateBytesMB": 2145,
+      "privateWsMB": 1410,
       "sharedWsMB": 64,
       "sharedPssMB": 9,
-      "oldWsMB": 1465,
+      "oldWsMB": 1474,
       "procs": [
         {
           "name": "emulator",
@@ -75,9 +75,9 @@
         },
         {
           "name": "qemu-system-x86_64-headless",
-          "privateBytesMB": 2158,
-          "wsMB": 1453,
-          "privateWsMB": 1399,
+          "privateBytesMB": 2134,
+          "wsMB": 1463,
+          "privateWsMB": 1408,
           "sharedWsMB": 54,
           "sharedPssMB": 8
         }
@@ -87,12 +87,12 @@
       "serial": "emulator-5584",
       "profile": "s26ultra",
       "api": 36,
-      "bootSeconds": 3.1,
-      "privateBytesMB": 2067,
-      "privateWsMB": 1374,
+      "bootSeconds": 77.3,
+      "privateBytesMB": 2104,
+      "privateWsMB": 1388,
       "sharedWsMB": 64,
       "sharedPssMB": 9,
-      "oldWsMB": 1439,
+      "oldWsMB": 1452,
       "procs": [
         {
           "name": "emulator",
@@ -104,10 +104,10 @@
         },
         {
           "name": "qemu-system-x86_64-headless",
-          "privateBytesMB": 2057,
-          "wsMB": 1427,
-          "privateWsMB": 1373,
-          "sharedWsMB": 54,
+          "privateBytesMB": 2093,
+          "wsMB": 1441,
+          "privateWsMB": 1386,
+          "sharedWsMB": 55,
           "sharedPssMB": 8
         }
       ]
