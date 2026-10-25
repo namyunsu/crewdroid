@@ -18,7 +18,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank [--es url URL] [--es file PATH]
+// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank|surface|env [--es url URL] [--es file PATH]
 // upload extras: --ei size N (N zero-ish bytes instead of a file), --es key IDEMPOTENCY_KEY, --es client X_CLIENT_ID
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
@@ -30,6 +30,7 @@ class ProbeActivity : Activity() {
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
+        intent.data?.let { report("LINK", it.toString()) } // T21: deep link / App Link opened by `crewdroid app open`
         val check = intent.getStringExtra("check") ?: return sample()
         when (check) {
             "camera" -> Thread { report("CAMERA", camera()); runOnUiThread { finish() } }.start()
@@ -60,6 +61,11 @@ class ProbeActivity : Activity() {
                     invalidate()
                 }
             })
+            // surface (T28): a SurfaceView filled green with a moving white square; logs its on-screen bounds once laid out:
+            // "SURFACE <l>,<t>,<r>,<b>". Extras: see surface().
+            "surface" -> surface()
+            // env (T20): "ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none"; loc needs ACCESS_FINE_LOCATION (pm grant), else none.
+            "env" -> android.os.Handler(mainLooper).postDelayed({ env() }, 1000) // AI NOTE: the display rotation only follows user_rotation once an activity is on top, so read it after a beat; a rotation change recreates the activity and logs a second (correct) line
             else -> { report(check.uppercase(), "fail unknown check"); finish() }
         }
     }
@@ -71,7 +77,97 @@ class ProbeActivity : Activity() {
         setContentView(android.widget.TextView(this).apply { text = "Crew sample app\noutbox: ${Outbox.size()} pending"; textSize = 20f; setPadding(48, 96, 48, 48) })
     }
 
+    private fun env() {
+        fun head(): String {
+            val c = resources.configuration
+            val b = registerReceiver(null, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            val pct = (b?.getIntExtra("level", -1) ?: -1) * 100 / (b?.getIntExtra("scale", 100) ?: 100)
+            return "dark=${(c.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES} font=${c.fontScale} rot=${display?.rotation} battery=$pct"
+        }
+        val lm = getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
+        val done = java.util.concurrent.atomic.AtomicBoolean(false)
+        var listener: android.location.LocationListener? = null
+        fun fin(l: android.location.Location?) {
+            if (!done.compareAndSet(false, true)) return
+            listener?.let { lm.removeUpdates(it) }
+            report("ENV", "${head()} loc=" + (l?.let { String.format(java.util.Locale.US, "%.5f,%.5f", it.latitude, it.longitude) } ?: "none"))
+            finish()
+        }
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) return fin(null)
+        // AI NOTE: the emulator GNSS only reports a `geo fix` to an active requester (dumpsys location stays last location=null otherwise).
+        // getCurrentLocation() answers from Android's cache for ~30 s, so a newer fix would be missed; a fresh updates request gets the current one.
+        val l = android.location.LocationListener { fin(it) }.also { listener = it }
+        lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, l, mainLooper)
+        android.os.Handler(mainLooper).postDelayed({ fin(null) }, 8000)
+    }
+
+    // T21: `crewdroid app trim` is confirmed by this line ("TRIM 80" = TRIM_MEMORY_COMPLETE)
+    override fun onTrimMemory(level: Int) { super.onTrimMemory(level); report("TRIM", level.toString()) }
+
     private fun report(name: String, result: String) { Log.i(tag, "$name $result") }
+
+    // --es mode canvas (lockCanvas, CPU) | gl (GLSurfaceView, GLES2 clear + scissor); --ez pip true adds a second small
+    // SurfaceView with setZOrderMediaOverlay (the private-app call screen layout). SURFACE bounds are the main view's.
+    private fun surface() {
+        val gl = intent.getStringExtra("mode") == "gl"
+        val sv = if (gl) android.opengl.GLSurfaceView(this).apply {
+            setEGLContextClientVersion(2)
+            setRenderer(object : android.opengl.GLSurfaceView.Renderer {
+                var w = 1; var h = 1; var x = 0
+                override fun onSurfaceCreated(u: javax.microedition.khronos.opengles.GL10?, c: javax.microedition.khronos.egl.EGLConfig?) {}
+                override fun onSurfaceChanged(u: javax.microedition.khronos.opengles.GL10?, ww: Int, hh: Int) { w = ww; h = hh }
+                override fun onDrawFrame(u: javax.microedition.khronos.opengles.GL10?) {
+                    android.opengl.GLES20.glDisable(android.opengl.GLES20.GL_SCISSOR_TEST)
+                    android.opengl.GLES20.glClearColor(0f, 0.63f, 0.31f, 1f)
+                    android.opengl.GLES20.glClear(android.opengl.GLES20.GL_COLOR_BUFFER_BIT)
+                    val s = w / 4
+                    android.opengl.GLES20.glEnable(android.opengl.GLES20.GL_SCISSOR_TEST)
+                    android.opengl.GLES20.glScissor(x, h / 2 - s / 2, s, s)
+                    android.opengl.GLES20.glClearColor(1f, 1f, 1f, 1f)
+                    android.opengl.GLES20.glClear(android.opengl.GLES20.GL_COLOR_BUFFER_BIT)
+                    x = (x + 8) % (w - s)
+                }
+            })
+        } else android.view.SurfaceView(this).also { canvasLoop(it, android.graphics.Color.rgb(0, 160, 80)) }
+        sv.holder.addCallback(object : android.view.SurfaceHolder.Callback {
+            override fun surfaceCreated(h: android.view.SurfaceHolder) {
+                val xy = IntArray(2).also { sv.getLocationOnScreen(it) }
+                report("SURFACE", "${xy[0]},${xy[1]},${xy[0] + sv.width},${xy[1] + sv.height}")
+            }
+            override fun surfaceChanged(h: android.view.SurfaceHolder, f: Int, w: Int, hh: Int) {}
+            override fun surfaceDestroyed(h: android.view.SurfaceHolder) {}
+        })
+        if (!intent.getBooleanExtra("pip", false)) return setContentView(sv)
+        val pip = android.view.SurfaceView(this).also { it.setZOrderMediaOverlay(true); canvasLoop(it, android.graphics.Color.BLUE) }
+        setContentView(android.widget.FrameLayout(this).apply {
+            addView(sv)
+            addView(pip, android.widget.FrameLayout.LayoutParams(300, 400, android.view.Gravity.TOP or android.view.Gravity.END))
+        })
+    }
+
+    // fills a SurfaceView with bg and a moving white square via lockCanvas until the surface goes away
+    private fun canvasLoop(sv: android.view.SurfaceView, bg: Int) {
+        val running = java.util.concurrent.atomic.AtomicBoolean(true)
+        sv.holder.addCallback(object : android.view.SurfaceHolder.Callback {
+            override fun surfaceCreated(h: android.view.SurfaceHolder) {
+                Thread {
+                    val p = android.graphics.Paint().apply { color = android.graphics.Color.WHITE }
+                    var x = 0f
+                    while (running.get()) {
+                        val c = try { h.lockCanvas() } catch (e: Exception) { null } ?: break
+                        c.drawColor(bg)
+                        val s = c.width / 4f
+                        c.drawRect(x, c.height / 2f - s / 2, x + s, c.height / 2f + s / 2, p)
+                        h.unlockCanvasAndPost(c)
+                        x = (x + 8) % (c.width - s)
+                        Thread.sleep(33)
+                    }
+                }.start()
+            }
+            override fun surfaceChanged(h: android.view.SurfaceHolder, f: Int, w: Int, hh: Int) {}
+            override fun surfaceDestroyed(h: android.view.SurfaceHolder) { running.set(false) }
+        })
+    }
 
     private fun camera(): String {
         val mgr = getSystemService(Context.CAMERA_SERVICE) as CameraManager

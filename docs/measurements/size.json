@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-25T19:41:27.040Z",
+  "rows": [
+    {
+      "api": 34,
+      "size": "3840x2160",
+      "window": false,
+      "ok": true,
+      "imageApi": 34,
+      "density": 960,
+      "bootSeconds": 22.2,
+      "readySeconds": 53.8,
+      "wmSize": "Physical size: 1920x1080\r\nOverride size: 3840x2160",
+      "png": "3840x2160",
+      "topColourShare": 0.829,
+      "ramMB": 1498
+    },
+    {
+      "api": 34,
+      "size": "5120x1440",
+      "window": false,
+      "ok": true,
+      "imageApi": 34,
+      "density": 640,
+      "bootSeconds": 22.1,
+      "readySeconds": 52.8,
+      "wmSize": "Physical size: 2560x720\r\nOverride size: 5120x1440",
+      "png": "5120x1440",
+      "topColourShare": 0.839,
+      "ramMB": 1469
+    },
+    {
+      "api": 34,
+      "size": "7680x2160",
+      "window": false,
+      "ok": true,
+      "imageApi": 34,
+      "density": 960,
+      "bootSeconds": 22.2,
+      "readySeconds": 53,
+      "wmSize": "Physical size: 3840x1080\r\nOverride size: 7680x2160",
+      "png": "7680x2160",
+      "topColourShare": 0.839,
+      "ramMB": 1465
+    },
+    {
+      "api": 36,
+      "size": "3840x2160",
+      "window": false,
+      "ok": true,
+      "imageApi": 36,
+      "density": 960,
+      "bootSeconds": 23.3,
+      "readySeconds": 55.8,
+      "wmSize": "Physical size: 1920x1080\r\nOverride size: 3840x2160",
+      "png": "3840x2160",
+      "topColourShare": 0.829,
+      "ramMB": 1436
+    },
+    {
+      "api": 36,
+      "size": "5120x1440",
+      "window": false,
+      "ok": true,
+      "imageApi": 36,
+      "density": 640,
+      "bootSeconds": 23.2,
+      "readySeconds": 56.9,
+      "wmSize": "Physical size: 2560x720\r\nOverride size: 5120x1440",
+      "png": "5120x1440",
+      "topColourShare": 0.839,
+      "ramMB": 1395
+    },
+    {
+      "api": 36,
+      "size": "7680x2160",
+      "window": false,
+      "ok": true,
+      "imageApi": 36,
+      "density": 960,
+      "bootSeconds": 24.3,
+      "readySeconds": 59.4,
+      "wmSize": "Physical size: 3840x1080\r\nOverride size: 7680x2160",
+      "png": "7680x2160",
+      "topColourShare": 0.839,
+      "ramMB": 1423
+    },
+    {
+      "api": 34,
+      "size": "3840x2160",
+      "window": true,
+      "ok": true,
+      "imageApi": 34,
+      "density": 960,
+      "bootSeconds": 24.3,
+      "readySeconds": 55.7,
+      "wmSize": "Physical size: 1920x1080\r\nOverride size: 3840x2160",
+      "png": "3840x2160",
+      "topColourShare": 0.829,
+      "ramMB": 1618
+    }
+  ]
+}

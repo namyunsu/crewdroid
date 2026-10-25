@@ -13,23 +13,29 @@ import { triage } from "./triage.ts";
 import { screen } from "./screen.ts";
 import { perf } from "./perf.ts";
 import { apk } from "./apk.ts";
+import { fold } from "./fold.ts";
+import { envSet } from "./env.ts";
+import { appRun } from "./app.ts";
 
+// AI NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
+const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
 const { positionals, values } = parseArgs({
+  args: envArgs ? ["env"] : undefined,
   allowPositionals: true,
   options: {
     avd: { type: "string" }, "base-port": { type: "string", default: "5580" },
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
-    image: { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
+    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
-    app: { type: "string" }, heap: { type: "string" }, png: { type: "string" }, activity: { type: "string" },
+    app: { type: "string" }, pkg: { type: "boolean", default: false }, heap: { type: "string" }, png: { type: "string" }, activity: { type: "string" },
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, mcp";
+const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, mcp";
 
 async function main() {
   const [cmd] = positionals;
@@ -66,7 +72,7 @@ async function main() {
     return;
   }
   if (cmd === "up") {
-    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window);
+    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window, { screens: values.screen?.flatMap((x) => x.split(",")), profilesFile: values["profiles-file"] });
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density}`).join("\n"));
     return;
   }
@@ -150,12 +156,35 @@ async function main() {
     console.log(values.json ? JSON.stringify(r, null, 2) : `${r.package} ${r.versionName} (${r.versionCode}) minSdk=${r.minSdk} targetSdk=${r.targetSdk}\npermissions: ${r.permissions.join(", ")}\nexported: ${r.exportedActivities.join(", ")}\ndeep links: ${r.deepLinks.map((d) => `${d.schemes.join("|")}://${d.hosts.join("|")}${d.paths.join("|")}`).join(", ") || "none"}`);
     return;
   }
+  if (cmd === "fold" || cmd === "unfold") {
+    const [, serial] = positionals;
+    if (!serial) throw new Error(`usage: ${cmd} <serial>  (fold = cover screen, unfold = main screen; fold/flip profiles only)`);
+    const r = await fold(serial, cmd === "fold" ? "cover" : "main");
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} ${r.profile} ${r.state}: ${r.from} -> ${r.to}@${r.density}`);
+    return;
+  }
+  if (cmd === "env") {
+    const a = envArgs!.filter((x) => x !== "--json"), hi = a.indexOf("--hold");
+    const hold = hi >= 0 ? Number(a.splice(hi, 2)[1]) : undefined;
+    const [serial, what, ...rest] = a;
+    if (!serial || !what) throw new Error("usage: env <serial> geo|battery|rotate|sensor|dark|font|locale|gsm|sms|call|show [args] [--hold <sec>]");
+    const r = await envSet(serial, what, rest, { hold });
+    console.log(values.json || envArgs!.includes("--json") ? JSON.stringify(r, null, 2) : `${serial} ${Object.entries(r).filter(([k]) => k !== "serial").map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`).join(" ")}`);
+    return;
+  }
+  if (cmd === "app") {
+    const [, serial, pkg, what, ...rest] = positionals;
+    if (!serial || !pkg || !what) throw new Error("usage: app <serial> <pkg> perm|open|links|clear|backup|restore|pressure|fill-storage [args] [--pkg]");
+    const r = await appRun(serial, pkg, what, rest, { pkg: values.pkg });
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} ${Object.entries(r).filter(([k]) => k !== "serial").map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`).join(" ")}`);
+    return;
+  }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes
   throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: ${COMMANDS})`);
 }
 
 main().catch((e) => {
   const msg = e instanceof Error ? e.message : String(e);
-  console.error(values.json ? JSON.stringify({ ok: false, error: msg }) : `error: ${msg}`);
+  console.error(values.json || envArgs?.includes("--json") ? JSON.stringify({ ok: false, error: msg }) : `error: ${msg}`);
   process.exit(1);
 });

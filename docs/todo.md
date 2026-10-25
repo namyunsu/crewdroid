@@ -27,19 +27,6 @@ Wave 2026-10-23 human /brief — lightness regressed (T04: disk +56 % with 3 ver
 
 Wave 2026-10-24 human /brief — user: "가로세로규격을 내가 임의로 넣을수도있어야해", screens bigger than the monitor for HMI work, fold/unfold for Fold/Flip ("나머지 기종은 결국 가로세로 길이만 다른거"). New FR-14, FR-15. Both after T16 (they touch `src/up.ts` / AVD config like T14-T16). Screens must render (T14) for the screenshot checks below.
 
-- [ ] T18 [KO] 임의 화면 규격 + 모니터보다 큰 화면 (FR-14)
-  area: src/up.ts, src/profiles.ts, profiles/galaxy.json (schema only), profiles/custom.example.json, src/cli.ts, scripts/check-size.mjs, docs/measurements/size.md, README.md (usage lines)
-  model: sonnet
-  review: required
-  accept: `crewdroid up` takes ad-hoc screens next to named profiles: `--screen 1920x720@160` (WxH@density, density optional -> derived for ~360dp width) and repeatable/comma list, e.g. `--screen 1080x2340@450,3840x2160@320 --count 2`; a user profile file (`--profiles-file my.json`, same schema as galaxy.json, `profiles/custom.example.json` shows an HMI entry) also works. Invalid input (0, negative, non-number, missing x) -> clear error, exit 1, nothing launched. Measure and document in `docs/measurements/size.md` the largest size that boots and renders on API 34/36 ATD (try 3840x2160, 5120x1440, 7680x2160) with boot time and host RAM per size; sizes over the host monitor work headless and in `--window` mode (scaled window, full-resolution screenshot).
-  verify: `node scripts/check-size.mjs` (up 2 devices with `--screen 1920x720@160,3840x2160@320`; `wm size`/`wm density` match; screencap PNG dimensions equal the requested sizes and are not uniform; bad `--screen 0x100` exits 1; down)
-
-- [ ] T19 [KO] 폴드·플립 접기/펴기 (FR-15)
-  area: src/fold.ts, src/cli.ts, src/avd.ts (foldable AVD config if needed), profiles/galaxy.json (fold pairs), scripts/check-fold.mjs, sample app (log configuration changes), docs/adr/0006-fold.md
-  model: opus
-  review: required
-  accept: Fold/Flip profiles carry both screens (cover + main, from research-samsung-screens.md). `crewdroid fold <serial>` / `unfold <serial>` switches cover <-> main so the app gets a real configuration change (new screen size). Read `docs/source/research-emulator-features.md` §k first (fold/posture need `hw.sensor.hinge*` in the AVD config, so a foldable needs a second base AVD + snapshot — count its disk in the ADR; `resize-display` is not supported headless). Find what works on our ATD images and record it in ADR 0006 with evidence: emulator foldable support (`hw.sensor.hinge*` / foldable AVD config + `adb emu fold|unfold`), `cmd device_state state <id>`, or fallback `wm size/density` swap (honest about what the fallback does not emulate: hinge posture, half-open). The sample app logs `CrewProbe CONFIG <w>x<h>` on each configuration change and keeps its outbox/in-progress upload across fold/unfold (a fold during upload is a test case).
-  verify: `node scripts/check-fold.mjs` (up a fold5 + flip6 profile; unfold/fold each; CONFIG lines show both sizes; screencap sizes change; an upload started before a fold completes exactly once on the server; down)
 
 Wave 2026-10-26 human /brief — user (`docs/source/requirements-2026-10-25.md`): every feature that fits the light AVD, maximum exposure to AI agents, Android-specialised skills, GitHub stars; "오토파일럿이 만들 투두를 세심하게 짜야해". Decisions (do not re-ask): wave order = AI exposure + release prep first; sample-server idempotency respected in normal mode only; API 31 SurfaceView gets an investigation Todo; LICENSE MIT; going public / `npm publish` / registry submissions are the user's own actions. Research with sources: `docs/source/research-ai-discoverability.md` (channels), `docs/source/research-emulator-features.md` (commands, ATD/headless caveats, cost). New FR-16..FR-25.
 Rules for this wave (on top of the 2026-10-23 rules above):
@@ -49,28 +36,11 @@ Rules for this wave (on top of the 2026-10-23 rules above):
 - Probe/sample app changes (Kotlin) are built with the Gradle wrapper the way T02/T09 did; the debug APK path stays `probe-app/app/build/outputs/apk/debug/app-debug.apk`.
 - Another process holding the emulators (lock `%TEMP%\crewdroid-emulators.lock` owner alive and not yours) -> write `.ai-log/BUSY` and hand off (autopilot-step §1), never kill it.
 
-- [ ] T20 [KO] `crewdroid env` 기기 환경 조작: 위치·배터리·센서/회전·다크·글자·앱 로케일·통신망·SMS/통화 (FR-16)
-  area: src/env.ts, src/cli.ts, probe-app/ (`check=env` logs the state it sees), scripts/check-env.mjs, test/env.test.ts, docs/measurements/features.md, README.md (env section)
-  model: sonnet
-  review: required
-  accept: `crewdroid env <serial> <what> [args] [--json]`, every call through `src/adb.ts` (`adb -s <serial> emu …` / `shell …`), commands from `docs/source/research-emulator-features.md` §a-e: `geo <lon> <lat> [alt]` (then `cmd location set-location-enabled true`), `battery <0-100> [ac|unplugged]`, `rotate <0-3>` (`accelerometer_rotation 0` + `user_rotation`), `sensor acceleration x:y:z`, `dark on|off`, `font <scale>`, `locale <pkg> <tags>` (API 33+, `cmd locale set-app-locales`), `gsm data home|roaming|searching|denied|off|on`, `gsm signal <0-31> [--hold <sec>]` (the console value lasts 15 s; `--hold` re-sends every 10 s), `sms <from> <text>`, `call <number> [accept|cancel]`, and `show` (reads every state back: `settings get`, `dumpsys battery`, `dumpsys location`, `cmd uimode night`, `getprop`). Every setter reads its state back and exits 1 with a message when it differs; invalid values (`battery 150`, `rotate 9`, bad serial) exit 1 before any adb call. The probe app's `check=env` logs `CrewProbe ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none`. `scripts/check-env.mjs` boots 2 mixed devices, applies each command, checks read-back + the ENV log line, then appends the idle RAM/CPU before/after row to `features.md` and downs. `src/env.ts` exports `mcpTools` (wave rule).
-  verify: `npm test && node scripts/check-env.mjs`
 
-- [ ] T21 [KO] `crewdroid app` 앱 제어: 권한·딥링크/App Links·데이터 초기화·백업/복원·자원 압박 (FR-17)
-  area: src/app.ts, src/cli.ts, probe-app/ (deep-link intent filters `crewdroid://probe/*` and `https://probe.crewdroid.example/*` with autoVerify; logs `CrewProbe LINK <uri>`), scripts/check-app.mjs, test/app.test.ts, docs/measurements/features.md, README.md (app section)
-  model: sonnet
-  review: required
-  accept: `crewdroid app <serial> <pkg> <what> [args] [--json]` from `research-emulator-features.md` §f-i: `perm grant|revoke|show <permission…>` (`pm grant/revoke`; `show` parses `dumpsys package` runtime permissions into `{name, granted}`), `open <uri> [--pkg]` (`am start -a VIEW -c BROWSABLE -d`; "No Activity found" -> exit 1 with that message — ATD has no Chrome), `links show|force <domain>|reset` (`pm get-app-links` / `set-app-links --package <pkg> 2 <domain>` / `set-app-links --package <pkg> 0 all`, API 31+), `clear` (`pm clear`), `backup|restore` (`bmgr` local transport; if `LocalTransport` is absent on ATD exit 1 with that reason and record it in `features.md`), `pressure doze|standby <bucket>|trim <level>|bg-restrict|battery-saver|reset` (`dumpsys deviceidle force-idle`, `am set-standby-bucket`, `am send-trim-memory`, `appops set RUN_ANY_IN_BACKGROUND ignore`, `settings put global low_power 1`; `reset` undoes all), `fill-storage <GB>|free` (`fallocate` in `/data/local/tmp`, read back with `df /data`). Each setter reads back; bad permission name / unknown bucket exit 1 before adb. `scripts/check-app.mjs`: 2 mixed devices; grant -> show granted=true -> revoke -> false; `open crewdroid://probe/x` -> LINK line; `links force probe.crewdroid.example` then `open https://probe.crewdroid.example/y` -> LINK line and `links show` says approved; `clear` empties the outbox dir; doze -> `dumpsys deviceidle` shows IDLE; standby rare -> `am get-standby-bucket` 40; `fill-storage 2` -> `df` drops >= 2 GB then `free` restores; features.md row; down. `src/app.ts` exports `mcpTools`.
-  verify: `npm test && node scripts/check-app.mjs`
 
-- [ ] T28 [KO] API 31 ATD SurfaceView 미표시 원인 조사 (FR-25)
-  area: probe-app/ (`check=surface`: SurfaceView with a solid colour + a moving square), scripts/check-surface.mjs, docs/adr/0005-api31-surfaceview.md, src/up.ts / src/avd.ts (only if a flag or prop fixes it), profiles/galaxy.json + src/profiles.ts (`surfaceView: false` marker + warning in `up` when a profile lands on API 31), CLAUDE.md (Gotchas line)
-  model: opus
-  review: required
-  accept: Reproduce without private-app: API 31 vs API 34 ATD, probe `check=surface`, screencap of the SurfaceView area. Test the candidates one at a time and record each result with the screencap stats in the ADR: `debug.hwui.drawing_enabled` (T14 fix) vs the SurfaceView path, SurfaceFlinger layer state (`dumpsys SurfaceFlinger` activeBuffer / composition), `-gpu host` vs `-gpu software`, `-feature -Vulkan` (T16), `-no-window` vs `--window`, `setprop debug.sf.*` knobs, API 31 image build props. If a launch flag/prop fixes it: apply it in `up` (API 31 only), and the SurfaceView screencap is non-uniform on API 31 too. If not: ADR 0005 says why with evidence, API 31 profiles get `surfaceView: false`, and `up`/`run` print `WARN emulator-<port> API 31: SurfaceView content does not render (ADR 0005)` when a profile lands there. `scripts/check-surface.mjs`: up API 31 + API 34, run `check=surface`, crop the SurfaceView bounds (probe logs `CrewProbe SURFACE <l>,<t>,<r>,<b>`), fail when a device's crop is uniform unless that device is flagged `surfaceView:false` AND the WARN line was printed; down.
-  verify: `node scripts/check-surface.mjs`
 
-- [ ] T29 [KO] 공개용 데모 GIF: 샘플 앱 혼합 3대 + 판정 결과 (FR-23)
+
+- [ ] T29 BLOCKED:샘플 앱 화면이 정지라 녹화에 움직임이 없음 — probe-app 에 주기 갱신 UI 추가(영역에 probe-app 포함)할지 결정 필요. 시도 1 코드는 git stash "T29-1 attempt" [KO] 공개용 데모 GIF: 샘플 앱 혼합 3대 + 판정 결과 (FR-23)
   area: scripts/demo-gif.mjs, src/record.ts (shared recorder from T16), docs/demo/demo.gif, scripts/check-demo-gif.mjs (`--max-mb --max-seconds`), docs/measurements/demo.json
   model: sonnet
   review: required

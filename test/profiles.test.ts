@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { assign, loadProfiles } from "../src/profiles.ts";
+import { assign, loadProfiles, relaunchBlackApis } from "../src/profiles.ts";
 
 const images = [31, 34, 36].map((api) => ({ image: `android-${api}/google_atd`, api }));
 
@@ -23,4 +23,8 @@ test("assign: oldest API >= launch API, no repeated profile+API up to profile co
 test("assign: a repeated profile moves to the next API when one exists", () => {
   const s22 = loadProfiles().filter((p) => p.name === "s22");
   assert.deepEqual(assign(3, s22, images).map((x) => x.api), [31, 34, 36]);
+});
+
+test("relaunchBlackApis: API 31 is flagged (ADR 0005), 34/36 are not", () => {
+  assert.deepEqual(relaunchBlackApis(), [31]);
 });

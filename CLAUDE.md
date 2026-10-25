@@ -36,6 +36,7 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 - `old-avd-1..3` (private-app) must not change: launch only with `-read-only`, never delete. Do not edit `<private-app repo>`.
 - Ports: crewdroid 5580+; user 5554+; private-app 5570+ (T11 only).
 - ATD images have no Chrome/camera app/gallery/launcher; see `docs/adr/0003-image.md` once T02 writes it.
+- API 31 ATD: `am start -S` (or force-stop then start at once) usually leaves the whole screen black (SF keeps the new Task hidden); SurfaceView itself renders. Use force-stop, 2 s, start. No flag fixes it; `up` prints a WARN (`docs/adr/0005-api31-surfaceview.md`).
 - Long-running emulators drift to ~5 host cores each (private-app T21): measure on fresh boots.
 - Emulator host address from the device: `10.0.2.2`.
 - One crewdroid run at a time: `down()` kills every `crew-*` instance, so two sessions on one checkout kill each other's clones ("device offline"). `up`/`down`/`slim`/`prepare` take `%TEMP%\crewdroid-emulators.lock` (owner PID); to hold it across a chain of commands, `export CREWDROID_OWNER=$(cat /proc/$$/winpid)` first.

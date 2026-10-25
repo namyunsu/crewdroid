@@ -8,7 +8,7 @@ import { avdHome, avdName } from "./avd.ts";
 import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
 import { emulatorPath } from "./sdk.ts";
-import { assign, atdImages, loadProfiles } from "./profiles.ts";
+import { assign, atdImages, loadProfiles, loadProfilesFile, parseScreen, relaunchBlackApis } from "./profiles.ts";
 import { prepare, sleep, start } from "./snapshot.ts";
 import { avdSlim } from "./slim.ts";
 
@@ -17,7 +17,7 @@ const run = promisify(execFile);
 export interface UpDevice {
   serial: string; port: number; avd: string; image: string; api: number; belowMinApi: boolean;
   profile: string; model: string; width: number; height: number; density: number; densitySource: string;
-  wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[];
+  wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[]; relaunchBlack: boolean;
 }
 
 // One crewdroid run drives the emulators at a time. down() kills every crew-* instance, so a second run started meanwhile
@@ -34,10 +34,20 @@ export function claimEmulators() {
   process.env.CREWDROID_OWNER = me;
 }
 
-export async function up(count: number, basePort = 5580, names?: string[], window = false) {
+// AI NOTE: Android's wm size only accepts up to 2x the display's physical size per side (base AVD: 1080x2340), so
+// 3840x2160 came out as 2160x2160 (T18). Only a profile past that limit gets `-skin` (half its size, rounded up; the saved snapshot no longer matches, so cold boot) so the
+// physical display is big enough; every other profile keeps the unchanged launch args.
+const skinFor = (p: { width: number; height: number }) =>
+  p.width > 2 * 1080 || p.height > 2 * 2340 ? ["-skin", `${Math.ceil(p.width / 2)}x${Math.ceil(p.height / 2)}`, "-no-snapshot-load"] : [];
+
+export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string } = {}) {
+  // Validate every input before taking the lock or launching anything.
+  const screens = (custom.screens ?? []).map(parseScreen);
+  const all = [...loadProfiles(), ...(custom.profilesFile ? loadProfilesFile(custom.profilesFile) : [])];
+  const named = names ? names.map((n) => all.find((p) => p.name === n) ?? (() => { throw new Error(`unknown profile '${n}' (have: ${all.map((p) => p.name).join(",")})`); })()) : undefined;
+  // --screen alone -> only those screens; with --profiles -> named profiles then screens; --profiles-file alone -> its profiles.
+  const profiles = [...(named ?? (screens.length ? [] : custom.profilesFile ? loadProfilesFile(custom.profilesFile) : all)), ...screens];
   claimEmulators();
-  const all = loadProfiles();
-  const profiles = names ? names.map((n) => all.find((p) => p.name === n) ?? (() => { throw new Error(`unknown profile '${n}' (have: ${all.map((p) => p.name).join(",")})`); })()) : all;
   const slots = assign(count, profiles, atdImages());
   const ports = slots.map((_, i) => basePort + 2 * i);
   for (const p of ports) {
@@ -55,7 +65,7 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   try {
     const t0s: number[] = [];
     for (const [i, s] of slots.entries()) {
-      await start(avdName(s.image), ports[i], true, ["-no-boot-anim"], window);
+      await start(avdName(s.image), ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window);
       t0s.push(Date.now());
       await sleep(3000);
     }
@@ -77,8 +87,12 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
         density: s.profile.density, densitySource: s.profile.densitySource,
         wmSize: await adb(serial, ["shell", "wm", "size"]), wmDensity: await adb(serial, ["shell", "wm", "density"]),
         bootSeconds: Math.round(bootSeconds * 10) / 10, readySeconds: Math.round((Date.now() - t0s[i]) / 100) / 10, distinctNotes,
+        relaunchBlack: relaunchBlackApis().includes(s.api),
       };
     }));
+    for (const d of devices.filter((x) => x.relaunchBlack)) {
+      console.error(`WARN ${d.serial} API ${d.api}: screen can stay black after am start -S / force-stop + immediate start; wait 2 s between stop and start (ADR 0005)`);
+    }
     return { date: new Date().toISOString(), count, devices };
   } catch (e) {
     await down();

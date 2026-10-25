@@ -15,19 +15,19 @@ T14 DONE
 T15 DONE
 T16 DONE
 T17 BLOCKED:삭제 권한 거부
-T18 TODO
-T19 TODO
-T20 TODO
-T21 TODO
+T18 DONE
+T19 DONE
+T20 DONE
+T21 DONE
 T22 DONE
 T23 DONE
 T24 DONE
 T25 DONE
 T26 DONE
 T27 DONE
-T28 TODO
-T29 TODO
+T28 DONE
 - shift 180: 여전히 다른 세션의 check-scenario(PID 30832)+crew 에뮬레이터 3대(5580~5584) 점유, 보류.
 - 2026-10-24 04:07 shift 182: 점유 지속, 보류
 - 2026-10-24 04:08 shift 183: 점유 지속(mvp-private-app PID 32404), 보류
 - 2026-10-24 04:09 shift 185: 점유 지속, 보류
+T29 BLOCKED:샘플 앱 화면이 정지라 데모 녹화가 안 움직임(probe-app 영역 밖 수정 필요)
