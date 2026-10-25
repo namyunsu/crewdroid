@@ -25,3 +25,8 @@
 - 데모 GIF 재시도: 공개 README 노출에 필요
 - 샘플 서버 PUT idempotency 수정: 응답 유실 재시도가 가짜 충돌로 보임
 - 영문 README·공개 준비 점검(`check-public`)
+## 결정 필요
+- T17: 옛 AVD 3대 + android-33 이미지 삭제 — 사용자가 직접 삭제하거나 삭제 명령을 허용해야 함.
+- T29: 데모 GIF 용으로 probe-app 에 주기 갱신 UI 를 추가해도 되는지(Todo 영역 확장).
+- 느린 망 2MB 업로드 120초 미동기화(원인 모름): 재현 조건이 정해지면 Todo 로.
+자동 계획: Todo 2건 추가(T30 AGENTS.md 명령 표, T31 perf API 31 검정 화면), 리뷰어 승인.
