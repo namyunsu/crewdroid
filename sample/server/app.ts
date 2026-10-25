@@ -7,12 +7,13 @@ import { randomUUID } from "node:crypto";
 // to <dir>/acks.jsonl (uploads) / writes.jsonl (record PUTs) — the "access log" the judge compares the DB against.
 //   POST /upload        headers x-client-id + idempotency-key, body = photo bytes  -> {id, key, bytes}
 //   PUT  /records/:id   JSON {version, value, clientId}; version = the version the client last read (0 = new)
+//                       optional idempotency-key header: a key already seen for that id replays the first 200 (no new version/write line)
 //   GET  /export        {uploads, records, acks, writes}
 // buggy=true: no idempotency dedupe, no version check, and read-modify-write of db.json with an await in between
 // (concurrent requests overwrite each other's db.json, so an acked write can vanish).
 type Upload = { id: string; key: string; clientId: string; bytes: number; at: string };
 type Rec = { id: string; version: number; value: unknown; clientId: string; at: string };
-type Db = { uploads: Upload[]; records: Rec[] };
+type Db = { uploads: Upload[]; records: Rec[]; idem?: Record<string, Record<string, Rec>> }; // idem[recordId][key] = first 200 response
 
 export interface AppOptions { port: number; dir: string; buggy?: boolean; raceMs?: number; host?: string }
 
@@ -69,16 +70,20 @@ export function startApp({ port, dir, buggy = false, raceMs = 30, host = "0.0.0.
       try { p = JSON.parse((await body(req)).toString("utf8")); } catch { return send(res, 400, { error: "JSON body required" }); }
       if (typeof p.version !== "number") return send(res, 400, { error: "version (number) required" });
       const base = p.version;
+      const ikey = req.headers["idempotency-key"];
       const r = await mutate((db) => {
+        const hit = !buggy && typeof ikey === "string" && ikey ? db.idem?.[id]?.[ikey] : undefined;
+        if (hit) return { rec: hit, replay: true };
         const cur = db.records.find((x) => x.id === id);
         const curVer = cur?.version ?? 0;
         if (!buggy && base !== curVer) return { conflict: curVer };
         const next: Rec = { id, version: curVer + 1, value: p.value, clientId: String(p.clientId ?? ""), at: new Date().toISOString() };
         if (cur) Object.assign(cur, next); else db.records.push(next);
-        return { rec: next };
+        if (!buggy && typeof ikey === "string" && ikey) ((db.idem ??= {})[id] ??= {})[ikey] = next;
+        return { rec: next, replay: false };
       });
       if ("conflict" in r) return send(res, 409, { error: "stale version", version: r.conflict });
-      log("writes.jsonl", { id, baseVersion: base, version: r.rec.version, clientId: r.rec.clientId, value: r.rec.value });
+      if (!r.replay) log("writes.jsonl", { id, baseVersion: base, version: r.rec.version, clientId: r.rec.clientId, value: r.rec.value });
       return send(res, 200, r.rec);
     }
     send(res, 404, { error: "not found" });
