@@ -1,31 +1,27 @@
-# crewdroid · 2026-10-23 21:10
+# crewdroid · 2026-10-26 07:30
 ## 작업 내역 요약
-완료 12 / BLOCKED 0 / 전체 12 · dev URL 없음(로컬 CLI)
+완료 27 / BLOCKED 2 / 전체 29 · dev URL 없음(로컬 CLI)
 ## 이제 되는 것
-- `npx tsx src/cli.ts run scenarios/photo-upload.json --seed 1`: 기종·안드로이드 버전이 섞인 3대를 띄워 반복 업로드·수정 + 네트워크 끊김을 섞은 뒤 서버 데이터를 판정하고 끈다.
-- 버그 서버(`BUGGY=1`)에서는 3번 모두 위반을 찾고, 정상 서버에서는 3번 모두 통과한다.
-- `node scripts/mvp-private-app.mjs --runs 3`: private-app 의 기사 3명 시험이 crewdroid 기기에서 3번 연속 통과한다.
-- 에뮬레이터 콘솔 창이 화면에 뜨지 않는다.
+- `crewdroid env <serial> <geo|battery|rotate|dark|font|locale|sms|call>`: 에뮬레이터의 위치·배터리·회전·다크모드·글꼴·언어·문자·전화를 명령 한 줄로 바꾼다.
+- `crewdroid app <serial> perm|open|links|clear|backup|pressure|fill-storage`: 앱 권한, 딥링크, 데이터 삭제, 백업, 메모리·저장공간 압박을 건다.
+- 이전에 만든 `up`/`run`/`triage`/`screen`/`perf`/`apk`/`fold`/`mcp` 와 AI 에이전트용 스킬·플러그인 파일도 그대로 쓴다.
 ## 알아둘 것
-- 에뮬레이터 기동 방식 변경: 숨김 PowerShell 기동으로 바뀌어 PID 를 파일로 받는다. 기동이 멈추면 up 전체가 멈출 수 있다. 먼저 볼 곳 `src/emulator.ts:1` [확인함]
-- 시나리오 실행기는 기기별 시드 지연·네트워크 스케줄을 쓴다. outbox 비움 타임아웃 경로는 한 번도 안 탔다. 먼저 볼 곳 `src/scenario.ts:1` [추론]
+- API 36 에뮬레이터 회전은 `wm fixed-to-user-rotation` 으로 고정해야 유지된다. 일부 이미지에서만 안 먹을 수 있다. 먼저 볼 곳 `src/env.ts` [확인함]
+- 느린 망에서 2MB 업로드가 120초 안에 동기화되지 않는 경우가 있었다. 원인은 모른다. 먼저 볼 곳 `src/scenario.ts` [모름]
 ## 페인포인트
-- BLOCKED 없음. 포트 5599 를 낡은 샘플 서버(PID 23568)가 계속 점유 중이라 검증은 5595 로 돌렸다.
-- MVP 비교에서 crewdroid 디스크가 더 크다(38.6GB vs 24.7GB): 안드로이드 버전 3종 이미지를 각각 센 탓이다. RAM 은 비슷, 대기 CPU 는 1000% -> 126%.
-- 구방식(avd-up.ps1) 수치는 -read-only 규칙 때문에 다시 재지 않고 기존 기록을 인용했다.
+- BLOCKED: 옛 AVD 3대 + android-33 이미지 삭제 — 삭제 명령이 자동 권한 분류기에 거부됨(사용자 직접 허용 필요).
+- BLOCKED: 공개용 데모 GIF — 샘플 앱 화면이 정지라 녹화에 움직임이 없음. probe-app 에 주기 갱신 UI 추가가 필요하다.
 - QA: 로컬 e2e 대상이 없어 건너뜀(ENV_NO_E2E_TARGET).
+- `scripts/check-agent-files.mjs` 가 AGENTS.md 에 fold 명령 행이 없다고 실패한다.
 ## 앞으로 할 일
 직접 확인할 것:
-- `docs/demo/techs.gif` 를 열어 3대가 서로 다른 화면 비율로 보이고 통화가 이어지는지 확인. 왼쪽(s22) 화면이 검게 보임 [모름]
-- 포트 5599 점유 프로세스(PID 23568) 종료
+- `node scripts/check-agent-files.mjs` 실패: AGENTS.md 명령 표에 `fold` 행을 추가하면 풀린다 [확인함]
+- `src/perf.ts:24` 의 `am start -S -W` 가 API 31 화면 검정 현상의 후보 [추론]: API 31 기기에서 `perf` 실행 후 화면 확인
 정해야 할 것:
-- 디스크 비교를 공정하게 하려면 같은 이미지 복제본만 쓰는 구성으로 다시 잴지 선택
+- 옛 AVD(old-avd-1~3)와 android-33 google_apis 이미지를 직접 지울지(디스크 확보)
+- 데모 GIF 를 위해 probe-app 에 주기 갱신 UI 를 추가해도 되는지
 다음 후보:
-- PUT 의 idempotency-key 무시 수정: 응답 유실 재시도가 가짜 충돌로 보임
-- outbox 비움 타임아웃 경로 시험
-- density 미확인 프로필 4개 실측
-- 웹앱(Chrome) 시험 경로(google_apis 이미지)
-- 오픈소스 공개 준비(영문 README)
-## 결정 필요
-- 자동 계획(1/5): T13 추가 — 데모 GIF 프레임 확인 결과 왼쪽(API 32)은 계속 검은 화면, 오른쪽(API 36)은 녹화 시작 화면에서 멈춤. FR-11 보완.
-- PUT 이 idempotency-key 를 무시해 응답 유실 재시도가 가짜 충돌로 보일 수 있음 [추론]: 샘플 서버 동작을 바꾸는 일이라 사람 결정 후 Todo 로.
+- AGENTS.md 에 fold 행 추가: 검사 스크립트 실패 해소, 한 줄 수정
+- 데모 GIF 재시도: 공개 README 노출에 필요
+- 샘플 서버 PUT idempotency 수정: 응답 유실 재시도가 가짜 충돌로 보임
+- 영문 README·공개 준비 점검(`check-public`)
