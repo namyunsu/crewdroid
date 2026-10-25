@@ -7,8 +7,11 @@ export interface Profile {
   minAndroid: string; minApi: number; densitySource: "blisk" | "yesviz" | "chrome" | "unverified"; note?: string;
 }
 
-export const loadProfiles = (): Profile[] =>
-  JSON.parse(readFileSync(join(import.meta.dirname, "..", "profiles", "galaxy.json"), "utf8")).profiles;
+const galaxy = () => JSON.parse(readFileSync(join(import.meta.dirname, "..", "profiles", "galaxy.json"), "utf8"));
+export const loadProfiles = (): Profile[] => galaxy().profiles;
+
+// APIs whose screen can stay black after a force-stop + immediate relaunch (`am start -S`), SurfaceView or not (ADR 0005).
+export const relaunchBlackApis = (): number[] => galaxy().relaunchBlackApis ?? [];
 
 // Installed google_atd x86_64 images, e.g. [{ image: "android-31/google_atd", api: 31 }], sorted by API.
 export function atdImages(): { image: string; api: number }[] {

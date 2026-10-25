@@ -1,6 +1,8 @@
 {
   "source": "docs/source/research-samsung-screens.md (에뮬레이터 프로필 추천 10개)",
   "densitySourceValues": "blisk | yesviz | chrome | unverified — no value here is confirmed on a real device yet",
+  "relaunchBlackApis": [31],
+  "relaunchBlackNote": "docs/adr/0005-api31-surfaceview.md: on these ATD images `am start -S` (or force-stop then start at once) can leave the whole screen black; SurfaceView itself renders",
   "profiles": [
     { "name": "s22", "model": "Galaxy S22", "width": 1080, "height": 2340, "density": 480, "minAndroid": "12", "minApi": 31, "densitySource": "blisk" },
     { "name": "s24ultra", "model": "Galaxy S24 Ultra (FHD+ default)", "width": 1080, "height": 2340, "density": 450, "minAndroid": "14", "minApi": 34, "densitySource": "blisk" },

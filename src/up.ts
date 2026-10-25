@@ -8,7 +8,7 @@ import { avdHome, avdName } from "./avd.ts";
 import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
 import { emulatorPath } from "./sdk.ts";
-import { assign, atdImages, loadProfiles } from "./profiles.ts";
+import { assign, atdImages, loadProfiles, relaunchBlackApis } from "./profiles.ts";
 import { prepare, sleep, start } from "./snapshot.ts";
 import { avdSlim } from "./slim.ts";
 
@@ -17,7 +17,7 @@ const run = promisify(execFile);
 export interface UpDevice {
   serial: string; port: number; avd: string; image: string; api: number; belowMinApi: boolean;
   profile: string; model: string; width: number; height: number; density: number; densitySource: string;
-  wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[];
+  wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[]; relaunchBlack: boolean;
 }
 
 // One crewdroid run drives the emulators at a time. down() kills every crew-* instance, so a second run started meanwhile
@@ -77,8 +77,12 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
         density: s.profile.density, densitySource: s.profile.densitySource,
         wmSize: await adb(serial, ["shell", "wm", "size"]), wmDensity: await adb(serial, ["shell", "wm", "density"]),
         bootSeconds: Math.round(bootSeconds * 10) / 10, readySeconds: Math.round((Date.now() - t0s[i]) / 100) / 10, distinctNotes,
+        relaunchBlack: relaunchBlackApis().includes(s.api),
       };
     }));
+    for (const d of devices.filter((x) => x.relaunchBlack)) {
+      console.error(`WARN ${d.serial} API ${d.api}: screen can stay black after am start -S / force-stop + immediate start; wait 2 s between stop and start (ADR 0005)`);
+    }
     return { date: new Date().toISOString(), count, devices };
   } catch (e) {
     await down();
