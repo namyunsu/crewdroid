@@ -19,7 +19,9 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `down` | kill every `crew-*` emulator | implemented |
 | `net` | per-device network state: airplane / nodata / slow / flaky / online | implemented |
 | `env` | location, battery, rotation, dark mode, font, locale, network, SMS/call (`env <serial> <what> [args]`) | implemented |
-| `app` | permissions, deep links, data clear, backup, resource pressure | planned |
+| `app` | permissions, deep links, data clear, backup, resource pressure | implemented |
+| `fold` | fold a fold/flip profile to its cover screen (`fold <serial>`) | implemented |
+| `unfold` | unfold a fold/flip profile to its main screen (`unfold <serial>`) | implemented |
 | `triage` | crashes, ANRs, exit reasons, heap dump | implemented |
 | `screen` | focused activity + accessibility tree | implemented |
 | `perf` | start time, frame jank, memory | implemented |

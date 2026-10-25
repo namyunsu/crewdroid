@@ -10,6 +10,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { adb, assertSerial } from "../src/adb.ts";
+import { perf } from "../src/perf.ts";
 import { adbPath } from "../src/sdk.ts";
 import { PKG, probeApk, sleep } from "../src/snapshot.ts";
 import { down, up } from "../src/up.ts";
@@ -33,6 +34,11 @@ function cropStats(png, [l, t, r, b]) {
 async function shot(d, step, startArgs, extra) {
   await adb(d.serial, ["logcat", "-c"]);
   await adb(d.serial, ["shell", "am", "start", "-W", ...startArgs, "-n", `${PKG}/.ProbeActivity`, "--es", "check", "surface", ...extra], 60000);
+  return grab(d, step);
+}
+
+// Waits for the SURFACE line of an already launched check=surface, screencaps, returns crop stats.
+async function grab(d, step) {
   let bounds;
   for (let i = 0; i < 20 && !bounds; i++) {
     await sleep(500);
@@ -42,7 +48,7 @@ async function shot(d, step, startArgs, extra) {
   if (!bounds) throw new Error(`${d.serial} ${step}: no CrewProbe SURFACE line`);
   await sleep(3000);
   const png = spawnSync(adbPath(), ["-s", assertSerial(d.serial), "exec-out", "screencap", "-p"], { maxBuffer: 2 ** 28 }).stdout;
-  writeFileSync(join(out, `T28-surface-${d.serial}-${step}.png`), png);
+  writeFileSync(join(out, step === "perf" ? `T31-perf-${d.serial}.png` : `T28-surface-${d.serial}-${step}.png`), png);
   return { bounds, ...cropStats(png, bounds) };
 }
 
@@ -70,6 +76,14 @@ try {
       if (!ok) problems.push(`${d.serial} (API ${d.api}) ${step}: SurfaceView crop is ${(s.share * 100).toFixed(1)} % #${s.rgb}`);
       if (flat && ok) excused++;
     }
+    // T31: perf's cold start (force-stop, 2 s, start; no -S) must draw on every device, API 31 included. No excuse here.
+    await adb(d.serial, ["logcat", "-c"]);
+    const pf = await perf(d.serial, PKG, ".ProbeActivity", ["--es", "check", "surface"]);
+    console.log(`${d.serial} perf cold start TotalTime=${pf.start.totalTime} ms`);
+    const s = await grab(d, "perf");
+    const flat = s.share > MAX_SHARE;
+    console.log(`${d.serial} ${d.profile} API ${d.api} perf bounds ${s.bounds.join(",")}: top #${s.rgb} ${(s.share * 100).toFixed(1)} %, ${s.colours} colours ${flat ? "FLAT" : "ok"}`);
+    if (flat) problems.push(`${d.serial} (API ${d.api}) perf: SurfaceView crop is ${(s.share * 100).toFixed(1)} % #${s.rgb}`);
   }
 } finally {
   process.stderr.write = write;

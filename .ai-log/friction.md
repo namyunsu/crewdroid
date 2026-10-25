@@ -60,3 +60,4 @@
 2026-10-26 | API31 SurfaceView 가설이 틀려 todo 문구(surfaceView:false)와 실측이 어긋남 | Todo unclear
 2026-10-26 | 리뷰어가 반려한 API36 검사 건너뛰기: 워커가 원인 모름인 채 skip 으로 통과시킴 | brief 규칙 부족(이후 brief 에 'API 별 skip 금지' 명시)
 2026-10-26 | todo.md CRLF/LF 혼재로 sed/python 이동 중 임시파일 경로 오류 | env/tool limit
+2026-10-26 | perf 스킬 문서에 -S 잔존(스킬 수정 승인 필요) | rule missing; features.md 자동 행 라벨 오기 | tool limit

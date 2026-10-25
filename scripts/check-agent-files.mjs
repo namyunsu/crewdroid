@@ -15,6 +15,12 @@ else {
   if (Buffer.byteLength(agents) > 32 * 1024) fail("AGENTS.md > 32 KiB");
   const cmds = [...new Set([...read("src/cli.ts").matchAll(/cmd === "([\w-]+)"/g)].map((m) => m[1]))];
   for (const c of cmds) if (!agents.includes("`" + c + "`")) fail(`AGENTS.md does not name command \`${c}\``);
+  // Commands table: a row whose status is "planned" must not name a command the CLI already implements
+  for (const row of agents.split(/\r?\n/).filter((l) => l.startsWith("| `"))) {
+    const cells = row.split("|").map((s) => s.trim());
+    for (const [, c] of cells[1].matchAll(/`([\w-]+)`/g))
+      if (cells[cells.length - 2] === "planned" && cmds.includes(c)) fail(`AGENTS.md marks implemented command \`${c}\` as planned`);
+  }
 }
 
 // CLAUDE.md first line
