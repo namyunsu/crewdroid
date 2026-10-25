@@ -20,10 +20,10 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `net` | per-device network state: airplane / nodata / slow / flaky / online | implemented |
 | `env` | location, battery, rotation, dark mode, font, locale, SMS/call | planned |
 | `app` | permissions, deep links, data clear, backup, resource pressure | planned |
-| `triage` | crashes, ANRs, exit reasons, heap dump | planned |
-| `screen` | focused activity + accessibility tree | planned |
-| `perf` | start time, frame jank, memory | planned |
-| `apk` | manifest summary of an APK (host only) | planned |
+| `triage` | crashes, ANRs, exit reasons, heap dump | ready |
+| `screen` | focused activity + accessibility tree | ready |
+| `perf` | start time, frame jank, memory | ready |
+| `apk` | manifest summary of an APK (host only) | ready |
 | `judge` | rules on server data: unique / count / noLostUpdate (`--rules <file> --source <url\|file>`) | implemented |
 | `hammer` | N virtual users against the API | implemented |
 | `run` | scenario: up, install, per-device loops + network schedule, judge, down | implemented |
