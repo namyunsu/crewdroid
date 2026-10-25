@@ -48,19 +48,3 @@ Rules for this wave (on top of the 2026-10-23 rules above):
   verify: `node scripts/demo-gif.mjs && node scripts/check-demo-gif.mjs --mvp docs/measurements/demo.json --gif docs/demo/demo.gif --max-mb 3 --max-seconds 20`
 
 Wave 2026-10-26 autopilot /brief auto (plan 2). Reviewer APPROVE 2/2 (`.ai-log/reviews/plan-2026-10-26.md`). Different files: may share a batch; T31 boots emulators.
-
-- [ ] T30 [AUTO] AGENTS.md command table matches the CLI (FR-20 follow-up)
-  origin: auto-plan (`node scripts/check-agent-files.mjs` FAIL 2026-10-26: "AGENTS.md does not name command `fold`/`unfold`"; AGENTS.md:22 still says `app` ... `planned` though T21 shipped it)
-  area: AGENTS.md, scripts/check-agent-files.mjs
-  model: haiku
-  review: required
-  accept: AGENTS.md "Commands" table has rows for `fold` and `unfold` (what they do, `implemented`) and `app` is `implemented`. `check-agent-files.mjs` additionally fails when a command it already reads from `cli.ts help` (the existing `cmds` list, no second call) has status `planned` in that table. No other AGENTS.md wording changes.
-  verify: `node scripts/check-agent-files.mjs && npm test`
-
-- [ ] T31 [AUTO] `perf` cold start without `am start -S` (API 31 black screen, FR-18 / FR-25)
-  origin: auto-plan (REPORT 2026-10-26 "src/perf.ts:24 `am start -S -W` is the API 31 black-screen candidate"; CLAUDE.md Gotchas + docs/adr/0005-api31-surfaceview.md: on API 31 ATD `am start -S` leaves the screen black, use force-stop, 2 s, start)
-  area: src/perf.ts, scripts/check-surface.mjs, README.md (perf line only)
-  model: sonnet
-  review: required
-  accept: `perf` does `am force-stop <pkg>`, waits 2 s, then `am start -W -n <comp> ...extras` (no `-S`); TotalTime is still reported (cold start: process was killed). MCP tool description and README.md:55 no longer say "-S". `check-surface.mjs` gains a step per device: run `crewdroid perf <serial> dev.crewdroid.probe -- --es check surface`, then screencap the probe's logged SURFACE bounds -> must not be one colour on any device including the API 31 one (PNG to `.ai-log/evidence/T31-perf-<serial>.png`). `check-triage.mjs` still passes (perf check=jank on API 34). The worker report pastes the cold TotalTime line and says whether the old `-S` path came out flat on the API 31 device (if not, the evidence only shows no regression). No launch flag / AVD config / KNOBS change. Kill emulators at the end.
-  verify: `grep -q "perf" scripts/check-surface.mjs && node scripts/check-surface.mjs && node scripts/check-triage.mjs`

@@ -231,4 +231,22 @@ T19: fold/unfold — ea4dd35
   review: required
   accept: `crewdroid app <serial> <pkg> <what> [args] [--json]` from `research-emulator-features.md` §f-i: `perm grant|revoke|show <permission…>` (`pm grant/revoke`; `show` parses `dumpsys package` runtime permissions into `{name, granted}`), `open <uri> [--pkg]` (`am start -a VIEW -c BROWSABLE -d`; "No Activity found" -> exit 1 with that message — ATD has no Chrome), `links show|force <domain>|reset` (`pm get-app-links` / `set-app-links --package <pkg> 2 <domain>` / `set-app-links --package <pkg> 0 all`, API 31+), `clear` (`pm clear`), `backup|restore` (`bmgr` local transport; if `LocalTransport` is absent on ATD exit 1 with that reason and record it in `features.md`), `pressure doze|standby <bucket>|trim <level>|bg-restrict|battery-saver|reset` (`dumpsys deviceidle force-idle`, `am set-standby-bucket`, `am send-trim-memory`, `appops set RUN_ANY_IN_BACKGROUND ignore`, `settings put global low_power 1`; `reset` undoes all), `fill-storage <GB>|free` (`fallocate` in `/data/local/tmp`, read back with `df /data`). Each setter reads back; bad permission name / unknown bucket exit 1 before adb. `scripts/check-app.mjs`: 2 mixed devices; grant -> show granted=true -> revoke -> false; `open crewdroid://probe/x` -> LINK line; `links force probe.crewdroid.example` then `open https://probe.crewdroid.example/y` -> LINK line and `links show` says approved; `clear` empties the outbox dir; doze -> `dumpsys deviceidle` shows IDLE; standby rare -> `am get-standby-bucket` 40; `fill-storage 2` -> `df` drops >= 2 GB then `free` restores; features.md row; down. `src/app.ts` exports `mcpTools`.
   verify: `npm test && node scripts/check-app.mjs`
-  commits: 24c37f3 ad02388 
+  commits: 24c37f3 ad02388
+
+- [x] T30 [AUTO] AGENTS.md command table matches the CLI (FR-20 follow-up)
+  origin: auto-plan (`node scripts/check-agent-files.mjs` FAIL 2026-10-26: "AGENTS.md does not name command `fold`/`unfold`"; AGENTS.md:22 still says `app` ... `planned` though T21 shipped it)
+  area: AGENTS.md, scripts/check-agent-files.mjs
+  model: haiku
+  review: required
+  accept: AGENTS.md "Commands" table has rows for `fold` and `unfold` (what they do, `implemented`) and `app` is `implemented`. `check-agent-files.mjs` additionally fails when a command it already reads from `cli.ts help` (the existing `cmds` list, no second call) has status `planned` in that table. No other AGENTS.md wording changes.
+  verify: `node scripts/check-agent-files.mjs && npm test`
+
+- [x] T31 [AUTO] `perf` cold start without `am start -S` (API 31 black screen, FR-18 / FR-25)
+  origin: auto-plan (REPORT 2026-10-26 "src/perf.ts:24 `am start -S -W` is the API 31 black-screen candidate"; CLAUDE.md Gotchas + docs/adr/0005-api31-surfaceview.md: on API 31 ATD `am start -S` leaves the screen black, use force-stop, 2 s, start)
+  area: src/perf.ts, scripts/check-surface.mjs, README.md (perf line only)
+  model: sonnet
+  review: required
+  accept: `perf` does `am force-stop <pkg>`, waits 2 s, then `am start -W -n <comp> ...extras` (no `-S`); TotalTime is still reported (cold start: process was killed). MCP tool description and README.md:55 no longer say "-S". `check-surface.mjs` gains a step per device: run `crewdroid perf <serial> dev.crewdroid.probe -- --es check surface`, then screencap the probe's logged SURFACE bounds -> must not be one colour on any device including the API 31 one (PNG to `.ai-log/evidence/T31-perf-<serial>.png`). `check-triage.mjs` still passes (perf check=jank on API 34). The worker report pastes the cold TotalTime line and says whether the old `-S` path came out flat on the API 31 device (if not, the evidence only shows no regression). No launch flag / AVD config / KNOBS change. Kill emulators at the end.
+  verify: `grep -q "perf" scripts/check-surface.mjs && node scripts/check-surface.mjs && node scripts/check-triage.mjs`
+
+T30: fd972e0 · T31: c1f27a5 (shift 9)
