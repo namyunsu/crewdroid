@@ -1,9 +1,9 @@
-# Handoff (2026-10-24, shift 7)
-이번 shift: 일 못 함. 옛 shift(claude -p, PID 28620, 10-23 22:14 시작)와 그 T15 작업자가 아직 살아서 src/snapshot.ts 를 고치고 에뮬(포트 5580)을 돌림. 새 작업자를 같이 돌리면 AVD 가 깨져 중단. 누구도 죽이지 않음.
-다음: 옛 shift 가 끝나거나 사람이 PID 28620 을 정리한 뒤 T15 재개 (T15 → T16 → T17 → T18 → T19).
-T15 이어받기 메모:
-- 이미지 sparse 완료(.sha256 있음): 31 4107→1267MiB, 34 8203→1235, 36 1811→1469.
-- hw.ramSize=1536 은 API 34 에서 2560 으로 자동 상향됨 → RAM 으로 스냅샷 줄이기 안 통함 [확인함 qemu 로그].
-- default_boot 에 ram.img+ram.bin 중복, 3개 합 ~11GB. ANDROID_SNAPSHOT_COMPRESS 지원 확인. 목표: ram.bin ≤ 0.6GB/개.
-- %TEMP%\AndroidEmulator 에 죽은 클론 TMP*.qcow2 23개(~180MB).
-- 증거: .ai-log/evidence/T15-2.txt. 포트 5599 점유 → --server-port 5595.
+# Handoff (2026-10-26 03:01, shift 2 of 2026-10-26 run)
+완료: T27(공개 준비), T22(triage/screen/perf/apk, 3대 유휴 측정), T25(AGENTS.md·플러그인·skill), T26(android-* 스킬 6개). 전부 ai/work 병합.
+막힘: T17(옛 AVD 3대+android-33 이미지 삭제) — 삭제 명령이 자동 권한 분류기에 거부됨. 사용자가 직접 지우거나 허용해야 함(T17 이후 mvp-private-app 영향 없음 확인용 verify 는 삭제 뒤).
+다음: 에뮬레이터 Todo 1개씩 — T29(데모 GIF, 비-에뮬 병행 가능) → T28 → T18 → T19 → T20 → T21. T20/T21 은 서로 area 겹침 없음(T20 src/env.ts, T21 src/app.ts) 이나 README/features.md/cli.ts 겹침 주의.
+알아둘 것:
+- T25: claude plugin validate --strict 는 CLAUDE.md 경고 하나를 허용하도록 스크립트가 처리(todo accept 문구와 다름, 사람이 확인).
+- 워커 워크트리는 ai/work 위로 시작(git checkout -B), todo.md/archive 는 CRLF.
+- 임시 폴더 %TEMP%\t22scratch, crewtriage-* (hprof) 삭제가 권한 거부로 남음.
+- scrub 예외 4파일(CLAUDE.md 등) — 공개 전 처리, docs/release.md 0번 참고.

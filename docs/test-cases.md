@@ -53,3 +53,43 @@ UI·웹 서비스가 없어서 XSS·새로고침 연타 같은 웹 케이스는 
 - crewdroid 기동으로 private-app techs.multi.ts 3회 연속 통과 `[e2e]` T11
 - 전후 비교표(디스크·부팅·RAM·CPU·소요 시간) `[verify]` T11
 - 데모 GIF 에서 3대가 서로 다른 기종 비율로 보이고 통화가 이어진다 `[manual]` T11
+
+## FR-16 기기 환경 (`crewdroid env`)
+- 위치·배터리·회전·다크·글자 크기·앱 로케일·gsm 상태를 걸면 되읽은 값이 같고 샘플 앱 `ENV` 로그가 일치한다 `[verify]` T20
+- `battery 150`, `rotate 9`, serial `R3CT…` → adb 호출 전에 종료 코드 1 `[verify]` T20
+- 3대 유휴 RAM 전후 차이가 +5 % 이내 (`features.md`) `[verify]` T20
+
+## FR-17 앱 제어 (`crewdroid app`)
+- 권한 부여→조회 granted=true→회수→false `[verify]` T21
+- 커스텀 스킴 딥링크·강제 승인한 https App Link 가 샘플 앱에 도착해 `LINK` 로그 `[verify]` T21
+- Doze 강제 → `dumpsys deviceidle` IDLE, standby rare → 버킷 40, 저장공간 2GB 채움 → `df` 감소 후 복구 `[verify]` T21
+- ATD 에 LocalTransport 가 없으면 backup 은 이유와 함께 종료 코드 1 `[verify]` T21
+
+## FR-18 진단
+- 샘플 앱 크래시 유발 → `triage` 가 `ProbeActivity` 프레임이 있는 크래시 1건, ANR 유발 → ANR ≥ 1 `[verify]` T22
+- `screen` 에 버튼 bounds 가 `wm size` 안, `perf` TotalTime>0·frames>0, `apk` 가 package·minSdk·권한을 읽음, 없는 파일 → 1 `[verify]` T22
+
+## FR-19 MCP 서버
+- stdio 클라이언트로 `listTools` 에 devices/judge/net/up, `judge` 도구가 위반을 돌려주고, serial `R3CT1234` 는 `isError` `[verify]` T24
+- Claude Code 에서 `.mcp.json` 으로 붙여 `devices` 도구 호출 `[manual]` T24
+
+## FR-20 에이전트 파일
+- AGENTS.md 가 cli 의 모든 명령을 담고, CLAUDE.md 첫 줄 `@AGENTS.md`, `claude plugin validate --strict .` 통과 `[verify]` T25
+- 다른 PC 에서 `claude plugin marketplace add namyunsu/crewdroid` 후 설치 (공개 뒤) `[manual]` T25
+
+## FR-21 스킬
+- 스킬 6개 frontmatter 규칙·150줄 이하·언급한 명령 존재, ```bash verify``` 블록 전부 기기에서 종료 코드 0 `[verify]` T26
+- Claude Code 새 세션에서 "앱이 죽었어" 라고만 말해도 android-triage 가 트리거된다 `[manual]` T26
+
+## FR-22 공개 준비
+- 추적 파일(docs·.ai-log 제외)에 개인 경로·계정·PC명·USB serial 없음, LICENSE MIT, README 필수 블록, `npm pack` 후 `npx crewdroid --help`, server.json 일치 `[verify]` T27
+- 공개 전환·npm publish·Registry 등록은 `docs/release.md` 순서대로 사람이 `[manual]` T27
+
+## FR-23 데모 GIF
+- 3패널 모두 살아 있고 비율이 다르며, ≤ 3MB·≤ 20초, private-app 화면 없음 `[verify]` T29
+
+## FR-24 멱등키
+- 정상 모드 같은 키 PUT 2회 → 같은 버전·쓰기 로그 1줄, 다른 키 → 버전 2개, BUGGY → 버전 2개 `[verify]` T23
+
+## FR-25 API 31 SurfaceView
+- API 31·34 에서 SurfaceView 영역 screencap 이 단색이 아니거나, API 31 이 `surfaceView:false` + WARN 줄 `[verify]` T28

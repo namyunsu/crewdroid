@@ -31,7 +31,7 @@ function png() { // 96x96 gradient PNG, no image libs needed
 async function waitBoot() {
   const t0 = Date.now();
   while (Date.now() - t0 < 300000) {
-    try { if ((await adb(serial, ["shell", "getprop", "sys.boot_completed"], 5000)) === "1") return (Date.now() - t0) / 1000; } catch {}
+    try { if ((await adb(serial, ["shell", "getprop", "sys.boot_completed"], 5000, false)) === "1") return (Date.now() - t0) / 1000; } catch {}
     await sleep(1000);
   }
   throw new Error("boot timeout");

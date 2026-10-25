@@ -8,13 +8,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { startApp } from "../sample/server/app.ts";
-import { down } from "../src/up.ts";
+import { claimEmulators, down } from "../src/up.ts";
 
 const { values: v } = parseArgs({ options: { "server-port": { type: "string", default: "5595" }, "base-port": { type: "string", default: "5580" } } });
 const root = join(import.meta.dirname, "..");
 const cli = join(root, "src", "cli.ts");
 const scenario = "scenarios/photo-upload.json";
 const runs = [];
+claimEmulators(); // the `run` children inherit this run's lock (src/up.ts)
 
 for (const seed of [1, 2, 3]) {
   for (const buggy of [true, false]) {

@@ -18,7 +18,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id [--es url URL] [--es file PATH]
+// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank [--es url URL] [--es file PATH]
 // upload extras: --ei size N (N zero-ish bytes instead of a file), --es key IDEMPOTENCY_KEY, --es client X_CLIENT_ID
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
@@ -44,6 +44,22 @@ class ProbeActivity : Activity() {
                 sendBroadcast(Intent("dev.crewdroid.probe.UPLOAD").setPackage(packageName).putExtra("ok", r.startsWith("ok")).putExtra("ms", ms))
                 runOnUiThread { finish() }
             }.start()
+            // T22 triage/perf targets. crash: posted so the trace is not wrapped in "Unable to start activity" (top frame = ProbeActivity).
+            "crash" -> { report("CRASH", "throwing"); window.decorView.post { throw IllegalStateException("crewdroid probe crash (check=crash)") } }
+            // anr: the first tap on the button blocks the main thread 10 s; further taps time out input dispatch (5 s) -> ANR.
+            "anr" -> setContentView(android.widget.Button(this).apply {
+                text = "Probe button"; contentDescription = "probe-button"
+                setOnClickListener { report("ANR", "blocking main thread 10 s"); Thread.sleep(10_000); report("ANR", "unblocked") }
+            })
+            // jank: every frame spends ~50 ms in onDraw (3 missed vsyncs at 60 Hz) and asks for the next one.
+            "jank" -> setContentView(object : android.view.View(this) {
+                override fun onDraw(c: android.graphics.Canvas) {
+                    val t = System.nanoTime()
+                    while (System.nanoTime() - t < 50_000_000L) { }
+                    c.drawColor(if ((t / 50_000_000L) % 2 == 0L) android.graphics.Color.RED else android.graphics.Color.BLUE)
+                    invalidate()
+                }
+            })
             else -> { report(check.uppercase(), "fail unknown check"); finish() }
         }
     }

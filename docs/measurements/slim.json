@@ -1,0 +1,91 @@
+{
+  "note": "crewdroid slim --json output of the run that re-prepared all 3 base AVDs (2026-10-24, T15 verify run 1). Pre-T15 baseline: baselineBeforeT15GiB (measured by hand with the same allocBytes before any change)",
+  "baselineBeforeT15GiB": {
+    "measured": "2026-10-24 01:12 local, allocBytes (GetCompressedFileSizeW), before any T15 change",
+    "images": {
+      "android-31": 4.165,
+      "android-34": 8.157,
+      "android-36": 1.923
+    },
+    "avds": {
+      "crew-android-31": 4.11,
+      "crew-android-34": 4.792,
+      "crew-android-36": 5.442
+    },
+    "emulatorTemp": 0.107,
+    "total": 28.696
+  },
+  "date": "2026-10-23T17:11:25.804Z",
+  "settings": {
+    "ramMB": 1536,
+    "dataPartition": "2G",
+    "fileBackedRam": false,
+    "zeroFreeRam": "MemFree-512MB",
+    "ntfsCompressed": true
+  },
+  "prepared": [
+    "android-31/google_atd",
+    "android-34/google_atd",
+    "android-36/google_atd"
+  ],
+  "steps": [
+    {
+      "step": "before",
+      "totalBytes": 6751706676
+    },
+    {
+      "step": "images sparse + compressed",
+      "totalBytes": 6751706676
+    },
+    {
+      "step": "base AVDs re-prepared + compressed",
+      "totalBytes": 7123217990
+    },
+    {
+      "step": "stale clone overlays deleted",
+      "totalBytes": 7123217990
+    }
+  ],
+  "before": {
+    "images": [
+      {
+        "image": "android-31/google_atd",
+        "imageBytes": 954242981,
+        "avdBytes": 1016572127
+      },
+      {
+        "image": "android-34/google_atd",
+        "imageBytes": 974184531,
+        "avdBytes": 1171237087
+      },
+      {
+        "image": "android-36/google_atd",
+        "imageBytes": 1185872860,
+        "avdBytes": 1449597034
+      }
+    ],
+    "tempBytes": 56,
+    "totalBytes": 6751706676
+  },
+  "after": {
+    "images": [
+      {
+        "image": "android-31/google_atd",
+        "imageBytes": 954242981,
+        "avdBytes": 1027049701
+      },
+      {
+        "image": "android-34/google_atd",
+        "imageBytes": 974184531,
+        "avdBytes": 1358059749
+      },
+      {
+        "image": "android-36/google_atd",
+        "imageBytes": 1185872860,
+        "avdBytes": 1623808112
+      }
+    ],
+    "tempBytes": 56,
+    "totalBytes": 7123217990
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "crewdroid",
+  "owner": { "name": "namyunsu" },
+  "metadata": { "description": "Multi-user Android field lab on Google's emulator." },
+  "plugins": [
+    {
+      "name": "crewdroid",
+      "source": "./",
+      "description": "Multi-user Android field lab on Google's emulator, driven by an AI agent."
+    }
+  ]
+}

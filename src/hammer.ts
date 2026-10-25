@@ -42,9 +42,10 @@ export async function hammer(o: HammerOptions) {
       if (rand() < retryRate) { stats.retries++; await wait(); await upload(); } // client retry, same key
       await wait();
       const id = `rec${Math.floor(rand() * records)}`;
+      const putKey = `${key}-put`; // same key on every retry of this PUT, so a lost response replays instead of conflicting
       for (let attempt = 0; attempt < 5; attempt++) {
-        const r = await req(`/records/${id}`, { method: "PUT", body: JSON.stringify({ version: known.get(id) ?? 0, value: `${clientId}-${i}`, clientId }) });
-        if (!r) break;
+        const r = await req(`/records/${id}`, { method: "PUT", headers: { "idempotency-key": putKey }, body: JSON.stringify({ version: known.get(id) ?? 0, value: `${clientId}-${i}`, clientId }) });
+        if (!r) { stats.retries++; continue; }
         const b = (await r.json().catch(() => ({}))) as { version?: number };
         if (r.status === 409 && typeof b.version === "number") { stats.conflicts++; known.set(id, b.version); continue; }
         if (r.ok && typeof b.version === "number") known.set(id, b.version);

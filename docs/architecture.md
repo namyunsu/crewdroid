@@ -7,6 +7,7 @@
 - `src/net.ts` 기기별 네트워크 상태(airplane/nodata/slow/flaky). `src/hammer.ts` 가상 사용자 N명 API 부하. `src/judge.ts` 규칙 판정.
 - `src/scenario.ts` 다자 시나리오 실행기: up -> 앱 설치 -> 기기별 반복(시드 지연) + 네트워크 스케줄 -> outbox 비움 대기 -> judge -> down.
 - `src/integrations/private-app.ts` private-app 스펙 실행·3대 화면 녹화(MVP).
+- `src/mcp.ts` `crewdroid mcp` stdio MCP 서버(공식 SDK `McpServer` + `StdioServerTransport`, `.mcp.json` 의 `crewdroid`). 도구 `devices`/`up`/`down`/`net`/`judge`/`hammer`/`run` 은 CLI 가 부르는 같은 함수를 감싼 얇은 래퍼(입력은 zod). 기능 모듈은 `export const mcpTools: Tool[]` 만 두면 `src/*.ts` 를 훑는 `serve()` 가 자동 등록(T20/T21/T22 의 env/app/triage/screen/perf/apk). 오류는 `isError: true` + CLI 와 같은 메시지, 긴 도구(`up`/`run`)는 `timeoutSec` 을 받고 진행 줄을 logging 알림으로 보낸다. stdout 은 프로토콜 전용이라 `console.log` 도 stderr 로 돌린다.
 - `sample/server` 샘플 서버(`BUGGY=1`), `probe-app/` 샘플 앱(outbox 오프라인 동기화).
 
 ## 데이터 흐름
@@ -14,3 +15,9 @@
 
 ## 배포
 없음. `ai/work` push 후 autopilot 이 `main` 병합.
+
+## 에이전트가 읽는 파일
+- `AGENTS.md` 영문 단일 원본(Codex·Cursor·Copilot·Gemini 등). `CLAUDE.md` 첫 줄 `@AGENTS.md` 로 Claude Code 도 같은 내용을 읽는다(CLAUDE.md 가 있으면 AGENTS.md 는 무시되므로).
+- `.agents/skills/<이름>/SKILL.md` 교차 호환 스킬 경로. 플러그인 `.claude-plugin/plugin.json` 의 `skills` 가 `./.agents/skills` 를 직접 가리켜 `skills/` 복사본은 없다.
+- `.claude-plugin/plugin.json`(mcpServers -> `${CLAUDE_PLUGIN_ROOT}/bin/crewdroid.mjs mcp`) + `marketplace.json`(source `./`): `claude plugin marketplace add namyunsu/crewdroid` -> `claude plugin install crewdroid@crewdroid`. `.mcp.json` 은 저장소 안 작업용.
+- 검사: `node scripts/check-agent-files.mjs`.
