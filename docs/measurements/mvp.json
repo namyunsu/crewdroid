@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-25T16:10:34.475Z",
+  "date": "2026-10-25T16:44:29.258Z",
   "runsWanted": 1,
   "profiles": [
     "s24ultra",
@@ -16,9 +16,9 @@
       "avd": "crew-android-34-google_atd",
       "diskBytes": 10229310331,
       "bootSeconds": 9.7,
-      "readySeconds": 44.8,
-      "ramMB": 1454,
-      "cpuPercent": 194.3
+      "readySeconds": 44.4,
+      "ramMB": 1478,
+      "cpuPercent": 184.7
     },
     {
       "serial": "emulator-5572",
@@ -28,10 +28,10 @@
       "size": "1812x2176@420",
       "avd": "crew-android-34-google_atd",
       "diskBytes": 0,
-      "bootSeconds": 6.5,
-      "readySeconds": 39.7,
-      "ramMB": 1418,
-      "cpuPercent": 183.5
+      "bootSeconds": 6.4,
+      "readySeconds": 40.4,
+      "ramMB": 1478,
+      "cpuPercent": 194.3
     },
     {
       "serial": "emulator-5574",
@@ -42,9 +42,9 @@
       "avd": "crew-android-36-google_atd",
       "diskBytes": 3728031329,
       "bootSeconds": 3.1,
-      "readySeconds": 39.1,
-      "ramMB": 1410,
-      "cpuPercent": 222.3
+      "readySeconds": 40.7,
+      "ramMB": 1418,
+      "cpuPercent": 223.1
     }
   ],
   "runs": [
@@ -52,27 +52,27 @@
       "run": 1,
       "ok": true,
       "exit": 0,
-      "wallSeconds": 101.8,
-      "testSeconds": 66,
+      "wallSeconds": 101,
+      "testSeconds": 72,
       "totalSeconds": 102,
-      "emuCpuPercent": 527.1,
-      "emuRamMB": 5183,
-      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (1.1m)\nAVD_DOWN_OK\n\n  1 passed (1.7m)\nE2E_MULTI_OK\n"
+      "emuCpuPercent": 552.9,
+      "emuRamMB": 5069,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (1.2m)\nAVD_DOWN_OK\n\n  1 passed (1.7m)\nE2E_MULTI_OK\n"
     }
   ],
   "videos": [
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-HVScP9\\emulator-5570.mp4",
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-HVScP9\\emulator-5572.mp4",
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-HVScP9\\emulator-5574.mp4"
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-IHDruH\\emulator-5570.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-IHDruH\\emulator-5572.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-IHDruH\\emulator-5574.mp4"
   ],
   "down": {
     "killed": [
-      30520,
-      29460,
-      30812,
-      20608,
-      19904,
-      4408
+      26160,
+      22720,
+      26816,
+      24476,
+      33532,
+      8188
     ],
     "ports": [
       5570,
@@ -84,7 +84,7 @@
     "path": "docs/demo/techs.gif",
     "height": 480,
     "fps": 8,
-    "bytes": 2319658,
+    "bytes": 2219249,
     "panels": [
       {
         "serial": "emulator-5570",

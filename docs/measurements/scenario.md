@@ -5,11 +5,11 @@
 
 | 서버 | seed | exit | outbox 비움 | 위반 (규칙) | 기기 / 네트워크 순서 | 기기별 SYNCED/RETRY/CONFLICT | 전체 s | 호스트 peak CPU / RAM |
 |---|---|---|---|---|---|---|---|---|
-| BUGGY=1 | 1 | 1 | true (0s) | 5 (noLostUpdate(id,baseVersion)) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 16/6/0 · 16/8/0 · 16/4/0 | 202 | 51% / 25512 MB |
-| clean | 1 | 0 | true (0s) | 0 (-) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 15/10/1 · 12/7/4 · 12/5/4 | 198 | 48% / 25284 MB |
-| BUGGY=1 | 2 | 1 | true (0s) | 6 (noLostUpdate(id,baseVersion)) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 16/1/0 · 16/6/0 · 16/3/0 | 215 | 52% / 24667 MB |
-| clean | 2 | 0 | true (0s) | 0 (-) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 12/5/4 · 14/11/2 · 14/5/2 | 202 | 52% / 24800 MB |
-| BUGGY=1 | 3 | 1 | true (0s) | 7 (noLostUpdate(id,baseVersion)) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 16/5/0 · 16/7/0 · 16/5/0 | 213 | 52% / 24677 MB |
-| clean | 3 | 0 | true (0s) | 0 (-) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 12/8/4 · 11/6/5 · 14/8/2 | 205 | 54% / 24924 MB |
+| BUGGY=1 | 1 | 1 | true (0s) | 5 (noLostUpdate(id,baseVersion)) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 16/8/0 · 16/8/0 · 16/4/0 | 197 | 49% / 24528 MB |
+| clean | 1 | 0 | true (0s) | 0 (-) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 14/3/2 · 11/11/5 · 13/4/3 | 210 | 55% / 24639 MB |
+| BUGGY=1 | 2 | 1 | true (0s) | 6 (count(acks), noLostUpdate(id,baseVersion)) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 16/5/0 · 16/13/0 · 16/6/0 | 209 | 50% / 24574 MB |
+| clean | 2 | 0 | true (0s) | 0 (-) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 15/3/1 · 12/6/4 · 13/5/3 | 206 | 49% / 24352 MB |
+| BUGGY=1 | 3 | 1 | true (0s) | 5 (noLostUpdate(id,baseVersion)) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 16/2/0 · 16/7/0 · 16/6/0 | 219 | 50% / 25008 MB |
+| clean | 3 | 0 | true (0s) | 0 (-) | s22/API31: airplane>nodata>slow>flaky<br>s24ultra/API34: nodata>slow>flaky>airplane<br>s26ultra/API36: slow>flaky>airplane>nodata | 14/7/2 · 12/8/4 · 13/6/3 | 213 | 50% / 25032 MB |
 
 결과: BUGGY 위반 발견 3/3 (기준 >= 2), 정상 통과 3/3 (기준 3). 측정일 2026-10-25.

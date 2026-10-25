@@ -9,18 +9,18 @@ private-app unchanged: its global-setup runs `avd-up.ps1`, which kills only `old
 |---|---|---|
 | Devices | old-avd-1..3, google_apis API 33, all 1080x2340 | s24ultra 1080x2340@450 API 34<br>fold5-main 1812x2176@420 API 34<br>flip7-main 1080x2520@480 API 36 |
 | Disk (AVD dirs + system images, each once) | 24.73 GiB | 13.00 GiB |
-| Boot (launch -> boot_completed) | 31.6 / 27.4 / 23.3 s (cold) | 9.7 / 6.5 / 3.1 s (snapshot); ready incl. identity + wm 44.8 / 39.7 / 39.1 s |
-| Host RAM (sum, after 60 s idle) | 8453 MB | 4282 MB |
-| Host CPU (sum, 60 s idle, 100 % = 1 core) | 1000 % | 600 % |
+| Boot (launch -> boot_completed) | 31.6 / 27.4 / 23.3 s (cold) | 9.7 / 6.4 / 3.1 s (snapshot); ready incl. identity + wm 44.4 / 40.4 / 40.7 s |
+| Host RAM (sum, after 60 s idle) | 8453 MB | 4374 MB |
+| Host CPU (sum, 60 s idle, 100 % = 1 core) | 1000 % | 602 % |
 
 ## Spec `npm run e2e:multi -- --grep @techs`
 
 | | Old path | crewdroid |
 |---|---|---|
 | Pass count | 2/2 (records: `private-app/.ai-log/evidence/T29-1.txt`, `private-app/.ai-log/evidence/T29-verify.txt`) | 1/1 in a row |
-| Test time (Playwright) | 96 / 40.8 s | 66 s (avg 66) |
-| Spec wall time (Playwright total incl. global-setup: APK build + install + server; old path also boots the 3 AVDs there) | 198 / 108 s | 102 s (npm run end to end: 101.8 s) |
-| Emulator CPU during the spec (sum, avg) | not measured | 527.1 % |
+| Test time (Playwright) | 96 / 40.8 s | 72 s (avg 72) |
+| Spec wall time (Playwright total incl. global-setup: APK build + install + server; old path also boots the 3 AVDs there) | 198 / 108 s | 102 s (npm run end to end: 101 s) |
+| Emulator CPU during the spec (sum, avg) | not measured | 552.9 % |
 
 Old path not re-run: `avd-up.ps1` line 74 boots old-avd-1..3 without `-read-only`, and crewdroid must only launch them read-only. Old device numbers come from T01 (same emulator flags plus `-read-only`, fresh boots).
-Demo: `docs/demo/techs.gif` (2.2 MB, 480 px high, 8 fps) — run 1, the 3 devices side by side (screenrecord with timestamp overlay).
+Demo: `docs/demo/techs.gif` (2.1 MB, 480 px high, 8 fps) — run 1, the 3 devices side by side (screenrecord with timestamp overlay).
