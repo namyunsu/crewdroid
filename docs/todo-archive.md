@@ -196,3 +196,12 @@ Finished Todos, moved here by autopilot.
   verify: `node scripts/check-surface.mjs`
 
 T28: API 31 SurfaceView investigation — 65f9e86
+
+- [x] T18 [KO] 임의 화면 규격 + 모니터보다 큰 화면 (FR-14)
+  area: src/up.ts, src/profiles.ts, profiles/galaxy.json (schema only), profiles/custom.example.json, src/cli.ts, scripts/check-size.mjs, docs/measurements/size.md, README.md (usage lines)
+  model: sonnet
+  review: required
+  accept: `crewdroid up` takes ad-hoc screens next to named profiles: `--screen 1920x720@160` (WxH@density, density optional -> derived for ~360dp width) and repeatable/comma list, e.g. `--screen 1080x2340@450,3840x2160@320 --count 2`; a user profile file (`--profiles-file my.json`, same schema as galaxy.json, `profiles/custom.example.json` shows an HMI entry) also works. Invalid input (0, negative, non-number, missing x) -> clear error, exit 1, nothing launched. Measure and document in `docs/measurements/size.md` the largest size that boots and renders on API 34/36 ATD (try 3840x2160, 5120x1440, 7680x2160) with boot time and host RAM per size; sizes over the host monitor work headless and in `--window` mode (scaled window, full-resolution screenshot).
+  verify: `node scripts/check-size.mjs` (up 2 devices with `--screen 1920x720@160,3840x2160@320`; `wm size`/`wm density` match; screencap PNG dimensions equal the requested sizes and are not uniform; bad `--screen 0x100` exits 1; down)
+
+T18: custom screen sizes — a497f0d
