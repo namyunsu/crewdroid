@@ -12,7 +12,7 @@ export const parseGfx = (t: string) => ({ frames: num(t, /Total frames rendered:
 // `dumpsys meminfo <pkg>` App Summary, KB
 export const parseMem = (t: string) => ({ pssTotalKB: num(t, /TOTAL PSS:\s+(\d+)/) ?? num(t, /^\s*TOTAL\s+(\d+)/m), javaHeapKB: num(t, /Java Heap:\s+(\d+)/), nativeHeapKB: num(t, /Native Heap:\s+(\d+)/) });
 
-// Cold start (-S kills the app first), then frames and memory after `holdSec` of running. `extras` go to am start as-is
+// Cold start (force-stop, 2 s, start: `am start -S` leaves API 31 black, ADR 0005), then frames and memory after `holdSec` of running. `extras` go to am start as-is
 // (e.g. ["--es", "check", "jank"]). AI NOTE: ATD renders without GPU acceleration -> frame times are for relative comparison only.
 export async function perf(serial: string, pkg: string, activity?: string, extras: string[] = [], holdSec = 3) {
   assertSerial(serial);
@@ -21,7 +21,9 @@ export async function perf(serial: string, pkg: string, activity?: string, extra
   for (const x of [...(activity ? [activity] : []), ...extras]) if (!/^[A-Za-z0-9._$/:=-]+$/.test(x)) throw new Error(`bad --activity/extra '${x}' (allowed: A-Z a-z 0-9 . _ $ / : = -)`);
   let comp = activity ? `${pkg}/${activity}` : (await sh(serial, `cmd package resolve-activity --brief -c android.intent.category.LAUNCHER ${pkg}`)).split(/\r?\n/).at(-1)!.trim();
   if (!comp.includes("/")) throw new Error(`no launcher activity for ${pkg} on ${serial} (installed?): ${comp}`);
-  const startOut = await adb(serial, ["shell", "am", "start", "-S", "-W", "-n", comp, ...extras], 120000);
+  await sh(serial, `am force-stop ${pkg}`);
+  await new Promise((r) => setTimeout(r, 2000));
+  const startOut = await adb(serial, ["shell", "am", "start", "-W", "-n", comp, ...extras], 120000);
   const start = parseStart(startOut);
   if (start.status !== "ok" || !start.totalTime) throw new Error(`am start ${comp} failed: ${startOut.slice(0, 300)}`);
   await new Promise((r) => setTimeout(r, holdSec * 1000));
@@ -31,7 +33,7 @@ export async function perf(serial: string, pkg: string, activity?: string, extra
 }
 
 export const mcpTools: Tool[] = [{
-  name: "perf", description: "Cold start time (am start -S -W), frames/jank %/p50-p99 (gfxinfo) and PSS java/native (meminfo) of one app. ATD has no GPU: compare frame numbers relatively.",
+  name: "perf", description: "Cold start time (force-stop, 2 s, am start -W), frames/jank %/p50-p99 (gfxinfo) and PSS java/native (meminfo) of one app. ATD has no GPU: compare frame numbers relatively.",
   input: {
     serial: z.string().describe("emulator-<port>"), pkg: z.string(), activity: z.string().optional().describe("e.g. .MainActivity; default = launcher activity"),
     extras: z.array(z.string()).default([]).describe('am start extras, e.g. ["--es","check","jank"]'),
