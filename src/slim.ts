@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { closeSync, existsSync, ftruncateSync, openSync, readFileSync, readSync, readdirSync, renameSync, rmSync, statSync, utimesSync, writeFileSync, writeSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DATA_PARTITION, RAM_MB, avdHome, avdName } from "./avd.ts";
+import { DATA_PARTITION, KNOBS, avdHome, avdName } from "./avd.ts";
 import { atdImages } from "./profiles.ts";
 import { sdkRoot } from "./sdk.ts";
 import { SNAPSHOT, prepare } from "./snapshot.ts";
@@ -72,7 +72,8 @@ export async function slimImage(dir: string) {
 }
 
 export const MARK = "crewdroid-slim.json";
-export const slimSettings = () => ({ ramMB: RAM_MB, dataPartition: DATA_PARTITION, fileBackedRam: false, zeroFreeRam: "MemFree-512MB", ntfsCompressed: true });
+// coldBoot only changes how clones start, not the snapshot
+export const slimSettings = () => ({ ...KNOBS, coldBoot: undefined, dataPartition: DATA_PARTITION, zeroFreeRam: "MemFree-512MB", ntfsCompressed: true });
 
 // Base AVD after prepare() saved its snapshot (emulator stopped): compress every file (snapshot RAM, userdata qcow2, ...).
 // Clones only read these files. The marker records the settings the snapshot was made with.
@@ -109,7 +110,7 @@ export async function diskUse() {
 }
 
 // `crewdroid slim`: (1) system images sparse + NTFS-compressed (content hash kept); (2) base AVDs whose snapshot is not slim
-// are re-prepared by prepare() (old snapshots deleted, cold boot on wiped data, hw.ramSize RAM_MB, no file-backed RAM,
+// are re-prepared by prepare() (old snapshots deleted, cold boot on wiped data, hw.ramSize ramMB(), no file-backed RAM,
 // files compressed); (3) leftover clone overlays in the emulator temp dir deleted. Idempotent; allocation after each step.
 export async function slim(basePort = 5580) {
   claimEmulators();

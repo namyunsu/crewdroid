@@ -4,7 +4,7 @@ import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
-import { RAM_MB, avdHome, avdName, createAvd, imageInstalled, installImage } from "./avd.ts";
+import { KNOBS, avdHome, avdName, createAvd, imageInstalled, installImage, ramMB } from "./avd.ts";
 import { launchEmulator } from "./emulator.ts";
 import { waitBoot } from "./measure.ts";
 import { sdkRoot } from "./sdk.ts";
@@ -18,7 +18,9 @@ export const SNAPSHOT = "default_boot"; // quickboot snapshot name; -read-only i
 
 // AI NOTE: no -no-snapshot here (avd.ts launchArgs has it): snapshots must stay enabled to save/load default_boot.
 export function start(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false) {
-  const args = ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", "host", "-camera-back", "emulated", "-cores", "2", "-memory", String(RAM_MB), "-feature", "-QuickbootFileBacked", ...(readOnly ? ["-read-only"] : ["-no-snapshot-save"]), ...extra];
+  const args = ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", KNOBS.gpu, "-camera-back", "emulated", "-cores", "2", "-memory", String(ramMB(name)),
+    "-feature", `${KNOBS.fileBacked ? "" : "-"}QuickbootFileBacked,${KNOBS.vulkan ? "" : "-"}Vulkan`, ...(KNOBS.lowRam ? ["-lowram"] : []),
+    ...(readOnly ? ["-read-only", ...(KNOBS.coldBoot ? ["-no-snapshot-load"] : [])] : ["-no-snapshot-save"]), ...extra];
   return launchEmulator(args, join(tmpdir(), `crewdroid-${name}-${port}.log`), window);
 }
 
@@ -30,7 +32,7 @@ export async function killAll(name: string, serials: string[]) {
 
 // Boots the base AVD once (writable), installs the probe app, saves a clean snapshot, shuts down, then slims it (T15):
 // image sparse + compressed first, old snapshots dropped, AVD files compressed after the save.
-export async function prepare(image: string, port = 5580) {
+export async function prepare(image: string, port = 5580, tries = 3): Promise<{ avd: string; snapshot: string; bootSeconds: number }> {
   if (!imageInstalled(image)) await installImage(image);
   await slimImage(join(sdkRoot(), "system-images", ...image.split("/"), "x86_64"));
   const name = await createAvd(image);
@@ -49,6 +51,11 @@ export async function prepare(image: string, port = 5580) {
     await sleep(10000); // let boot-time jobs settle so the snapshot is clean
     await adb(serial, ["install", "-r", probeApk()], 120000);
     await adb(serial, ["shell", "pm", "grant", PKG, "android.permission.CAMERA"]);
+    // AI NOTE: API 36 with 768 MB guest RAM wrote no settings_ssaid.xml during prepare, which makeDistinct edits (T16);
+    // the probe's ANDROID_ID read makes SettingsProvider create it.
+    await adb(serial, ["shell", "am", "start", "-W", "-n", `${PKG}/.ProbeActivity`, "--es", "check", "id"], 60000);
+    await sleep(5000);
+    await adb(serial, ["shell", "am", "force-stop", PKG]);
     // AI NOTE: on an API 31 clone restored from a non-root snapshot, `adb root` leaves the device offline for good;
     // saving the snapshot with adbd already root makes the clone's `adb root` a no-op.
     await adb(serial, ["root"], 20000);
@@ -62,5 +69,22 @@ export async function prepare(image: string, port = 5580) {
     await killAll(name, [serial]);
   }
   await slimAvd(dir);
+  // AI NOTE: some saved snapshots (T16: 3 of ~12 prepares, API 34 and 36, any RAM size) restore with adbd stuck: every clone
+  // stays `adb offline` and `adb reconnect` does not help; preparing again fixes it. Cause [모름], so test one clone and retry.
+  if (!(await cloneBoots(name, port))) {
+    rmSync(join(dir, MARK), { force: true });
+    if (tries <= 1) throw new Error(`${name}: clones of the saved snapshot stay adb offline`);
+    console.error(`${name}: clone of the new snapshot stayed offline; preparing again`);
+    return prepare(image, port, tries - 1);
+  }
   return { avd: name, snapshot: SNAPSHOT, bootSeconds };
+}
+
+async function cloneBoots(name: string, port: number) {
+  const serial = `emulator-${port}`;
+  try {
+    await start(name, port, true, ["-no-boot-anim"]);
+    await waitBoot(serial, Date.now(), 90000);
+    return true;
+  } catch { return false; } finally { await killAll(name, [serial]); }
 }

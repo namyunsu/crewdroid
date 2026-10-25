@@ -9,7 +9,8 @@ import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
 import { emulatorPath } from "./sdk.ts";
 import { assign, atdImages, loadProfiles } from "./profiles.ts";
-import { SNAPSHOT, prepare, sleep, start } from "./snapshot.ts";
+import { prepare, sleep, start } from "./snapshot.ts";
+import { avdSlim } from "./slim.ts";
 
 const run = promisify(execFile);
 
@@ -42,10 +43,11 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   for (const p of ports) {
     if (await adb(`emulator-${p}`, ["get-state"], 5000, false).then(() => true, () => false)) throw new Error(`emulator-${p} already running (crewdroid down?)`);
   }
-  // Each image needs a base AVD with a saved quickboot snapshot; prepare() makes it once (boots writable on basePort).
+  // Each image needs a base AVD with a quickboot snapshot saved with the current knobs (avd.ts KNOBS); prepare() makes it
+  // (boots writable on basePort) on first use and after a knob change.
   for (const image of new Set(slots.map((s) => s.image))) {
-    if (!existsSync(join(avdHome(), `${avdName(image)}.avd`, "snapshots", SNAPSHOT))) {
-      console.error(`preparing ${image} (first use)`);
+    if (!avdSlim(join(avdHome(), `${avdName(image)}.avd`))) {
+      console.error(`preparing ${image} (first use or changed settings)`);
       await prepare(image, basePort);
     }
   }
