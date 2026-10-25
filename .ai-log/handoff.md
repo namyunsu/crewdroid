@@ -1,9 +1,9 @@
-# Handoff (2026-10-24, shift 7)
-이번 shift: 일 못 함. 옛 shift(claude -p, PID 28620, 10-23 22:14 시작)와 그 T15 작업자가 아직 살아서 src/snapshot.ts 를 고치고 에뮬(포트 5580)을 돌림. 새 작업자를 같이 돌리면 AVD 가 깨져 중단. 누구도 죽이지 않음.
-다음: 옛 shift 가 끝나거나 사람이 PID 28620 을 정리한 뒤 T15 재개 (T15 → T16 → T17 → T18 → T19).
-T15 이어받기 메모:
-- 이미지 sparse 완료(.sha256 있음): 31 4107→1267MiB, 34 8203→1235, 36 1811→1469.
-- hw.ramSize=1536 은 API 34 에서 2560 으로 자동 상향됨 → RAM 으로 스냅샷 줄이기 안 통함 [확인함 qemu 로그].
-- default_boot 에 ram.img+ram.bin 중복, 3개 합 ~11GB. ANDROID_SNAPSHOT_COMPRESS 지원 확인. 목표: ram.bin ≤ 0.6GB/개.
-- %TEMP%\AndroidEmulator 에 죽은 클론 TMP*.qcow2 23개(~180MB).
-- 증거: .ai-log/evidence/T15-2.txt. 포트 5599 점유 → --server-port 5595.
+# Handoff (2026-10-24, shift 6)
+완료: T13(GIF 3대 라이브, s22→s24ultra), T14(렌더 수정), T15(디스크 6.99 GiB ≤ 8, 부팅 6.73s).
+다음: T16(RAM) → T17(옛 AVD 삭제, T16 승인 후) → T18 → T19. 에뮬 Todo 는 배치당 1개.
+알아둘 것:
+- 에뮬 쓰는 명령은 잠금(%TEMP%\crewdroid-emulators.lock) 으로 보호. 긴 체인은 `export CREWDROID_OWNER=$(cat /proc/$$/winpid)` 먼저(CLAUDE.md Gotchas).
+- autopilot 셸이 같은 checkout 에서 여러 개 동시에 돌았음(PID 28620, 12512). 한 개만 에뮬 사용.
+- API 31 ATD 는 private-app 통화 화면(SurfaceView)을 못 그림 [원인 모름]. 데모는 API 34/34/36. 결정 필요.
+- adb `error: closed` 재시도가 비멱등 명령에 안전한지 [모름]. flip7 패널 live 103/204 경계.
+- 포트 5599 점유 → 검증은 --server-port 5595.

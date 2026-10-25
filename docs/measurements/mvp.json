@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-23T16:02:09.080Z",
-  "runsWanted": 3,
+  "date": "2026-10-24T00:35:00.643Z",
+  "runsWanted": 1,
   "profiles": [
     "s24ultra",
     "fold5-main",
@@ -14,11 +14,11 @@
       "api": 34,
       "size": "1080x2340@450",
       "avd": "crew-android-34-google_atd",
-      "diskBytes": 13967908509,
+      "diskBytes": 10229310289,
       "bootSeconds": 9.6,
-      "readySeconds": 36.2,
-      "ramMB": 3277,
-      "cpuPercent": 43.4
+      "readySeconds": 45.7,
+      "ramMB": 1503,
+      "cpuPercent": 196.5
     },
     {
       "serial": "emulator-5572",
@@ -29,9 +29,9 @@
       "avd": "crew-android-34-google_atd",
       "diskBytes": 0,
       "bootSeconds": 6.4,
-      "readySeconds": 32.6,
-      "ramMB": 3289,
-      "cpuPercent": 31.4
+      "readySeconds": 42.1,
+      "ramMB": 1474,
+      "cpuPercent": 187.8
     },
     {
       "serial": "emulator-5574",
@@ -40,11 +40,11 @@
       "api": 36,
       "size": "1080x2520@480",
       "avd": "crew-android-36-google_atd",
-      "diskBytes": 7971770260,
-      "bootSeconds": 6.3,
-      "readySeconds": 33.7,
-      "ramMB": 3343,
-      "cpuPercent": 72.9
+      "diskBytes": 3728031287,
+      "bootSeconds": 3.1,
+      "readySeconds": 39.9,
+      "ramMB": 1447,
+      "cpuPercent": 223
     }
   ],
   "runs": [
@@ -52,49 +52,27 @@
       "run": 1,
       "ok": true,
       "exit": 0,
-      "wallSeconds": 72.6,
-      "testSeconds": 51.3,
-      "totalSeconds": 72,
-      "emuCpuPercent": 415.1,
-      "emuRamMB": 11232,
-      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (51.3s)\nAVD_DOWN_OK\n\n  1 passed (1.2m)\nE2E_MULTI_OK\n"
-    },
-    {
-      "run": 2,
-      "ok": true,
-      "exit": 0,
-      "wallSeconds": 57.3,
-      "testSeconds": 35.2,
-      "totalSeconds": 56.6,
-      "emuCpuPercent": 243.4,
-      "emuRamMB": 10801,
-      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (35.2s)\nAVD_DOWN_OK\n\n  1 passed (56.6s)\nE2E_MULTI_OK\n"
-    },
-    {
-      "run": 3,
-      "ok": true,
-      "exit": 0,
-      "wallSeconds": 57.7,
-      "testSeconds": 35.3,
-      "totalSeconds": 57,
-      "emuCpuPercent": 255.6,
-      "emuRamMB": 8881,
-      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (35.3s)\nAVD_DOWN_OK\n\n  1 passed (57.0s)\nE2E_MULTI_OK\n"
+      "wallSeconds": 103.4,
+      "testSeconds": 72,
+      "totalSeconds": 102,
+      "emuCpuPercent": 590.4,
+      "emuRamMB": 5390,
+      "tail": "Success\n���� ��: emulator-5570, emulator-5572, emulator-5574  (����: avd-up.ps1 -Down)\n\nRunning 1 test using 1 worker\n\n\n  ok 1 tests\\e2e\\multi\\techs.multi.ts:19:5 › 관리자 없이 기사끼리 — 1:1은 영상, 3명이면 음성·채팅만, 다시 둘이면 영상 @multi @techs (1.2m)\nAVD_DOWN_OK\n\n  1 passed (1.7m)\nE2E_MULTI_OK\n"
     }
   ],
   "videos": [
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-8dCIgK\\emulator-5570.mp4",
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-8dCIgK\\emulator-5572.mp4",
-    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-8dCIgK\\emulator-5574.mp4"
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-6BRtYM\\emulator-5570.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-6BRtYM\\emulator-5572.mp4",
+    "C:\\Users\\NYS\\AppData\\Local\\Temp\\crewmvp-6BRtYM\\emulator-5574.mp4"
   ],
   "down": {
     "killed": [
-      30992,
-      31088,
-      33108,
-      33476,
-      33744,
-      32796
+      27656,
+      32672,
+      20980,
+      4344,
+      22964,
+      24012
     ],
     "ports": [
       5570,
@@ -106,7 +84,7 @@
     "path": "docs/demo/techs.gif",
     "height": 480,
     "fps": 8,
-    "bytes": 2171712,
+    "bytes": 2313622,
     "panels": [
       {
         "serial": "emulator-5570",

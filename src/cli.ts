@@ -6,8 +6,9 @@ import { prepare } from "./snapshot.ts";
 import { identity } from "./identity.ts";
 import { hammer } from "./hammer.ts";
 import { flakyLoop, setNet, type NetState } from "./net.ts";
-import { down, measureUp, up } from "./up.ts";
+import { claimEmulators, down, measureUp, up } from "./up.ts";
 import { runScenario } from "./scenario.ts";
+import { slim } from "./slim.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -49,6 +50,7 @@ async function main() {
   if (cmd === "prepare" || cmd === "identity") {
     if (!values.image) throw new Error("--image android-34/google_atd required");
     const port = Number(values["base-port"]);
+    claimEmulators();
     const r = cmd === "prepare" ? await prepare(values.image, port) : await identity(values.image, Number(values.count), port, !values["no-distinct"]);
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
@@ -58,6 +60,13 @@ async function main() {
   if (cmd === "up") {
     const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window);
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density}`).join("\n"));
+    return;
+  }
+  if (cmd === "slim") {
+    const r = await slim(Number(values["base-port"]));
+    const text = JSON.stringify(r, null, 2);
+    if (values.out) writeFileSync(values.out, text + "\n");
+    console.log(values.json ? text : r.steps.map((s) => `${(s.totalBytes / 2 ** 30).toFixed(2)} GiB  ${s.step}`).join("\n"));
     return;
   }
   if (cmd === "down") {
@@ -100,7 +109,7 @@ async function main() {
     if (!r.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, measure, judge, prepare, identity, hammer, net, run)`);
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, slim, measure, judge, prepare, identity, hammer, net, run)`);
 }
 
 main().catch((e) => {

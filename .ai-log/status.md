@@ -12,8 +12,22 @@ T11 DONE
 T12 DONE
 T13 DONE
 T14 DONE
-T15 TODO
+T15 DONE
 T16 TODO
 T17 TODO
 T18 TODO
 T19 TODO
+T20 TODO
+T21 TODO
+T22 TODO
+T23 TODO
+T24 TODO
+T25 TODO
+T26 TODO
+T27 TODO
+T28 TODO
+T29 TODO
+- shift 180: 여전히 다른 세션의 check-scenario(PID 30832)+crew 에뮬레이터 3대(5580~5584) 점유, 보류.
+- 2026-10-24 04:07 shift 182: 점유 지속, 보류
+- 2026-10-24 04:08 shift 183: 점유 지속(mvp-private-app PID 32404), 보류
+- 2026-10-24 04:09 shift 185: 점유 지속, 보류
