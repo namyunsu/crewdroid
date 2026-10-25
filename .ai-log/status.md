@@ -33,3 +33,6 @@ T28 DONE
 T29 BLOCKED:샘플 앱 화면이 정지라 데모 녹화가 안 움직임(probe-app 영역 밖 수정 필요)
 T30 DONE
 T31 DONE
+T32 TODO
+T33 TODO
+T34 TODO

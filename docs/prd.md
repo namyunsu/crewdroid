@@ -107,3 +107,4 @@ UI 없음(CLI). 샘플 앱은 시험용 최소 화면이라 디자인 단계 생
 | 2026-10-24 | 사용자 "가로세로규격을 내가 임의로 넣을수도있어야해", HMI 큰 화면, 폴드·플립 접는 모션 | FR-14 임의 규격·큰 화면, FR-15 접기/펴기 추가 |
 | 2026-10-26 | docs/source/requirements-2026-10-25.md + 조사 2건 + /brief 문답 | FR-16~FR-25 추가 (기기 환경·앱 제어·진단·MCP 서버·에이전트 파일·스킬·공개 준비·데모 GIF·멱등키·API 31). 결정: 웨이브는 AI 노출·공개 준비 먼저, 멱등키는 정상 모드만 존중, API 31 은 원인 조사, LICENSE MIT, 공개 전환은 사람 |
 | 2026-10-26 | autopilot /brief auto, reviewer 승인 2건 | T30 AGENTS.md 명령 표(fold/unfold/app) 보완(FR-20), T31 perf 의 `am start -S` 제거(FR-18/FR-25). 요구사항 변경 없음 |
+| 2026-10-26 | autopilot /brief auto, reviewer 승인 3건 | T32 샘플 앱 실시간 상태 화면 + 데모 GIF(FR-23, T29 해소), T33 느린 망 2MB 업로드 미완료 원인(ADR 0006 열린 질문), T34 features.md 행 중복 정리. 요구사항 변경 없음 |

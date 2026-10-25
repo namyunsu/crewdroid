@@ -48,3 +48,29 @@ Rules for this wave (on top of the 2026-10-23 rules above):
   verify: `node scripts/demo-gif.mjs && node scripts/check-demo-gif.mjs --mvp docs/measurements/demo.json --gif docs/demo/demo.gif --max-mb 3 --max-seconds 20`
 
 Wave 2026-10-26 autopilot /brief auto (plan 2). Reviewer APPROVE 2/2 (`.ai-log/reviews/plan-2026-10-26.md`). Different files: may share a batch; T31 boots emulators.
+
+Wave 2026-10-26 autopilot /brief auto (plan 3). Reviewer APPROVE 3/3 (`.ai-log/reviews/plan-2026-10-26-3.md`). T32 and T33 boot emulators and build the probe APK: T32 first, T33 in a later batch. T34 may share a batch with either.
+
+- [ ] T32 [AUTO] Sample app shows live outbox state + public demo GIF (FR-23, unblocks T29)
+  origin: auto-plan (T29 BLOCKED reason; FR-23)
+  area: probe-app/app/src/main/kotlin/dev/crewdroid/probe/ProbeActivity.kt (default screen only), scripts/demo-gif.mjs, scripts/check-demo-gif.mjs, src/scenario.ts (only what stash@{0} needed), docs/demo/demo.gif, docs/measurements/demo.json
+  model: sonnet
+  review: required
+  accept: Same accept as T29 above, plus: the default screen (ProbeActivity.kt:77) refreshes once a second with outbox pending / synced / conflict counts and the last sync result, so recorded panels change while the scenario runs. No new user-facing feature, no change to broadcasts, logcat lines (`CrewProbe ...`), `check` intents or the anr/jank/surface screens. Start from `git stash show -p stash@{0}` (T29-1 attempt); drop the stash when done. When done set T29 to `DONE (via T32)` in `.ai-log/status.md` and mark it `[x]` in this file.
+  verify: `node scripts/demo-gif.mjs && node scripts/check-demo-gif.mjs --mvp docs/measurements/demo.json --gif docs/demo/demo.gif --max-mb 3 --max-seconds 20 && node scripts/check-offline.mjs && npm test`
+
+- [ ] T33 [AUTO] `net slow` lets a 2 MB upload finish (ADR 0006 open question, FR-05/FR-09)
+  origin: auto-plan (docs/adr/0006-fold.md:32 [모름])
+  area: src/net.ts (shape() only), probe-app/app/src/main/kotlin/dev/crewdroid/probe/Sample.kt (http() only), scripts/check-slow-upload.mjs, docs/adr/0006-fold.md
+  model: sonnet
+  review: required
+  accept: Runs after T32. `node scripts/check-slow-upload.mjs` boots 1 device (`crewdroid up --count 1`), starts the clean sample server on a free port, sets `net slow`, sends a 2 MB upload through the probe app, and passes only if `CrewProbe SYNCED` appears within 120 s and the server has exactly 1 row for the key; repeats 3 times; prints measured seconds; always downs. Also runs the fold path once (fold mid-upload, stay on slow, as in ADR 0006). If every run passes before any code change, do not edit shape()/http(): write "not reproduced without/with fold" with the measured times in ADR 0006 instead. Otherwise find the cause first with evidence (tbf burst/latency drops, the 10 s watchdog, readTimeout 20 s), then fix it in shape() or http(); the slow profile stays "very slow" (1024 kbit, 300 ms) — do not raise those numbers. No launch flag / AVD config / KNOBS change. Replace the open-question line in ADR 0006 with the cause and the measured times. If shape() changed, `check-scenario.mjs` must pass too (add it to the run); if only http() changed, say why scenarios are unaffected.
+  verify: `node scripts/check-slow-upload.mjs && node scripts/check-net.mjs && node scripts/check-offline.mjs`
+
+- [ ] T34 [AUTO] features.md keeps one row per Todo (FR-16 deliverable table)
+  origin: auto-plan (REPORT.md: features.md auto row label "T22" repeated)
+  area: scripts/check-triage.mjs, scripts/check-env.mjs, docs/measurements/features.md
+  model: haiku
+  review: skip
+  accept: check-triage.mjs and check-env.mjs replace their own row on rerun the way check-app.mjs:162-165 does (filter the label, then write) instead of appendFileSync; update their header comments (line 3) and say() texts ("row appended") to match. features.md keeps only the latest T22 row (2026-10-25, 3610 -> 2452) plus the T20 and T21 rows; header unchanged.
+  verify: `node -e "const t=require('fs').readFileSync('docs/measurements/features.md','utf8').split(/\r?\n/).filter(l=>/^\| \d{4}-/.test(l)).map(l=>l.split('|')[2].trim().split(' ')[0]);const d=t.filter((x,i)=>t.indexOf(x)!==i);if(d.length)throw new Error('duplicate rows: '+d);console.log('one row per Todo')" && node -e "const fs=require('fs');for(const f of ['scripts/check-triage.mjs','scripts/check-env.mjs']){const s=fs.readFileSync(f,'utf8');if(/appendFileSync\(f/.test(s))throw new Error(f+' still appends')}console.log('rows replaced')"`

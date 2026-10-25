@@ -24,3 +24,9 @@
 - 샘플 서버 PUT 멱등성 수정: 응답 유실 재시도가 가짜 충돌로 보임
 - 영문 README·공개 준비 점검(`check-public`)
 - 느린 망 2MB 업로드 120초 미동기화 원인 조사(재현 조건 필요)
+## 결정 필요
+- T17 옛 AVD 3대 + android-33 이미지 삭제: 자동 권한 분류기가 삭제 명령을 거부함 — 직접 지우거나 삭제 허용 필요.
+- `.agents/skills/android-perf/SKILL.md:60` 의 `am start -S -W`: 스킬 수정은 승인 필요(API 31 에서 화면이 검게 됨, T31 과 같은 원인).
+- mvp-private-app 가 `-lowram` 에서 3번 중 1번 채팅 15초 초과(friction 한 줄뿐, 재현 근거 없음) — 조사 Todo 를 만들지.
+## 자동 계획 (2026-10-26, 3회차)
+reviewer 승인 3건: T32 샘플 앱 실시간 상태 + 데모 GIF(T29 해소), T33 느린 망 2MB 업로드, T34 features.md 행 중복.
