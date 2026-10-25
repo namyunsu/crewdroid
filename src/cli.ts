@@ -20,12 +20,15 @@ const { positionals, values } = parseArgs({
     image: { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
-    "server-port": { type: "string", default: "5599" },
+    "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
   },
 });
 
+const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, mcp";
+
 async function main() {
   const [cmd] = positionals;
+  if (values.help || cmd === "help") return console.log(`usage: crewdroid <command> [options]\ncommands: ${COMMANDS}\nexample: crewdroid up --count 3`);
   if (cmd === "measure") {
     if (!values.avd && !values.up) throw new Error("--avd a,b,c or --up N required");
     const r = values.up
@@ -110,7 +113,7 @@ async function main() {
     return;
   }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, slim, measure, judge, prepare, identity, hammer, net, run, mcp)`);
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: ${COMMANDS})`);
 }
 
 main().catch((e) => {

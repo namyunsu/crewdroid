@@ -1,11 +1,10 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-const FALLBACK = "C:/Users/NYS/scoop/apps/android-clt/current";
-
 export function sdkRoot(): string {
-  const root = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME || FALLBACK;
-  if (!existsSync(root)) throw new Error(`Android SDK not found: ${root}`);
+  const root = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME;
+  if (!root) throw new Error("Android SDK not found: set ANDROID_SDK_ROOT or ANDROID_HOME to your SDK directory");
+  if (!existsSync(root)) throw new Error(`Android SDK not found: ${root} (from ANDROID_SDK_ROOT / ANDROID_HOME)`);
   return root;
 }
 
