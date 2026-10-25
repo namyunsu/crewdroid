@@ -40,6 +40,7 @@ Every command takes `--json` and exits non-zero on failure.
 | `crewdroid slim` / `prepare` / `identity` | shrink disk, build base AVDs, make devices distinct |
 | `crewdroid measure --up N` | measure disk, RAM, boot, idle CPU |
 | `crewdroid triage` / `screen` / `perf` / `apk` | Android diagnostics, see below |
+| `crewdroid env <serial> <what> [args]` | device environment: location, battery, rotation, dark, font, locale, mobile network, SMS, calls (see Environment) |
 | `crewdroid mcp` | stdio MCP server exposing the above to an agent |
 
 ## Diagnostics
@@ -54,6 +55,25 @@ Read-only commands (nothing stays running on the device). Each takes `--json`; t
 | `crewdroid apk <file.apk>` | host only (`aapt2` from the newest `build-tools`): package, version, min/target SDK, permissions, exported activities, deep-link filters. |
 
 The probe app has targets for these: `adb -s emulator-5580 shell am start -n dev.crewdroid.probe/.ProbeActivity --es check crash|anr|jank` (`anr`: tap the button, then tap again within 10 s). `node scripts/check-triage.mjs` runs all four on one API 34 device.
+
+## Environment
+
+`crewdroid env <serial> <what> [args] [--json]`. Every setter reads the state back and exits 1 with a message when it differs; bad values (`battery 150`, `rotate 9`, a serial that is not `emulator-<port>`) exit 1 before any adb call. Also an MCP tool (`env`).
+
+| What | Meaning |
+|---|---|
+| `geo <lon> <lat> [alt]` | GPS fix (longitude first) and location switched on. Android only receives a fix while an app requests location, so the read-back shows the last fix Android saw (`androidLastFix`, `delivered`), not an error |
+| `battery <0-100> [ac|unplugged]` | level, and charger on or off |
+| `rotate <0-3>` | auto-rotate off, fixed rotation |
+| `sensor acceleration x:y:z` | accelerometer value |
+| `dark on|off` / `font <scale>` | night mode / font scale (0.5 to 3) |
+| `locale <pkg> <tags>` | per-app locale, e.g. `locale dev.crewdroid.probe ko-KR,en`; API 33+ only (no shell command for the device-wide locale) |
+| `gsm data home|roaming|searching|denied|off|on` | mobile network registration |
+| `gsm signal <0-31> [--hold <sec>]` | signal strength; the console keeps it 15 s, `--hold` re-sends every 10 s. No read-back exists (console ack only) |
+| `sms <from> <text>` / `call <number> [accept|cancel]` | incoming SMS (read back from the guest's SMS handler) / incoming call, answer, hang up (read back from the telephony registry) |
+| `show` | every state above, read back from the device |
+
+On the API 36 image launching an app writes `user_rotation=1` again whatever the lock says (measured, cause unknown); `rotate` and `show` report the lock itself (settings and WindowManager). Negative numbers work (`env emulator-5580 geo -122.084 37.422`). ATD has no Messages or Dialer app: SMS and calls change telephony state and broadcasts only. The probe app logs what it sees: `am start -n dev.crewdroid.probe/.ProbeActivity --es check env` -> `CrewProbe ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none` (`loc` needs the location permission: `pm grant`). `node scripts/check-env.mjs` runs all of it on 2 devices.
 
 ## Use it from an AI agent
 

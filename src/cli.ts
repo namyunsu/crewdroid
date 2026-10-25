@@ -14,8 +14,12 @@ import { screen } from "./screen.ts";
 import { perf } from "./perf.ts";
 import { apk } from "./apk.ts";
 import { fold } from "./fold.ts";
+import { envSet } from "./env.ts";
 
+// AI NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
+const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
 const { positionals, values } = parseArgs({
+  args: envArgs ? ["env"] : undefined,
   allowPositionals: true,
   options: {
     avd: { type: "string" }, "base-port": { type: "string", default: "5580" },
@@ -30,7 +34,7 @@ const { positionals, values } = parseArgs({
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, mcp";
+const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, mcp";
 
 async function main() {
   const [cmd] = positionals;
@@ -158,12 +162,21 @@ async function main() {
     console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} ${r.profile} ${r.state}: ${r.from} -> ${r.to}@${r.density}`);
     return;
   }
+  if (cmd === "env") {
+    const a = envArgs!.filter((x) => x !== "--json"), hi = a.indexOf("--hold");
+    const hold = hi >= 0 ? Number(a.splice(hi, 2)[1]) : undefined;
+    const [serial, what, ...rest] = a;
+    if (!serial || !what) throw new Error("usage: env <serial> geo|battery|rotate|sensor|dark|font|locale|gsm|sms|call|show [args] [--hold <sec>]");
+    const r = await envSet(serial, what, rest, { hold });
+    console.log(values.json || envArgs!.includes("--json") ? JSON.stringify(r, null, 2) : `${serial} ${Object.entries(r).filter(([k]) => k !== "serial").map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`).join(" ")}`);
+    return;
+  }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes
   throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: ${COMMANDS})`);
 }
 
 main().catch((e) => {
   const msg = e instanceof Error ? e.message : String(e);
-  console.error(values.json ? JSON.stringify({ ok: false, error: msg }) : `error: ${msg}`);
+  console.error(values.json || envArgs?.includes("--json") ? JSON.stringify({ ok: false, error: msg }) : `error: ${msg}`);
   process.exit(1);
 });
