@@ -49,3 +49,6 @@
 2026-10-24 | 같은 checkout 에서 autopilot 셸 2개 동시 실행 → down() 이 에뮬 죽여 verify 실패 | env broken (tool limit) [처리됨 2026-10-26: autopilot.ps1 단일 실행 가드 + BUSY 대기, 프로젝트 잠금 %TEMP%\crewdroid-emulators.lock]
 2026-10-24 | T13 가 T14(렌더) 선행 필요한데 todo 순서 반대 | Todo unclear
 2026-10-24 | 같은 checkout 에서 autopilot 셸이 동시에 돌아 T15 verify 를 두 번 실행 | env broken [처리됨 2026-10-26: autopilot.ps1 단일 실행 가드 + BUSY 대기, 프로젝트 잠금 %TEMP%\crewdroid-emulators.lock]
+2026-10-26 | mvp-private-app 가 -lowram 설정에서 3번 중 1번 채팅 15초 초과로 실패(불안정) | env flaky / RAM 노브 부작용 의심
+2026-10-26 | 워크트리가 옛 main 에서 시작해 ai/work 로 옮겨야 했음, 절대경로 private-app 가정 | tool limit
+2026-10-26 | 워커가 .ai-log/evidence 를 격리 때문에 공유 경로에 못 씀 | tool limit
