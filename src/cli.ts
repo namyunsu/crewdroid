@@ -109,7 +109,8 @@ async function main() {
     if (!r.ok) process.exitCode = 1;
     return;
   }
-  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, slim, measure, judge, prepare, identity, hammer, net, run)`);
+  if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes
+  throw new Error(`unknown command: ${cmd ?? "(none)"}  (available: up, down, slim, measure, judge, prepare, identity, hammer, net, run, mcp)`);
 }
 
 main().catch((e) => {

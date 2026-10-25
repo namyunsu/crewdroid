@@ -8,6 +8,10 @@
     "maestro": {
       "command": "maestro",
       "args": ["mcp", "--no-viewer"]
+    },
+    "crewdroid": {
+      "command": "npx",
+      "args": ["tsx", "src/cli.ts", "mcp"]
     }
   }
 }
