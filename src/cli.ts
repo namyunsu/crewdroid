@@ -21,7 +21,7 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
-    image: { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
+    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
@@ -66,7 +66,7 @@ async function main() {
     return;
   }
   if (cmd === "up") {
-    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window);
+    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window, { screens: values.screen?.flatMap((x) => x.split(",")), profilesFile: values["profiles-file"] });
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density}`).join("\n"));
     return;
   }

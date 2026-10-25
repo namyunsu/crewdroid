@@ -8,7 +8,7 @@ import { avdHome, avdName } from "./avd.ts";
 import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
 import { emulatorPath } from "./sdk.ts";
-import { assign, atdImages, loadProfiles, relaunchBlackApis } from "./profiles.ts";
+import { assign, atdImages, loadProfiles, loadProfilesFile, parseScreen, relaunchBlackApis } from "./profiles.ts";
 import { prepare, sleep, start } from "./snapshot.ts";
 import { avdSlim } from "./slim.ts";
 
@@ -34,10 +34,20 @@ export function claimEmulators() {
   process.env.CREWDROID_OWNER = me;
 }
 
-export async function up(count: number, basePort = 5580, names?: string[], window = false) {
+// AI NOTE: Android's wm size only accepts up to 2x the display's physical size per side (base AVD: 1080x2340), so
+// 3840x2160 came out as 2160x2160 (T18). Only a profile past that limit gets `-skin` (half its size, rounded up; the saved snapshot no longer matches, so cold boot) so the
+// physical display is big enough; every other profile keeps the unchanged launch args.
+const skinFor = (p: { width: number; height: number }) =>
+  p.width > 2 * 1080 || p.height > 2 * 2340 ? ["-skin", `${Math.ceil(p.width / 2)}x${Math.ceil(p.height / 2)}`, "-no-snapshot-load"] : [];
+
+export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string } = {}) {
+  // Validate every input before taking the lock or launching anything.
+  const screens = (custom.screens ?? []).map(parseScreen);
+  const all = [...loadProfiles(), ...(custom.profilesFile ? loadProfilesFile(custom.profilesFile) : [])];
+  const named = names ? names.map((n) => all.find((p) => p.name === n) ?? (() => { throw new Error(`unknown profile '${n}' (have: ${all.map((p) => p.name).join(",")})`); })()) : undefined;
+  // --screen alone -> only those screens; with --profiles -> named profiles then screens; --profiles-file alone -> its profiles.
+  const profiles = [...(named ?? (screens.length ? [] : custom.profilesFile ? loadProfilesFile(custom.profilesFile) : all)), ...screens];
   claimEmulators();
-  const all = loadProfiles();
-  const profiles = names ? names.map((n) => all.find((p) => p.name === n) ?? (() => { throw new Error(`unknown profile '${n}' (have: ${all.map((p) => p.name).join(",")})`); })()) : all;
   const slots = assign(count, profiles, atdImages());
   const ports = slots.map((_, i) => basePort + 2 * i);
   for (const p of ports) {
@@ -55,7 +65,7 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   try {
     const t0s: number[] = [];
     for (const [i, s] of slots.entries()) {
-      await start(avdName(s.image), ports[i], true, ["-no-boot-anim"], window);
+      await start(avdName(s.image), ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window);
       t0s.push(Date.now());
       await sleep(3000);
     }

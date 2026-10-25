@@ -1,0 +1,6 @@
+{
+  "profiles": [
+    { "name": "hmi-4k", "model": "HMI 3840x2160", "width": 3840, "height": 2160, "density": 320, "minApi": 34 },
+    { "name": "hmi-wide", "model": "HMI 1920x720", "width": 1920, "height": 720, "density": 160, "minApi": 34 }
+  ]
+}

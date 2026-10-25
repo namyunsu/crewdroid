@@ -31,7 +31,7 @@ Every command takes `--json` and exits non-zero on failure.
 
 | Command | What it does |
 |---|---|
-| `crewdroid up --count N [--profiles a,b]` | boot N emulators with Galaxy profiles |
+| `crewdroid up --count N [--profiles a,b] [--screen WxH[@dpi],...] [--profiles-file f.json]` | boot N emulators with Galaxy profiles or your own screens (any size, e.g. `--screen 3840x2160@320`) |
 | `crewdroid down` | kill every `crew-*` emulator |
 | `crewdroid net <serial> airplane\|nodata\|slow\|flaky\|online` | set one device's network state |
 | `crewdroid run <scenario.json> [--seed N]` | run a multi-device scenario, then judge the server data |
@@ -87,6 +87,8 @@ A profile is a screen (width x height, density) applied with `wm size` / `wm den
 ```
 
 Then `crewdroid up --count 1 --profiles s25`. `minApi` picks which Android image the device lands on.
+
+Any size without editing that file: `crewdroid up --count 2 --screen 1920x720@160,3840x2160@320` (density optional, derived for a ~360dp short side), or `--profiles-file my.json` (same schema; see `profiles/custom.example.json`). Sizes beyond the host monitor work; see `docs/measurements/size.md` for the largest tested.
 
 ## Safety rules
 
