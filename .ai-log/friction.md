@@ -57,3 +57,4 @@
 2026-10-26 | T22 가 lightness 행을 1대로 재서 반려 (todo accept 와 wave rule 충돌) | Todo unclear
 2026-10-26 | T25 accept 의 validate --strict 통과 조건이 CLAUDE.md-at-root 경고 때문에 불가능 | Todo unclear
 2026-10-26 | T29 verify 실패: 샘플 앱 정지 화면 때문에 live 패널 0, 10분 낭비 | Todo unclear (area 에 probe-app 없음)
+2026-10-26 | API31 SurfaceView 가설이 틀려 todo 문구(surfaceView:false)와 실측이 어긋남 | Todo unclear
