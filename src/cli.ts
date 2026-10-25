@@ -9,6 +9,10 @@ import { flakyLoop, setNet, type NetState } from "./net.ts";
 import { claimEmulators, down, measureUp, up } from "./up.ts";
 import { runScenario } from "./scenario.ts";
 import { slim } from "./slim.ts";
+import { triage } from "./triage.ts";
+import { screen } from "./screen.ts";
+import { perf } from "./perf.ts";
+import { apk } from "./apk.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -21,10 +25,11 @@ const { positionals, values } = parseArgs({
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
+    app: { type: "string" }, heap: { type: "string" }, png: { type: "string" }, activity: { type: "string" },
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, mcp";
+const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, mcp";
 
 async function main() {
   const [cmd] = positionals;
@@ -110,6 +115,39 @@ async function main() {
       console.log(`${r.ok ? "OK" : "FAIL"}: drained=${r.drained} (${r.drainSeconds}s) violations=${r.judge.violations.length} wall=${r.wallSeconds}s peak cpu=${r.host.peakCpuPercent}% ram=${r.host.peakRamMB}MB seed=${r.seed}`);
     }
     if (!r.ok) process.exitCode = 1;
+    return;
+  }
+  if (cmd === "triage") {
+    const [, serial] = positionals;
+    if (!serial) throw new Error("usage: triage <serial> [--app <pkg>] [--heap <out.hprof>]");
+    const r = await triage(serial, values.app, values.heap);
+    if (values.json) console.log(JSON.stringify(r, null, 2));
+    else {
+      for (const c of r.crashes) console.log(`CRASH ${c.time} ${c.pkg} ${c.exception}\n  at ${c.topFrame}`);
+      for (const a of r.anrs) console.log(`ANR ${a.time} ${a.pkg} pid=${a.pid} ${a.reason.slice(0, 120)}`);
+      console.log(r.summary);
+    }
+    return;
+  }
+  if (cmd === "screen") {
+    const [, serial] = positionals;
+    if (!serial) throw new Error("usage: screen <serial> [--png <file>]");
+    const r = await screen(serial, values.png);
+    console.log(values.json ? JSON.stringify(r, null, 2) : [`focus: ${r.focus}`, ...r.nodes.map((n) => `${"  ".repeat(n.depth)}${n.cls.split(".").at(-1)} ${JSON.stringify(n.text || n.desc || n.id)} [${n.bounds}]${n.clickable ? " clickable" : ""}`)].join("\n"));
+    return;
+  }
+  if (cmd === "perf") {
+    const [, serial, pkg, ...extras] = positionals; // extras after `--` go to am start, e.g. `-- --es check jank`
+    if (!serial || !pkg) throw new Error("usage: perf <serial> <pkg> [--activity .Main] [-- <am start extras>]");
+    const r = await perf(serial, pkg, values.activity, extras);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.component} ${r.start.launchState} TotalTime=${r.start.totalTime}ms | frames=${r.frames.frames} jank=${r.frames.jankPercent}% p50/p90/p99=${r.frames.p50Ms}/${r.frames.p90Ms}/${r.frames.p99Ms}ms | PSS=${r.memory.pssTotalKB}KB java=${r.memory.javaHeapKB} native=${r.memory.nativeHeapKB}`);
+    return;
+  }
+  if (cmd === "apk") {
+    const [, file] = positionals;
+    if (!file) throw new Error("usage: apk <file.apk>");
+    const r = await apk(file);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.package} ${r.versionName} (${r.versionCode}) minSdk=${r.minSdk} targetSdk=${r.targetSdk}\npermissions: ${r.permissions.join(", ")}\nexported: ${r.exportedActivities.join(", ")}\ndeep links: ${r.deepLinks.map((d) => `${d.schemes.join("|")}://${d.hosts.join("|")}${d.paths.join("|")}`).join(", ") || "none"}`);
     return;
   }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes

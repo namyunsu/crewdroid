@@ -39,7 +39,21 @@ Every command takes `--json` and exits non-zero on failure.
 | `crewdroid hammer --url <base>` | server-side concurrency load without devices |
 | `crewdroid slim` / `prepare` / `identity` | shrink disk, build base AVDs, make devices distinct |
 | `crewdroid measure --up N` | measure disk, RAM, boot, idle CPU |
+| `crewdroid triage` / `screen` / `perf` / `apk` | Android diagnostics, see below |
 | `crewdroid mcp` | stdio MCP server exposing the above to an agent |
+
+## Diagnostics
+
+Read-only commands (nothing stays running on the device). Each takes `--json`; the same four are MCP tools.
+
+| Command | Output |
+|---|---|
+| `crewdroid triage <serial> [--app <pkg>] [--heap out.hprof]` | `crashes` (logcat crash buffer: pkg, exception, top frame in the app, time), `anrs` (ActivityManager log + `dumpsys activity exit-info`), `anrTraces` (`/data/anr` headers, or `"unreadable"` without root), `exits` (exit reasons), `recentLog` (the app's last 200 lines), `summary`. `--heap` runs `am dumpheap` and pulls the hprof. |
+| `crewdroid screen <serial> [--png file]` | focused window (`dumpsys window`) and a compact `uiautomator` tree `[{cls, text, desc, id, bounds, clickable, depth}]`. Compose `testTag` shows as `id` only under `testTagsAsResourceId = true`. |
+| `crewdroid perf <serial> <pkg> [--activity .Main] [-- <am start extras>]` | cold start `am start -S -W` (TotalTime ms), frames / jank % / p50-p90-p99 from `dumpsys gfxinfo`, PSS total / Java / native KB from `dumpsys meminfo`. ATD images have no GPU: compare frame numbers between runs, not with a phone. |
+| `crewdroid apk <file.apk>` | host only (`aapt2` from the newest `build-tools`): package, version, min/target SDK, permissions, exported activities, deep-link filters. |
+
+The probe app has targets for these: `adb -s emulator-5580 shell am start -n dev.crewdroid.probe/.ProbeActivity --es check crash|anr|jank` (`anr`: tap the button, then tap again within 10 s). `node scripts/check-triage.mjs` runs all four on one API 34 device.
 
 ## Use it from an AI agent
 
