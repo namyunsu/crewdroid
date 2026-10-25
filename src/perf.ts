@@ -17,6 +17,8 @@ export const parseMem = (t: string) => ({ pssTotalKB: num(t, /TOTAL PSS:\s+(\d+)
 export async function perf(serial: string, pkg: string, activity?: string, extras: string[] = [], holdSec = 3) {
   assertSerial(serial);
   if (!/^[\w.]+$/.test(pkg)) throw new Error(`bad package name '${pkg}'`);
+  // adb shell joins these into one device shell line: no metacharacters (; | & > ` spaces ...)
+  for (const x of [...(activity ? [activity] : []), ...extras]) if (!/^[A-Za-z0-9._$/:=-]+$/.test(x)) throw new Error(`bad --activity/extra '${x}' (allowed: A-Z a-z 0-9 . _ $ / : = -)`);
   let comp = activity ? `${pkg}/${activity}` : (await sh(serial, `cmd package resolve-activity --brief -c android.intent.category.LAUNCHER ${pkg}`)).split(/\r?\n/).at(-1)!.trim();
   if (!comp.includes("/")) throw new Error(`no launcher activity for ${pkg} on ${serial} (installed?): ${comp}`);
   const startOut = await adb(serial, ["shell", "am", "start", "-S", "-W", "-n", comp, ...extras], 120000);

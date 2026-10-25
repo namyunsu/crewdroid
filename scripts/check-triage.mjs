@@ -1,6 +1,6 @@
 // T22 verify: node scripts/check-triage.mjs [--base-port 5580] [--idle-seconds 30] [--out file]
-// Boots 1 API 34 device, drives the probe app's check=crash|anr|jank, and checks triage / screen / perf / apk through the CLI.
-// Appends the idle RAM/CPU before/after row to docs/measurements/features.md. Always downs its emulator.
+// Boots 3 mixed devices; on the API 34 one drives the probe app's check=crash|anr|jank and checks triage / screen / perf / apk
+// through the CLI. Appends the 3-device idle RAM/CPU before/after row to docs/measurements/features.md. Always downs its emulators.
 import { execFile } from "node:child_process";
 import { appendFileSync, existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -22,28 +22,32 @@ const claim = (ok, text) => { say(`${ok ? "PASS" : "FAIL"} ${text}`); if (!ok) e
 // one CLI call -> { code, json }
 const crew = (cmd, ...args) => new Promise((ok) => execFile(process.execPath, ["--import", "tsx", cli, cmd, "--json", ...args], { cwd: root, windowsHide: true, maxBuffer: 64 << 20 }, (e, out, err) => {
   let json = null;
-  try { json = JSON.parse(out || err); } catch {}
+  // non-JSON output (crash, usage text) leaves json = null on purpose: every claim reading json then FAILs and prints `err`
+  try { json = JSON.parse(out || err); } catch { json = null; }
   ok({ code: e ? e.code ?? 1 : 0, json, err: String(err).trim().slice(0, 300) });
 }));
 const probe = (serial, check) => adb(serial, ["shell", "am", "start", "-n", `${PKG}/.ProbeActivity`, "--es", "check", check]);
 
-async function idle(port, sec) {
-  const re = `-port ${port}([ "]|$)`;
-  const a = await procs(re), t0 = Date.now();
+// summed over all devices: emulator+qemu working set, CPU % of one host core over the window
+async function idle(ports, sec) {
+  const re = (p) => `-port ${p}([ "]|$)`;
+  const a = await Promise.all(ports.map((p) => procs(re(p)))), t0 = Date.now();
   await sleep(sec * 1000);
-  const b = await procs(re);
-  return { ramMB: Math.round(b.ws / 1048576), cpuPercent: Math.round(((b.cpu - a.cpu) / ((Date.now() - t0) / 1000)) * 1000) / 10 };
+  const b = await Promise.all(ports.map((p) => procs(re(p))));
+  const wall = (Date.now() - t0) / 1000, sum = (xs, k) => xs.reduce((n, x) => n + x[k], 0);
+  return { ramMB: Math.round(sum(b, "ws") / 1048576), cpuPercent: Math.round(((sum(b, "cpu") - sum(a, "cpu")) / wall) * 1000) / 10 };
 }
 
 try {
   await down();
-  const r = await up(1, Number(v["base-port"]), ["s24ultra"]);
+  // 3 mixed devices for the lightness row (todo wave rule); the functional checks run on the API 34 one
+  const r = await up(3, Number(v["base-port"]), ["s24ultra", "s22", "flip7-main"]);
+  const ports = r.devices.map((x) => x.port), mix = r.devices.map((x) => `${x.profile}@${x.api}`).join(", ");
   const d = r.devices[0], s = d.serial;
-  claim(d.api === 34, `${s} ${d.profile} API ${d.api}`);
-  await adb(s, ["install", "-r", probeApk()], 120000); // snapshot may hold an older probe build
-  await adb(s, ["shell", "am", "force-stop", PKG]);
+  claim(d.api === 34, `${s} ${d.profile} API ${d.api} (idle set: ${mix})`);
+  for (const x of r.devices) { await adb(x.serial, ["install", "-r", probeApk()], 120000); await adb(x.serial, ["shell", "am", "force-stop", PKG]); } // snapshot may hold an older probe build
   await sleep(60000); // CPU is still high right after boot (first run: 196 % vs 9 % later)
-  const before = await idle(d.port, Number(v["idle-seconds"]));
+  const before = await idle(ports, Number(v["idle-seconds"]));
   say(`idle before: ram=${before.ramMB}MB cpu=${before.cpuPercent}%`);
 
   // crash
@@ -85,13 +89,16 @@ try {
   const m = await crew("apk", "missing.apk");
   claim(m.code === 1 && /not found/.test(m.json?.error ?? ""), `apk missing.apk: exit ${m.code} ${m.json?.error}`);
 
+  const bad = await crew("perf", s, PKG, "--activity", ".ProbeActivity;reboot");
+  claim(bad.code === 1 && /bad --activity/.test(bad.json?.error ?? ""), `perf --activity with ';' rejected: exit ${bad.code} ${bad.json?.error}`);
+
   await sleep(10000);
-  const after = await idle(d.port, Number(v["idle-seconds"]));
+  const after = await idle(ports, Number(v["idle-seconds"]));
   say(`idle after: ram=${after.ramMB}MB cpu=${after.cpuPercent}%`);
   const f = join(root, "docs", "measurements", "features.md");
   if (!existsSync(f)) writeFileSync(f, "# Runtime features: idle cost\n\nOne row per Todo that adds a runtime command (docs/todo.md lightness rule: no launch flag / AVD config / KNOBS change; idle RAM over +5 % -> opt-in). RAM = emulator+qemu working set, CPU = % of one host core over the idle window, probe app stopped.\n\n| date | Todo | devices | idle s | RAM before -> after (MB) | RAM delta | CPU before -> after (%) | note |\n|---|---|---|---|---|---|---|---|\n");
   const dRam = Math.round(((after.ramMB - before.ramMB) / before.ramMB) * 1000) / 10;
-  appendFileSync(f, `| ${new Date().toISOString().slice(0, 10)} | T22 triage/screen/perf/apk | 1 (${d.profile} API ${d.api}; T22 accept boots 1) | ${v["idle-seconds"]} | ${before.ramMB} -> ${after.ramMB} | ${dRam >= 0 ? "+" : ""}${dRam} % | ${before.cpuPercent} -> ${after.cpuPercent} | no daemon; after = after crash/anr/jank/heap runs |\n`);
+  appendFileSync(f, `| ${new Date().toISOString().slice(0, 10)} | T22 triage/screen/perf/apk | 3 (${mix}) | ${v["idle-seconds"]} | ${before.ramMB} -> ${after.ramMB} | ${dRam >= 0 ? "+" : ""}${dRam} % | ${before.cpuPercent} -> ${after.cpuPercent} | no daemon; after = after crash/anr/jank/heap runs |\n`);
   say(`idle RAM delta ${dRam >= 0 ? "+" : ""}${dRam} % (row appended to docs/measurements/features.md)`);
 } catch (e) {
   claim(false, `error: ${e.stack ?? e}`);
