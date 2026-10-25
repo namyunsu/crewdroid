@@ -36,12 +36,7 @@ Rules for this wave (on top of the 2026-10-23 rules above):
 - Probe/sample app changes (Kotlin) are built with the Gradle wrapper the way T02/T09 did; the debug APK path stays `probe-app/app/build/outputs/apk/debug/app-debug.apk`.
 - Another process holding the emulators (lock `%TEMP%\crewdroid-emulators.lock` owner alive and not yours) -> write `.ai-log/BUSY` and hand off (autopilot-step §1), never kill it.
 
-- [ ] T21 [KO] `crewdroid app` 앱 제어: 권한·딥링크/App Links·데이터 초기화·백업/복원·자원 압박 (FR-17)
-  area: src/app.ts, src/cli.ts, probe-app/ (deep-link intent filters `crewdroid://probe/*` and `https://probe.crewdroid.example/*` with autoVerify; logs `CrewProbe LINK <uri>`), scripts/check-app.mjs, test/app.test.ts, docs/measurements/features.md, README.md (app section)
-  model: sonnet
-  review: required
-  accept: `crewdroid app <serial> <pkg> <what> [args] [--json]` from `research-emulator-features.md` §f-i: `perm grant|revoke|show <permission…>` (`pm grant/revoke`; `show` parses `dumpsys package` runtime permissions into `{name, granted}`), `open <uri> [--pkg]` (`am start -a VIEW -c BROWSABLE -d`; "No Activity found" -> exit 1 with that message — ATD has no Chrome), `links show|force <domain>|reset` (`pm get-app-links` / `set-app-links --package <pkg> 2 <domain>` / `set-app-links --package <pkg> 0 all`, API 31+), `clear` (`pm clear`), `backup|restore` (`bmgr` local transport; if `LocalTransport` is absent on ATD exit 1 with that reason and record it in `features.md`), `pressure doze|standby <bucket>|trim <level>|bg-restrict|battery-saver|reset` (`dumpsys deviceidle force-idle`, `am set-standby-bucket`, `am send-trim-memory`, `appops set RUN_ANY_IN_BACKGROUND ignore`, `settings put global low_power 1`; `reset` undoes all), `fill-storage <GB>|free` (`fallocate` in `/data/local/tmp`, read back with `df /data`). Each setter reads back; bad permission name / unknown bucket exit 1 before adb. `scripts/check-app.mjs`: 2 mixed devices; grant -> show granted=true -> revoke -> false; `open crewdroid://probe/x` -> LINK line; `links force probe.crewdroid.example` then `open https://probe.crewdroid.example/y` -> LINK line and `links show` says approved; `clear` empties the outbox dir; doze -> `dumpsys deviceidle` shows IDLE; standby rare -> `am get-standby-bucket` 40; `fill-storage 2` -> `df` drops >= 2 GB then `free` restores; features.md row; down. `src/app.ts` exports `mcpTools`.
-  verify: `npm test && node scripts/check-app.mjs`
+
 
 
 

@@ -78,7 +78,7 @@ const links = async (s: string, pkg: string) => parseLinks(await sh(s, `pm get-a
 const deep = async (s: string) => (await sh(s, "dumpsys deviceidle get deep")).trim();
 const bucket = async (s: string, pkg: string) => {
   const v = (await sh(s, `am get-standby-bucket ${pkg}`)).trim();
-  return /^\d+$/.test(v) ? Number(v) : (BUCKETS[v.toLowerCase()] ?? NaN);
+  return /^\d+$/.test(v) ? Number(v) : (Object.hasOwn(BUCKETS, v.toLowerCase()) ? BUCKETS[v.toLowerCase()] : NaN);
 };
 const bgOp = async (s: string, pkg: string) => (await sh(s, `appops get ${pkg} RUN_ANY_IN_BACKGROUND`)).match(/RUN_ANY_IN_BACKGROUND: (\w+)/)?.[1] ?? "?";
 const lowPower = async (s: string) => (await sh(s, "settings get global low_power")).trim();
