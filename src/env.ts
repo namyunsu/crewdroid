@@ -40,6 +40,7 @@ async function settle<T>(read: () => Promise<T>, ok: (v: T) => boolean, ms = 500
 const battery = async (s: string) => { const d = await sh(s, "dumpsys battery"); return { level: Number(d.match(/level: (\d+)/)?.[1]), ac: /AC powered: true/.test(d) }; };
 // wm = WindowManager's own copy of the lock (dumpsys window), which can differ from the settings (see rotate)
 const rotation = async (s: string) => ({
+  fixed: (await sh(s, "wm fixed-to-user-rotation")).trim().split(/s+/).at(-1),
   auto: (await sh(s, "settings get system accelerometer_rotation")).trim(), user: (await sh(s, "settings get system user_rotation")).trim(),
   wm: (await sh(s, "dumpsys window displays | grep mUserRotationMode")).match(/mUserRotationMode=USER_ROTATION_LOCKED mUserRotation=ROTATION_(\d+)/)?.[1] ?? "free",
 });
@@ -96,13 +97,14 @@ export async function envSet(serial: string, what: string, args: string[], opt: 
     }
     case "rotate": {
       const n = num(args[0], "rotation", 0, 3, true);
-      await sh(serial, "settings put system accelerometer_rotation 0");
-      await sh(serial, `settings put system user_rotation ${n}`);
-      // AI NOTE: on API 36 WindowManager kept its old user rotation after the setting changed while no window was up (a later launch rotated back and
-      // rewrote the setting), so the lock is also set through WindowManager itself.
+      // AI NOTE: root cause of "user_rotation rewritten to the old value at the next app launch" (API 36, T20-2): WindowManager's
+      // DisplayRotationReversionController restores the previous rotation (RotationLockHistory: "revertOverride") when an app that ran at the old
+      // rotation has finished. `wm fixed-to-user-rotation enabled` makes the display always follow the user rotation, so nothing is reverted
+      // (measured: 3 of 3 lock changes held across launches, 0 of 4 without it). Setting user_rotation by `settings put` is not enough.
+      await sh(serial, "wm fixed-to-user-rotation enabled");
       await sh(serial, `wm user-rotation lock ${n}`);
-      const r = await settle(() => rotation(serial), (v) => v.auto === "0" && v.user === String(n) && v.wm === String(n * 90));
-      must(r.auto === "0" && r.user === String(n) && r.wm === String(n * 90), `${serial}: rotation reads accelerometer_rotation=${r.auto} user_rotation=${r.user} windowmanager=${r.wm}, wanted 0 / ${n} / ${n * 90}`);
+      const r = await settle(() => rotation(serial), (v) => v.fixed === "enabled" && v.auto === "0" && v.user === String(n) && v.wm === String(n * 90));
+      must(r.fixed === "enabled" && r.auto === "0" && r.user === String(n) && r.wm === String(n * 90), `${serial}: rotation reads accelerometer_rotation=${r.auto} user_rotation=${r.user} windowmanager=${r.wm}, wanted 0 / ${n} / ${n * 90}`);
       return { serial, what, userRotation: n, accelerometerRotation: 0 };
     }
     case "sensor": {

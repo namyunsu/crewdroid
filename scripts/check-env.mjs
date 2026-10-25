@@ -105,10 +105,7 @@ try {
     await crew(s, "dark", "off"); await crew(s, "font", "1.0"); await crew(s, "battery", "88", "ac");
     await ok(["rotate", "0"], (j) => j.userRotation === 0); // read back from settings and WindowManager inside the setter
     const q = await probeEnv(s);
-    // AI NOTE: on API 36 (flip7-main) launching any activity writes user_rotation=1 even with the lock at 0 (measured T20: settings read 0 before
-    // `am start`, 1 right after, `WindowManager: rotation changed to 1 ... userRotation=1`; cause [모름]). So there the rotation is only
-    // asserted through the CLI read-back inside `rotate 0`, not through the app.
-    claim(!!q && q.dark === false && q.font === 1 && q.battery === 88 && (d.api >= 36 || q.rot === 0), `${tag} probe ENV after reset ${JSON.stringify(q)}${d.api >= 36 ? " (rot not asserted on API 36, see AI NOTE)" : ""}`);
+    claim(!!q && q.dark === false && q.font === 1 && q.rot === 0 && q.battery === 88, `${tag} probe ENV after reset ${JSON.stringify(q)}`);
 
     // a new fix (negative longitude) reaches the app too
     const g = await crew(s, "geo", "-122.084", "37.422");

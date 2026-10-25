@@ -62,7 +62,7 @@ The probe app has targets for these: `adb -s emulator-5580 shell am start -n dev
 
 | What | Meaning |
 |---|---|
-| `geo <lon> <lat> [alt]` | GPS fix (longitude first) and location switched on. Android only receives a fix while an app requests location, so the read-back shows the last fix Android saw (`androidLastFix`, `delivered`), not an error |
+| `geo <lon> <lat> [alt]` | GPS fix (longitude first) and location switched on. Android only receives a fix while an app requests location, so the setter cannot fail on a mismatch: it only checks that location is on and reports the last fix Android saw (`androidLastFix`, `delivered`). The fix is confirmed only by the probe's `ENV loc=` line (`check=env`) |
 | `battery <0-100> [ac|unplugged]` | level, and charger on or off |
 | `rotate <0-3>` | auto-rotate off, fixed rotation |
 | `sensor acceleration x:y:z` | accelerometer value |
@@ -73,7 +73,7 @@ The probe app has targets for these: `adb -s emulator-5580 shell am start -n dev
 | `sms <from> <text>` / `call <number> [accept|cancel]` | incoming SMS (read back from the guest's SMS handler) / incoming call, answer, hang up (read back from the telephony registry) |
 | `show` | every state above, read back from the device |
 
-On the API 36 image launching an app writes `user_rotation=1` again whatever the lock says (measured, cause unknown); `rotate` and `show` report the lock itself (settings and WindowManager). Negative numbers work (`env emulator-5580 geo -122.084 37.422`). ATD has no Messages or Dialer app: SMS and calls change telephony state and broadcasts only. The probe app logs what it sees: `am start -n dev.crewdroid.probe/.ProbeActivity --es check env` -> `CrewProbe ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none` (`loc` needs the location permission: `pm grant`). `node scripts/check-env.mjs` runs all of it on 2 devices.
+`rotate` also runs `wm fixed-to-user-rotation enabled`: without it, on the API 36 image WindowManager restored the previous rotation (`revertOverride`) at the next app launch. `rotate` and `show` read the lock back from settings and WindowManager. `gsm signal` is confirmed only by the console's OK (no read-back exists). Negative numbers work (`env emulator-5580 geo -122.084 37.422`). ATD has no Messages or Dialer app: SMS and calls change telephony state and broadcasts only. The probe app logs what it sees: `am start -n dev.crewdroid.probe/.ProbeActivity --es check env` -> `CrewProbe ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none` (`loc` needs the location permission: `pm grant`). `node scripts/check-env.mjs` runs all of it on 2 devices.
 
 ## Use it from an AI agent
 
