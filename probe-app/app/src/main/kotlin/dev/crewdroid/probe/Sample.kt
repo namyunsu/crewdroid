@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong
 //   SYNC                                                retry the outbox now
 // server defaults to http://10.0.2.2:5599. Log lines (tag CrewProbe):
 //   OUTBOX <n> (process start) | SAVED <id> <key> | RETRY <id> attempt=<n> <reason> | SYNCED <id> <key> http=<code>
-//   | CONFLICT <id> base=<v> server=<v> | DROPPED <id> http=<code> | READ ok <n> | READ fail <reason>
+//   | CONFLICT <id> base=<v> server=<v> | DROPPED <id> http=<code> | READ ok <n> | READ fail <reason> | CONFIG <w>x<h> (screen size changed)
 class SampleReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, i: Intent) {
         Outbox.init(ctx)
@@ -64,6 +64,15 @@ object Outbox {
         Log.i(TAG, "OUTBOX ${pending().size}")
         app.getSystemService(ConnectivityManager::class.java)
             .registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() { override fun onAvailable(n: Network) = kick() })
+        // T19: fold/unfold changes the screen size; log it so a check can see the app got the configuration change.
+        // The outbox lives in this process (not the activity), so an upload in flight keeps going while the activity is recreated.
+        app.registerComponentCallbacks(object : android.content.ComponentCallbacks {
+            override fun onConfigurationChanged(c: android.content.res.Configuration) {
+                val b = app.getSystemService(android.view.WindowManager::class.java).maximumWindowMetrics.bounds
+                Log.i(TAG, "CONFIG ${b.width()}x${b.height()}")
+            }
+            @Deprecated("unused") override fun onLowMemory() {}
+        })
         Thread(::loop, "outbox").start()
     }
 

@@ -13,6 +13,7 @@ import { triage } from "./triage.ts";
 import { screen } from "./screen.ts";
 import { perf } from "./perf.ts";
 import { apk } from "./apk.ts";
+import { fold } from "./fold.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -29,7 +30,7 @@ const { positionals, values } = parseArgs({
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, mcp";
+const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, mcp";
 
 async function main() {
   const [cmd] = positionals;
@@ -148,6 +149,13 @@ async function main() {
     if (!file) throw new Error("usage: apk <file.apk>");
     const r = await apk(file);
     console.log(values.json ? JSON.stringify(r, null, 2) : `${r.package} ${r.versionName} (${r.versionCode}) minSdk=${r.minSdk} targetSdk=${r.targetSdk}\npermissions: ${r.permissions.join(", ")}\nexported: ${r.exportedActivities.join(", ")}\ndeep links: ${r.deepLinks.map((d) => `${d.schemes.join("|")}://${d.hosts.join("|")}${d.paths.join("|")}`).join(", ") || "none"}`);
+    return;
+  }
+  if (cmd === "fold" || cmd === "unfold") {
+    const [, serial] = positionals;
+    if (!serial) throw new Error(`usage: ${cmd} <serial>  (fold = cover screen, unfold = main screen; fold/flip profiles only)`);
+    const r = await fold(serial, cmd === "fold" ? "cover" : "main");
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} ${r.profile} ${r.state}: ${r.from} -> ${r.to}@${r.density}`);
     return;
   }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes

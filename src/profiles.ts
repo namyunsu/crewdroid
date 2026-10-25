@@ -5,7 +5,9 @@ import { sdkRoot } from "./sdk.ts";
 export interface Profile {
   name: string; model: string; width: number; height: number; density: number;
   minAndroid: string; minApi: number; densitySource: "blisk" | "yesviz" | "chrome" | "unverified"; note?: string;
+  fold?: Record<"cover" | "main", Screen>; // foldables: both screens, switched by `crewdroid fold|unfold` (ADR 0006)
 }
+export interface Screen { width: number; height: number; density: number }
 
 const galaxy = () => JSON.parse(readFileSync(join(import.meta.dirname, "..", "profiles", "galaxy.json"), "utf8"));
 export const loadProfiles = (): Profile[] => galaxy().profiles;
