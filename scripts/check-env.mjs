@@ -1,8 +1,8 @@
 // T20 verify: node scripts/check-env.mjs [--base-port 5580] [--idle-seconds 30] [--out file]
 // Boots 2 mixed devices (API 34 s24ultra + API 36 flip7-main); on each: every `crewdroid env` command, its read-back, and the probe app's
-// `check=env` ENV log line. Appends the 2-device idle RAM/CPU before/after row to docs/measurements/features.md. Always downs its emulators.
+// `check=env` ENV log line. Writes the 2-device idle RAM/CPU before/after row to docs/measurements/features.md (replaces its own T20 row on rerun). Always downs its emulators.
 import { execFile } from "node:child_process";
-import { appendFileSync, existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { adb } from "../src/adb.ts";
@@ -120,8 +120,12 @@ try {
   const f = join(root, "docs", "measurements", "features.md");
   if (!existsSync(f)) writeFileSync(f, "# Runtime features: idle cost\n\nOne row per Todo that adds a runtime command (docs/todo.md lightness rule: no launch flag / AVD config / KNOBS change; idle RAM over +5 % -> opt-in). RAM = emulator+qemu working set, CPU = % of one host core over the idle window, probe app stopped.\n\n| date | Todo | devices | idle s | RAM before -> after (MB) | RAM delta | CPU before -> after (%) | note |\n|---|---|---|---|---|---|---|---|\n");
   const dRam = Math.round(((after.ramMB - before.ramMB) / before.ramMB) * 1000) / 10;
-  appendFileSync(f, `| ${new Date().toISOString().slice(0, 10)} | T20 env | 2 (${mix}) | ${v["idle-seconds"]} | ${before.ramMB} -> ${after.ramMB} | ${dRam >= 0 ? "+" : ""}${dRam} % | ${before.cpuPercent} -> ${after.cpuPercent} | no daemon; after = after every env command ran (geo/battery/rotate/dark/font/locale/gsm/sms/call) |\n`);
-  say(`idle RAM delta ${dRam >= 0 ? "+" : ""}${dRam} % (row appended to docs/measurements/features.md)`);
+  const row = `| ${new Date().toISOString().slice(0, 10)} | T20 env | 2 (${mix}) | ${v["idle-seconds"]} | ${before.ramMB} -> ${after.ramMB} | ${dRam >= 0 ? "+" : ""}${dRam} % | ${before.cpuPercent} -> ${after.cpuPercent} | no daemon; after = after every env command ran (geo/battery/rotate/dark/font/locale/gsm/sms/call) |`;
+  // one T20 row: a rerun replaces it
+  const keep = readFileSync(f, "utf8").split(/\r?\n/).filter((l) => !l.includes("| T20 env |"));
+  while (keep.at(-1) === "") keep.pop();
+  writeFileSync(f, keep.join("\n") + "\n" + row + "\n");
+  say(`idle RAM delta ${dRam >= 0 ? "+" : ""}${dRam} % (T20 row written to docs/measurements/features.md)`);
 } catch (e) {
   claim(false, `error: ${e.stack ?? e}`);
 } finally {
