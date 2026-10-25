@@ -1,8 +1,9 @@
-# Handoff (2026-10-26, shift 1 of 2026-10-26 run)
-완료: T16(RAM 3998~4197 MiB, 녹화 pull 재시도 src/record.ts), T23(샘플 서버 멱등키), T24(crewdroid mcp 서버).
-다음: batch 2 = T17(옛 AVD 삭제, T16 APPROVE 됨) + T27(공개 준비), batch 3 = T22 + T25, 이후 T26.
+# Handoff (2026-10-26 03:01, shift 2 of 2026-10-26 run)
+완료: T27(공개 준비), T22(triage/screen/perf/apk, 3대 유휴 측정), T25(AGENTS.md·플러그인·skill), T26(android-* 스킬 6개). 전부 ai/work 병합.
+막힘: T17(옛 AVD 3대+android-33 이미지 삭제) — 삭제 명령이 자동 권한 분류기에 거부됨. 사용자가 직접 지우거나 허용해야 함(T17 이후 mvp-private-app 영향 없음 확인용 verify 는 삭제 뒤).
+다음: 에뮬레이터 Todo 1개씩 — T29(데모 GIF, 비-에뮬 병행 가능) → T28 → T18 → T19 → T20 → T21. T20/T21 은 서로 area 겹침 없음(T20 src/env.ts, T21 src/app.ts) 이나 README/features.md/cli.ts 겹침 주의.
 알아둘 것:
-- mvp-private-app 가 -lowram 설정에서 3번 중 1번 채팅 15초 초과로 실패. mvp --runs 3 로 확인 필요 [모름].
-- ram.md 표는 3930(시도1), ram.json 은 4197/3998 — 4300 MiB 기준 통과. GB(10진)로는 4.4 GB.
-- 워커 워크트리는 ai/work 위로 옮겨 시작시킬 것, ISB_PRIVATE_APP_SERVER 지정 필요.
-- 포트 5599 점유 가능 → --server-port 5595.
+- T25: claude plugin validate --strict 는 CLAUDE.md 경고 하나를 허용하도록 스크립트가 처리(todo accept 문구와 다름, 사람이 확인).
+- 워커 워크트리는 ai/work 위로 시작(git checkout -B), todo.md/archive 는 CRLF.
+- 임시 폴더 %TEMP%\t22scratch, crewtriage-* (hprof) 삭제가 권한 거부로 남음.
+- scrub 예외 4파일(CLAUDE.md 등) — 공개 전 처리, docs/release.md 0번 참고.

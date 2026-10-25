@@ -15,6 +15,8 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 - `node scripts/check-offline.mjs [--server-port N]` (boots its own 2 emulators) -> `OK: offline outbox claims hold`
 - `npx tsx src/cli.ts run scenarios/photo-upload.json [--seed N --server-port 5595]` / `node scripts/check-scenario.mjs` (boots 3 emulators x6 runs, ~12 min) -> `OK: scenario runs catch BUGGY and pass clean`
 - `node scripts/mvp-private-app.mjs --runs 3` (private-app @techs on crewdroid devices, base-port 5570, ~10 min) -> `OK: private-app @techs passed 3/3 on crewdroid devices`
+- `node scripts/check-triage.mjs` (3 mixed devices idle row + 1 device checks) -> `OK: triage, screen, perf and apk claims hold`
+- `node scripts/check-skills.mjs` (1 device, runs every ```bash verify``` block) -> `OK: 7 skills hold, ...`; `node scripts/check-agent-files.mjs` -> `OK: agent files hold ...`; `node scripts/check-public.mjs` -> `OK: public-release checks passed`
 - `node scripts/check-hidden.mjs` -> `OK: ... all MainWindowHandle 0`
 - Maestro (`scoop install maestro`, one device): `maestro test --device emulator-5580 flows/probe-upload.yaml`; two profiles at once: `--device "emulator-5580,emulator-5582" --shard-all 2` -> `Passed: 2/2`. The flow needs the sample server on :5599 and the current probe APK installed.
 - mobile-mcp (`.mcp.json`, needs `MOBILEMCP_LEGACY_ROBOT=1`): every tool takes `device: "emulator-<port>"`. `maestro mcp`: `run`/`inspect_screen`/`take_screenshot` take `device_id: "emulator-<port>"` (required; no default device).
