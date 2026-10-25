@@ -214,3 +214,12 @@ T18: custom screen sizes — a497f0d
   verify: `node scripts/check-fold.mjs` (up a fold5 + flip6 profile; unfold/fold each; CONFIG lines show both sizes; screencap sizes change; an upload started before a fold completes exactly once on the server; down)
 
 T19: fold/unfold — ea4dd35
+
+
+- [x] T20 [KO] `crewdroid env` 기기 환경 조작: 위치·배터리·센서/회전·다크·글자·앱 로케일·통신망·SMS/통화 (FR-16)
+  area: src/env.ts, src/cli.ts, probe-app/ (`check=env` logs the state it sees), scripts/check-env.mjs, test/env.test.ts, docs/measurements/features.md, README.md (env section)
+  model: sonnet
+  review: required
+  accept: `crewdroid env <serial> <what> [args] [--json]`, every call through `src/adb.ts` (`adb -s <serial> emu …` / `shell …`), commands from `docs/source/research-emulator-features.md` §a-e: `geo <lon> <lat> [alt]` (then `cmd location set-location-enabled true`), `battery <0-100> [ac|unplugged]`, `rotate <0-3>` (`accelerometer_rotation 0` + `user_rotation`), `sensor acceleration x:y:z`, `dark on|off`, `font <scale>`, `locale <pkg> <tags>` (API 33+, `cmd locale set-app-locales`), `gsm data home|roaming|searching|denied|off|on`, `gsm signal <0-31> [--hold <sec>]` (the console value lasts 15 s; `--hold` re-sends every 10 s), `sms <from> <text>`, `call <number> [accept|cancel]`, and `show` (reads every state back: `settings get`, `dumpsys battery`, `dumpsys location`, `cmd uimode night`, `getprop`). Every setter reads its state back and exits 1 with a message when it differs; invalid values (`battery 150`, `rotate 9`, bad serial) exit 1 before any adb call. The probe app's `check=env` logs `CrewProbe ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none`. `scripts/check-env.mjs` boots 2 mixed devices, applies each command, checks read-back + the ENV log line, then appends the idle RAM/CPU before/after row to `features.md` and downs. `src/env.ts` exports `mcpTools` (wave rule).
+  verify: `npm test && node scripts/check-env.mjs`
+  commits: 4f0d731 b16e9f3 7b8c4ee

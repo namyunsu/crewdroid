@@ -30,6 +30,7 @@ class ProbeActivity : Activity() {
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
+        intent.data?.let { report("LINK", it.toString()) } // T21: deep link / App Link opened by `crewdroid app open`
         val check = intent.getStringExtra("check") ?: return sample()
         when (check) {
             "camera" -> Thread { report("CAMERA", camera()); runOnUiThread { finish() } }.start()
@@ -99,6 +100,9 @@ class ProbeActivity : Activity() {
         lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, l, mainLooper)
         android.os.Handler(mainLooper).postDelayed({ fin(null) }, 8000)
     }
+
+    // T21: `crewdroid app trim` is confirmed by this line ("TRIM 80" = TRIM_MEMORY_COMPLETE)
+    override fun onTrimMemory(level: Int) { super.onTrimMemory(level); report("TRIM", level.toString()) }
 
     private fun report(name: String, result: String) { Log.i(tag, "$name $result") }
 

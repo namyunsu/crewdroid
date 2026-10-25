@@ -41,6 +41,7 @@ Every command takes `--json` and exits non-zero on failure.
 | `crewdroid measure --up N` | measure disk, RAM, boot, idle CPU |
 | `crewdroid triage` / `screen` / `perf` / `apk` | Android diagnostics, see below |
 | `crewdroid env <serial> <what> [args]` | device environment: location, battery, rotation, dark, font, locale, mobile network, SMS, calls (see Environment) |
+| `crewdroid app <serial> <pkg> <what> [args]` | app control: permissions, deep links / App Links, data clear, backup / restore, resource pressure (see App control) |
 | `crewdroid mcp` | stdio MCP server exposing the above to an agent |
 
 ## Diagnostics
@@ -74,6 +75,24 @@ The probe app has targets for these: `adb -s emulator-5580 shell am start -n dev
 | `show` | every state above, read back from the device |
 
 `rotate` also runs `wm fixed-to-user-rotation enabled`: without it, on the API 36 image WindowManager restored the previous rotation (`revertOverride`) at the next app launch. `rotate` and `show` read the lock back from settings and WindowManager. `gsm signal` is confirmed only by the console's OK (no read-back exists). Negative numbers work (`env emulator-5580 geo -122.084 37.422`). ATD has no Messages or Dialer app: SMS and calls change telephony state and broadcasts only. The probe app logs what it sees: `am start -n dev.crewdroid.probe/.ProbeActivity --es check env` -> `CrewProbe ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none` (`loc` needs the location permission: `pm grant`). `node scripts/check-env.mjs` runs all of it on 2 devices.
+
+## App control
+
+`crewdroid app <serial> <pkg> <what> [args] [--json]`. Setters read the state back and exit 1 with a message when it differs; bad names, buckets or sizes exit 1 before any adb call. Also an MCP tool (`app`).
+
+| What | Meaning |
+|---|---|
+| `perm grant|revoke <perm…>` / `perm show [perm…]` | `pm grant/revoke` (`CAMERA` or `android.permission.CAMERA`); `show` parses the runtime permissions of `dumpsys package` into `{name, granted}` |
+| `open <uri> [--pkg]` | `am start -a VIEW -c BROWSABLE -d <uri>` (`--pkg`: only this package). Nothing can handle it -> exit 1 `No Activity found` (ATD has no Chrome). A running app only gets its task brought to the front and never sees the uri: the result says `delivered: false`; force-stop it first |
+| `links show` / `links force <domain>` / `links reset` | App Links (API 31+): `pm get-app-links`; `set-app-links --package <pkg> 2 <domain>` (approved without internet); `... 0 all` |
+| `clear` | `pm clear`; read back with `run-as` (debuggable apps), else only pm's `Success` |
+| `backup` / `restore` | `bmgr` with `com.android.localtransport/.LocalTransport` (present on the API 34 and 36 images; absent -> exit 1 with that reason). `backup` of an app with no data is rejected by the transport. `restore` uses the newest set |
+| `pressure doze` / `standby <active|working_set|frequent|rare|restricted>` / `bg-restrict` / `battery-saver` | `deviceidle force-idle` (unplugs the fake battery first); `am set-standby-bucket`; `appops RUN_ANY_IN_BACKGROUND ignore`; `settings put global low_power 1` |
+| `pressure trim <level>` | `am send-trim-memory` (HIDDEN ... COMPLETE). No read-back on the device: only am's ack. A background level to a foreground process, or a process that is not running, is an error. The probe logs `CrewProbe TRIM <level>` |
+| `pressure reset` | undoes doze, battery unplug, standby bucket (-> active), bg-restrict, battery-saver |
+| `fill-storage <GB>` / `fill-storage free` | `fallocate` a file in `/data/local/tmp`, read back with `df -k /data`; `free` removes it. The image has about 5.8 GB free |
+
+The probe app has the deep links `crewdroid://probe/*` and `https://probe.crewdroid.example/*` (autoVerify) and logs `CrewProbe LINK <uri>`. `node scripts/check-app.mjs` runs all of it on 2 devices.
 
 ## Use it from an AI agent
 
