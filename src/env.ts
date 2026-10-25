@@ -40,7 +40,7 @@ async function settle<T>(read: () => Promise<T>, ok: (v: T) => boolean, ms = 500
 const battery = async (s: string) => { const d = await sh(s, "dumpsys battery"); return { level: Number(d.match(/level: (\d+)/)?.[1]), ac: /AC powered: true/.test(d) }; };
 // wm = WindowManager's own copy of the lock (dumpsys window), which can differ from the settings (see rotate)
 const rotation = async (s: string) => ({
-  fixed: (await sh(s, "wm fixed-to-user-rotation")).trim().split(/s+/).at(-1),
+  fixed: (await sh(s, "wm fixed-to-user-rotation")).trim().split(/\s+/).at(-1),
   auto: (await sh(s, "settings get system accelerometer_rotation")).trim(), user: (await sh(s, "settings get system user_rotation")).trim(),
   wm: (await sh(s, "dumpsys window displays | grep mUserRotationMode")).match(/mUserRotationMode=USER_ROTATION_LOCKED mUserRotation=ROTATION_(\d+)/)?.[1] ?? "free",
 });
