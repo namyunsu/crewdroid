@@ -31,4 +31,9 @@ In a checkout without the package installed, replace `crewdroid` with `npx tsx s
 - Measurements: `docs/measurements/`.
 
 ## More skills
-The `android-*` skills (triage, screen, permissions-intents, apk, perf, offline-concurrency) are added by T26; use them when present in `.agents/skills/`.
+- [android-triage](../android-triage/SKILL.md): crash, ANR, app killed.
+- [android-screen](../android-screen/SKILL.md): blank / wrong screen, element not found.
+- [android-permissions-intents](../android-permissions-intents/SKILL.md): permission denied, deep link does not open.
+- [android-apk](../android-apk/SKILL.md): install fails, what is in / on the device.
+- [android-perf](../android-perf/SKILL.md): slow start, jank, memory.
+- [android-offline-concurrency](../android-offline-concurrency/SKILL.md): offline sync duplicates / lost updates.
