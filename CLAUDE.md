@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # crewdroid
 
 Lightweight multi-user Android field lab on top of Google's emulator: N headless emulators with mixed Galaxy profiles and Android versions, per-device network states, then server-data judging for concurrency bugs (duplicate / missing / overwrite). Requirements: `docs/prd.md` (Korean). Todos: `docs/todo.md`.

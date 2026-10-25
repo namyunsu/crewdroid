@@ -15,3 +15,9 @@
 
 ## 배포
 없음. `ai/work` push 후 autopilot 이 `main` 병합.
+
+## 에이전트가 읽는 파일
+- `AGENTS.md` 영문 단일 원본(Codex·Cursor·Copilot·Gemini 등). `CLAUDE.md` 첫 줄 `@AGENTS.md` 로 Claude Code 도 같은 내용을 읽는다(CLAUDE.md 가 있으면 AGENTS.md 는 무시되므로).
+- `.agents/skills/<이름>/SKILL.md` 교차 호환 스킬 경로. 플러그인 `.claude-plugin/plugin.json` 의 `skills` 가 `./.agents/skills` 를 직접 가리켜 `skills/` 복사본은 없다.
+- `.claude-plugin/plugin.json`(mcpServers -> `${CLAUDE_PLUGIN_ROOT}/bin/crewdroid.mjs mcp`) + `marketplace.json`(source `./`): `claude plugin marketplace add namyunsu/crewdroid` -> `claude plugin install crewdroid@crewdroid`. `.mcp.json` 은 저장소 안 작업용.
+- 검사: `node scripts/check-agent-files.mjs`.

@@ -1,0 +1,15 @@
+{
+  "name": "crewdroid",
+  "description": "Multi-user Android field lab: N headless emulators with mixed Galaxy profiles, per-device network states, concurrency judging.",
+  "version": "0.1.0",
+  "author": { "name": "Yunsu Nam" },
+  "license": "MIT",
+  "repository": "https://github.com/namyunsu/crewdroid",
+  "skills": "./.agents/skills",
+  "mcpServers": {
+    "crewdroid": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/crewdroid.mjs", "mcp"]
+    }
+  }
+}
