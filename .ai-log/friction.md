@@ -56,3 +56,4 @@
 2026-10-26 | todo.md 가 CRLF 라 정규식 이동 스크립트가 실패 | tool limit
 2026-10-26 | T22 가 lightness 행을 1대로 재서 반려 (todo accept 와 wave rule 충돌) | Todo unclear
 2026-10-26 | T25 accept 의 validate --strict 통과 조건이 CLAUDE.md-at-root 경고 때문에 불가능 | Todo unclear
+2026-10-26 | T29 verify 실패: 샘플 앱 정지 화면 때문에 live 패널 0, 10분 낭비 | Todo unclear (area 에 probe-app 없음)

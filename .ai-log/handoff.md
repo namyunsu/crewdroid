@@ -1,9 +1,5 @@
-# Handoff (2026-10-26 03:01, shift 2 of 2026-10-26 run)
-완료: T27(공개 준비), T22(triage/screen/perf/apk, 3대 유휴 측정), T25(AGENTS.md·플러그인·skill), T26(android-* 스킬 6개). 전부 ai/work 병합.
-막힘: T17(옛 AVD 3대+android-33 이미지 삭제) — 삭제 명령이 자동 권한 분류기에 거부됨. 사용자가 직접 지우거나 허용해야 함(T17 이후 mvp-private-app 영향 없음 확인용 verify 는 삭제 뒤).
-다음: 에뮬레이터 Todo 1개씩 — T29(데모 GIF, 비-에뮬 병행 가능) → T28 → T18 → T19 → T20 → T21. T20/T21 은 서로 area 겹침 없음(T20 src/env.ts, T21 src/app.ts) 이나 README/features.md/cli.ts 겹침 주의.
-알아둘 것:
-- T25: claude plugin validate --strict 는 CLAUDE.md 경고 하나를 허용하도록 스크립트가 처리(todo accept 문구와 다름, 사람이 확인).
-- 워커 워크트리는 ai/work 위로 시작(git checkout -B), todo.md/archive 는 CRLF.
-- 임시 폴더 %TEMP%\t22scratch, crewtriage-* (hprof) 삭제가 권한 거부로 남음.
-- scrub 예외 4파일(CLAUDE.md 등) — 공개 전 처리, docs/release.md 0번 참고.
+# Handoff (2026-10-26 03:20, shift 3)
+완료: 없음. T29(데모 GIF) 시도 1 실패 -> BLOCKED.
+막힘: T17(삭제 권한 거부), T29(샘플 앱 화면이 정지라 screenrecord 가 1초도 안 찍힘 -> 3패널 NOT LIVE). 해결안: probe-app 에 outbox/로그가 주기 갱신되는 UI 추가(영역에 probe-app 추가, Gradle 재빌드). 시도 1 코드는 `git stash list` 의 "T29-1 attempt"(demo-gif.mjs, check-demo-gif 옵션, scenario.ts/cli.ts 의 profiles/onReady/beforeDown).
+다음: T28 -> T18 -> T19 -> T20 -> T21 (에뮬레이터 1개씩). T20/T21 area 겹침 주의(README/features.md/cli.ts).
+알아둘 것: 에뮬레이터 점유 프로세스 없음(락 PID 죽음), 워커 워크트리는 ai/work 위, todo.md 는 CRLF.

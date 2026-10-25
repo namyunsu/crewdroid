@@ -70,7 +70,7 @@ Rules for this wave (on top of the 2026-10-23 rules above):
   accept: Reproduce without private-app: API 31 vs API 34 ATD, probe `check=surface`, screencap of the SurfaceView area. Test the candidates one at a time and record each result with the screencap stats in the ADR: `debug.hwui.drawing_enabled` (T14 fix) vs the SurfaceView path, SurfaceFlinger layer state (`dumpsys SurfaceFlinger` activeBuffer / composition), `-gpu host` vs `-gpu software`, `-feature -Vulkan` (T16), `-no-window` vs `--window`, `setprop debug.sf.*` knobs, API 31 image build props. If a launch flag/prop fixes it: apply it in `up` (API 31 only), and the SurfaceView screencap is non-uniform on API 31 too. If not: ADR 0005 says why with evidence, API 31 profiles get `surfaceView: false`, and `up`/`run` print `WARN emulator-<port> API 31: SurfaceView content does not render (ADR 0005)` when a profile lands there. `scripts/check-surface.mjs`: up API 31 + API 34, run `check=surface`, crop the SurfaceView bounds (probe logs `CrewProbe SURFACE <l>,<t>,<r>,<b>`), fail when a device's crop is uniform unless that device is flagged `surfaceView:false` AND the WARN line was printed; down.
   verify: `node scripts/check-surface.mjs`
 
-- [ ] T29 [KO] 공개용 데모 GIF: 샘플 앱 혼합 3대 + 판정 결과 (FR-23)
+- [ ] T29 BLOCKED:샘플 앱 화면이 정지라 녹화에 움직임이 없음 — probe-app 에 주기 갱신 UI 추가(영역에 probe-app 포함)할지 결정 필요. 시도 1 코드는 git stash "T29-1 attempt" [KO] 공개용 데모 GIF: 샘플 앱 혼합 3대 + 판정 결과 (FR-23)
   area: scripts/demo-gif.mjs, src/record.ts (shared recorder from T16), docs/demo/demo.gif, scripts/check-demo-gif.mjs (`--max-mb --max-seconds`), docs/measurements/demo.json
   model: sonnet
   review: required
