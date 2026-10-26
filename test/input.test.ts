@@ -50,7 +50,7 @@ test("keyCode names and KEYCODE_*; textChunks splits only %s", () => {
 test("type: non-ASCII and control characters fail before any adb call", async () => {
   await assert.rejects(type("emulator-5580", "안녕"), /non-ASCII text cannot be typed/);
   await assert.rejects(type("emulator-5580", "a\nb"), /control characters/);
-  await assert.rejects(type("R3CT1234", "hi"), /emulator-<port>/);
+  await assert.rejects(type("phone-1234", "hi"), /emulator-<port>/);
 });
 
 test("pngSize reads IHDR; stamp is yyyymmdd-HHMMSS", () => {
