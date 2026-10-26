@@ -119,3 +119,8 @@ UI·웹 서비스가 없어서 XSS·새로고침 연타 같은 웹 케이스는 
 ## FR-32 0.2.0
 - 1패널 데모 GIF 살아 있음·≤3MB·≤25초, 버전 0.2.0 일치 `[verify]` T41
 - 사무실 PC 에서 `npm publish` + `mcp-publisher publish` `[manual]` T41
+
+## FR-33 macOS·Linux
+- OS 전용 코드가 src/platform.ts 밖에 없음, 플랫폼 주입 단위 테스트, Windows 회귀 없음 `[verify]` T43
+- Apple Silicon Mac 에서 setup → up → shot → down, 시간 기록 `[manual]` T43
+- Linux(KVM) 에서 같은 흐름 `[manual]` T43
