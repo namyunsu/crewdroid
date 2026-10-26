@@ -1,5 +1,4 @@
-# Handoff (2026-10-26 07:46, shift 9)
-완료: T30(AGENTS.md 명령 표 + planned 검사), T31(perf -S 제거, API 31 표면 검사) 둘 다 reviewer APPROVE.
-다음: TODO 없음 → WRAP-UP. T17(삭제 권한 거부), T29(probe-app 주기 갱신 UI 필요) BLOCKED, 사람 결정 대기.
-알아둘 것: .agents/skills/android-perf/SKILL.md:60 에 am start -S -W 남음(스킬 수정은 승인 필요). features.md 자동 행 라벨이 "T22" 로 찍힘.
-QA: 로컬 e2e 대상 없음(ENV_NO_E2E_TARGET).
+# Handoff (2026-10-26 10:59, shift 13)
+이번 shift: 디스패치 없음. 이전 shift(12) 타임아웃 뒤 T33 worker 의 `check-slow-upload.mjs --runs 1`(PID 23960)이 에뮬레이터 5580 을 계속 점유 → .ai-log/BUSY 기록 후 보류. 프로세스는 죽이지 않음.
+다음: BUSY 가 풀리면 T33(net slow 2MB 업로드) 재개 — 미완 worktree: .claude/worktrees/agent-a329965027a92bb8e (locked, check-slow-upload.mjs 초안 있음, 커밋 84fea89). T17 은 삭제 완료, 문서(slim.md 해제 GB, infra.md, CLAUDE.md Gotchas)와 verify 만 남음(mvp-private-app 에뮬레이터 필요).
+알려진 문제: T29 BLOCKED 해소됨(T32 로), check-offline.mjs 는 기준선에서도 flaky(3/4 실패, ADR 0006 관련).

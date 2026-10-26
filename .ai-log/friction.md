@@ -62,3 +62,4 @@
 2026-10-26 | todo.md CRLF/LF 혼재로 sed/python 이동 중 임시파일 경로 오류 | env/tool limit
 2026-10-26 | perf 스킬 문서에 -S 잔존(스킬 수정 승인 필요) | rule missing; features.md 자동 행 라벨 오기 | tool limit
 2026-10-26 | QA 대상(Local e2e/Dev URL) 없어 QA 건너뜀 | env broken
+2026-10-26 | 이전 shift 타임아웃 후 worker 의 check-slow-upload 가 계속 돌며 에뮬레이터 점유 | env: shift 타임아웃 시 하위 프로세스가 남음
