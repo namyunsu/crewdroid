@@ -48,7 +48,7 @@ async function blackScreen(serial: string): Promise<boolean> {
   return isBlackRaw(stdout);
 }
 
-const focusOf = (win: string) => win.match(/mCurrentFocus=Window\{\S+ \S+ ([^}]+)\}/)?.[1] ?? (win.match(/mCurrentFocus=(\S+)/)?.[1] ?? "");
+export const focusOf =(win: string) => win.match(/mCurrentFocus=Window\{\S+ \S+ ([^}]+)\}/)?.[1] ?? (win.match(/mCurrentFocus=(\S+)/)?.[1] ?? "");
 
 // ADR 0005: on Android 12 (API 31) an app killed and started again at once (`am start -S`, Maestro/mobile-mcp relaunch, a
 // test harness) can stay black although it keeps drawing (WindowManager shows the task, SurfaceFlinger never does).

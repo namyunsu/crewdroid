@@ -128,7 +128,20 @@ Every command takes `--json` and exits non-zero on failure.
 | `crewdroid triage` / `screen` / `perf` / `apk` | Android diagnostics, see below |
 | `crewdroid env <serial> <what> [args]` | device environment: location, battery, rotation, dark, font, locale, mobile network, SMS, calls (see Environment) |
 | `crewdroid app <serial> <pkg> <what> [args]` | app control: permissions, deep links / App Links, data clear, backup / restore, resource pressure (see App control) |
+| `crewdroid shot` / `tap` / `type` / `swipe` / `key` | screenshot and input without mobile-mcp (see Screenshots and input) |
 | `crewdroid mcp` | stdio MCP server exposing the above to an agent |
+
+## Screenshots and input
+
+| Command | What it does |
+|---|---|
+| `crewdroid shot <serial> [file.png]` | `exec-out screencap -p` to `file.png` (default `./crewdroid-<serial>-<yyyymmdd-HHMMSS>.png`); prints path, width x height and `blackRelaunch` (API 31 black screen recovered first, as in `screen`). The MCP tool returns the PNG as image content plus one text line. |
+| `crewdroid tap <serial> <x> <y>` \| `--text <T>` \| `--id <resource-id>` `[--index N]` | `input tap` at a point or at the centre of the element from the `screen` tree whose text / content-desc or resource-id (full or the part after `:id/`) matches: exact first, then case-insensitive contains. No match, or several without `--index` (0-based), exits 1 with the candidates (text, id, bounds). |
+| `crewdroid type <serial> <text> [--into <text\|id>]` | `input text` (spaces, quotes, `&`, `%` are escaped); `--into` taps the field first. ASCII only, see below. |
+| `crewdroid swipe <serial> up\|down\|left\|right [--times N]` \| `swipe <serial> x1 y1 x2 y2 [ms]` | finger direction over the middle 50 % of the current screen (`up` scrolls the content down). |
+| `crewdroid key <serial> back\|home\|enter\|delete\|tab\|menu\|KEYCODE_*` | `input keyevent`; prints the focused window afterwards. |
+
+Points outside the screen exit 1 before anything is sent. Non-ASCII text (e.g. Korean) is not typed: `type` exits 1 with the reason. `input text` only types characters in the device key map, ATD has no shell command that sets the clipboard for a paste (`cmd clipboard` has no implementation), and crewdroid does not install a keyboard app; pass such text through your app (intent extra, test hook) or install an IME such as ADBKeyboard yourself. The probe app has a form for these: `--es check form` (field id `name`, button `Send` -> `CrewProbe FORM <text>`, a 3-screen scroll whose bottom `END` logs `CrewProbe SCROLL END`). `node scripts/check-input.mjs` runs all of it on an API 34 and an API 36 device.
 
 ## Diagnostics
 

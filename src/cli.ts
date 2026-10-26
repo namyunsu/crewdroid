@@ -18,6 +18,8 @@ import { envSet } from "./env.ts";
 import { appRun } from "./app.ts";
 import { setup, type StepName } from "./setup.ts";
 import { install, launch, logs } from "./appctl.ts";
+import { key, swipe, tap, type } from "./input.ts";
+import { shot } from "./shot.ts";
 
 // AI NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
 const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
@@ -36,10 +38,11 @@ const { positionals, values } = parseArgs({
     app: { type: "string" }, pkg: { type: "boolean", default: false }, heap: { type: "string" }, png: { type: "string" }, activity: { type: "string" },
     sdk: { type: "string" }, images: { type: "string" }, only: { type: "string" }, "dry-run": { type: "boolean", default: false }, yes: { type: "boolean", default: false },
     grant: { type: "boolean", default: false }, restart: { type: "boolean", default: false }, since: { type: "string" }, level: { type: "string" }, seconds: { type: "string" },
+    text: { type: "string" }, id: { type: "string" }, index: { type: "string" }, into: { type: "string" }, times: { type: "string" },
   },
 });
 
-const COMMANDS = "up, devices, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, setup, install, launch, logs, mcp";
+const COMMANDS = "up, devices, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, setup, install, launch, logs, shot, tap, type, swipe, key, mcp";
 
 async function main() {
   const [cmd] = positionals;
@@ -219,6 +222,43 @@ async function main() {
     const r = await logs(serial, pkg, { since: values.since, level: values.level, seconds: values.seconds ? Number(values.seconds) : undefined });
     if (values.json) console.log(JSON.stringify(r, null, 2));
     else { if (r.note) console.error(r.note); for (const l of r.lines) console.log(`${l.time} ${l.level} ${l.tag}: ${l.message}`); }
+    return;
+  }
+  if (cmd === "shot") {
+    const [, serial, file] = positionals;
+    if (!serial) throw new Error("usage: shot <serial> [file.png]");
+    const r = await shot(serial, file);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.path} ${r.width}x${r.height} ${r.bytes} bytes${r.blackRelaunch.black ? ` blackRelaunch: ${r.blackRelaunch.recovered ? "recovered" : "NOT recovered"} (ADR 0005)` : ""}`);
+    return;
+  }
+  if (cmd === "tap") {
+    const [, serial, x, y] = positionals;
+    const t = values.text !== undefined ? { text: values.text } : values.id !== undefined ? { id: values.id } : x !== undefined && y !== undefined ? { x: Number(x), y: Number(y) } : undefined;
+    if (!serial || !t) throw new Error("usage: tap <serial> <x> <y> | --text <T> | --id <resource-id> [--index N]");
+    const r = await tap(serial, t, values.index === undefined ? undefined : Number(values.index));
+    console.log(values.json ? JSON.stringify(r, null, 2) : `tapped ${r.x},${r.y}${r.node ? ` ${JSON.stringify(r.node.text || r.node.desc)} id=${r.node.id || "-"} [${r.node.bounds}]` : ""}`);
+    return;
+  }
+  if (cmd === "type") {
+    const [, serial, text] = positionals;
+    if (!serial || text === undefined) throw new Error("usage: type <serial> <text> [--into <text|id>]  (ASCII only)");
+    const r = await type(serial, text, values.into);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `typed ${JSON.stringify(r.text)}${r.into ? ` into ${r.into.id || r.into.text}` : ""}`);
+    return;
+  }
+  if (cmd === "swipe") {
+    const [, serial, ...rest] = positionals;
+    if (!serial || !rest.length) throw new Error("usage: swipe <serial> up|down|left|right [--times N] | swipe <serial> x1 y1 x2 y2 [ms]");
+    const coords = rest.length >= 4;
+    const r = await swipe(serial, { dir: coords ? undefined : rest[0], line: coords ? rest.slice(0, 4).map(Number) : undefined, ms: coords && rest[4] ? Number(rest[4]) : undefined, times: values.times ? Number(values.times) : undefined });
+    console.log(values.json ? JSON.stringify(r, null, 2) : `swiped ${r.from} -> ${r.to} ${r.ms}ms x${r.times}`);
+    return;
+  }
+  if (cmd === "key") {
+    const [, serial, k] = positionals;
+    if (!serial || !k) throw new Error("usage: key <serial> back|home|enter|delete|tab|menu|KEYCODE_*");
+    const r = await key(serial, k);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.key} -> focus ${r.focus}`);
     return;
   }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes

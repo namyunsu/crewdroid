@@ -18,7 +18,9 @@ const run = promisify(execFile);
 
 // A feature module adds MCP tools by exporting `mcpTools: Tool[]`; serve() picks up every src/*.ts that does.
 // `long` tools get a `timeoutSec` input and should print progress with console.error (sent as logging notifications).
-export interface Tool { name: string; description: string; input: ZodRawShape; long?: boolean; run(args: any): Promise<unknown> }
+// `content` (optional) turns the result into MCP content items (e.g. an image); without it the result is sent as JSON text.
+export type ContentItem = { type: "text"; text: string } | { type: "image"; mimeType: string; data: string };
+export interface Tool { name: string; description: string; input: ZodRawShape; long?: boolean; run(args: any): Promise<unknown>; content?(result: any): ContentItem[] }
 
 // Running crew emulators. AI NOTE: same process query as down() in up.ts (crew-* AVD on the command line); profile is
 // recovered by matching the device's current wm size/density against profiles/galaxy.json (up() does not record it).
@@ -104,7 +106,7 @@ export async function serve() {
         const r = t.long
           ? await Promise.race([work, new Promise((_, no) => { timer = setTimeout(() => no(new Error(`${t.name} timed out after ${a.timeoutSec}s (emulators may still run; call down)`)), a.timeoutSec * 1000); })])
           : await work;
-        return text(JSON.stringify(r ?? null, null, 2));
+        return t.content ? { content: t.content(r), isError: false } : text(JSON.stringify(r ?? null, null, 2));
       } catch (e) {
         return text(`error: ${e instanceof Error ? e.message : String(e)}`, true);
       } finally {

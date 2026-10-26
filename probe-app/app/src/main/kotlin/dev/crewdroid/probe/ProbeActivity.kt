@@ -18,7 +18,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank|surface|env [--es url URL] [--es file PATH]
+// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank|surface|env|form [--es url URL] [--es file PATH]
 // upload extras: --ei size N (N zero-ish bytes instead of a file), --es key IDEMPOTENCY_KEY, --es client X_CLIENT_ID
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
@@ -66,6 +66,9 @@ class ProbeActivity : Activity() {
             "surface" -> surface()
             // env (T20): "ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none"; loc needs ACCESS_FINE_LOCATION (pm grant), else none.
             "env" -> android.os.Handler(mainLooper).postDelayed({ env() }, 1000) // AI NOTE: the display rotation only follows user_rotation once an activity is on top, so read it after a beat; a rotation change recreates the activity and logs a second (correct) line
+            // form (T38): EditText id `name` + Button `Send` -> "FORM <text>"; below them a 3-screen-tall ScrollView whose bottom
+            // TextView `END` logs "SCROLL END" once it is on screen.
+            "form" -> form()
             else -> { report(check.uppercase(), "fail unknown check"); finish() }
         }
     }
@@ -125,6 +128,36 @@ class ProbeActivity : Activity() {
         val l = android.location.LocationListener { fin(it) }.also { listener = it }
         lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, l, mainLooper)
         android.os.Handler(mainLooper).postDelayed({ fin(null) }, 8000)
+    }
+
+    private fun form() {
+        val name = android.widget.EditText(this).apply { id = R.id.name; hint = "name"; isSingleLine = true }
+        // Send also hides the soft keyboard (API 36 ATD ships LatinIME) so one BACK afterwards leaves the activity
+        val send = android.widget.Button(this).apply {
+            text = "Send"; isAllCaps = false
+            setOnClickListener {
+                report("FORM", name.text.toString())
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager).hideSoftInputFromWindow(name.windowToken, 0)
+            }
+        }
+        val end = android.widget.TextView(this).apply { text = "END"; textSize = 32f }
+        var seen = false
+        val scroll = android.widget.ScrollView(this).apply {
+            addView(android.widget.LinearLayout(this@ProbeActivity).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                addView(android.view.View(this@ProbeActivity).apply { setBackgroundColor(android.graphics.Color.rgb(40, 90, 160)) },
+                    android.widget.LinearLayout.LayoutParams(-1, 3 * resources.displayMetrics.heightPixels))
+                addView(end)
+            })
+            setOnScrollChangeListener { _, _, _, _, _ ->
+                if (!seen && end.getGlobalVisibleRect(android.graphics.Rect())) { seen = true; report("SCROLL", "END") }
+            }
+        }
+        setContentView(android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            addView(name); addView(send)
+            addView(scroll, android.widget.LinearLayout.LayoutParams(-1, 0, 1f))
+        })
     }
 
     // T21: `crewdroid app trim` is confirmed by this line ("TRIM 80" = TRIM_MEMORY_COMPLETE)
