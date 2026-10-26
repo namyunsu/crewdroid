@@ -323,3 +323,11 @@ T30: fd972e0 · T31: c1f27a5 (shift 9)
   verify: `npm test && node scripts/check-input.mjs`
 
   done: `T38: shot, tap, type, swipe, key commands (FR-29)` commit afe1c75
+
+- [x] T39 [KO] AI 바이브 코딩 루프 MCP 종단 검증 + `android-vibe-loop` 스킬 (FR-30)
+  area: scripts/check-vibe-loop.mjs, .agents/skills/android-vibe-loop/SKILL.md, .agents/skills/crewdroid/SKILL.md (point to it first), src/mcp.ts (tool descriptions only), AGENTS.md (loop section)
+  model: opus
+  review: required
+  accept: After T35-T38 are DONE. `scripts/check-vibe-loop.mjs` drives ONLY the MCP server over stdio with the official SDK client, like an agent would: `listTools` contains setup, up, devices, install, launch, shot, screen, tap, type, swipe, key, logs, down; `setup` (dry run) reports present; `up` {} -> 1 device; `install` probe APK; `launch` with `check=form` extras; `shot` -> image item; `screen` -> finds the `Send` button; `type` + `tap` -> `logs` (since 1m) contains `CrewProbe FORM`; `launch --restart` with `check=crash` -> `crashed:true`; `down`; prints each step's wall time and the total (target: whole loop < 3 min on this PC, record the number). Tool descriptions are tightened so an agent picks the right one (each says when to use it and what it returns; `screen` vs `shot`: tree vs pixels). `android-vibe-loop` SKILL.md (<= 120 lines, frontmatter rules as check-skills enforces, description triggered by "run/test my Android app", "see the app screen", "the app does not start", "build and check on a phone"): the loop with the exact MCP tool names and CLI equivalents, how to read `crashed`, `blackRelaunch`, multiple-match tap errors, and when to switch to the advanced skills. `crewdroid` umbrella skill points to it first. AGENTS.md gets a 10-line "Vibe-coding loop" section. `check-skills.mjs` and `check-agent-files.mjs` still pass.
+  verify: `node scripts/check-vibe-loop.mjs && node scripts/check-skills.mjs && node scripts/check-agent-files.mjs`
+  commit: 6ce0e3b T39: MCP end-to-end vibe loop check and android-vibe-loop skill (FR-30)

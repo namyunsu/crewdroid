@@ -1,5 +1,5 @@
-# Handoff (2026-10-26 shift 1, 3 batches)
-이번 shift: T35(setup) · T36(단일 기기 up, devices) · T17(문서) · T37(install/launch/logs) · T38(shot/tap/type/swipe/key) 완료, ai/work 에 병합·push.
-다음 batch: T39(MCP 종단 루프 + 스킬, opus) → T41(데모 GIF, 0.2.0) → T40(소개, T39·T41 뒤) ; T33(net slow 2MB 업로드)은 에뮬레이터 순서상 T41 뒤. 에뮬레이터 Todo는 한 번에 하나.
-알려진 문제: src/triage.ts:31 tsc 오류 2건(기존). 한글 type 은 ATD 에서 불가(exit 1, README 명시). 워커 worktree 는 ai/work 보다 오래된 base 에서 시작할 수 있음 → 브리프에 "먼저 ai/work merge" 지시 필요. probe APK 는 gitignore 라 병합 후 main 에도 복사해야 check 가 맞음.
-후속 후보: setup --images 값 숫자 검증, logs --seconds NaN 검증, %TEMP% 락의 PID 재사용 오판(msedgewebview2).
+# Handoff (2026-10-26 shift 2, 1 batch)
+이번 shift: T39(MCP 종단 루프 check-vibe-loop + android-vibe-loop 스킬) 완료, 루프 총 97.4 s(목표 180 s). 6ce0e3b, ai/work push.
+다음 batch(에뮬레이터는 한 번에 하나): T41(데모 GIF, 0.2.0) → T42(1대 up 49초 원인) → T43(플랫폼 분리) → T33(net slow 2MB) ; T40(소개)은 T39·T41·T42·T43 뒤.
+알려진 문제: src/triage.ts:31 tsc 오류(기존). 한글 type 은 ATD 에서 불가. 루프 시간(up 이 42~133 s 로 흔들림)은 T42 뒤 다시 재서 T40 에 인용. 루프 시간을 docs/measurements/ 에 한 줄 기록하는 Todo 필요(리뷰어 제안).
+워커는 worktree 없이 ai/work 에서 직접 작업(probe APK gitignored). 여러 워커일 때만 worktree + "먼저 ai/work merge" 지시.

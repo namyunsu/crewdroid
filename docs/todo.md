@@ -60,13 +60,6 @@ Rules for this wave (on top of the earlier rules):
 
 
 
-- [ ] T39 [KO] AI 바이브 코딩 루프 MCP 종단 검증 + `android-vibe-loop` 스킬 (FR-30)
-  area: scripts/check-vibe-loop.mjs, .agents/skills/android-vibe-loop/SKILL.md, .agents/skills/crewdroid/SKILL.md (point to it first), src/mcp.ts (tool descriptions only), AGENTS.md (loop section)
-  model: opus
-  review: required
-  accept: After T35-T38 are DONE. `scripts/check-vibe-loop.mjs` drives ONLY the MCP server over stdio with the official SDK client, like an agent would: `listTools` contains setup, up, devices, install, launch, shot, screen, tap, type, swipe, key, logs, down; `setup` (dry run) reports present; `up` {} -> 1 device; `install` probe APK; `launch` with `check=form` extras; `shot` -> image item; `screen` -> finds the `Send` button; `type` + `tap` -> `logs` (since 1m) contains `CrewProbe FORM`; `launch --restart` with `check=crash` -> `crashed:true`; `down`; prints each step's wall time and the total (target: whole loop < 3 min on this PC, record the number). Tool descriptions are tightened so an agent picks the right one (each says when to use it and what it returns; `screen` vs `shot`: tree vs pixels). `android-vibe-loop` SKILL.md (<= 120 lines, frontmatter rules as check-skills enforces, description triggered by "run/test my Android app", "see the app screen", "the app does not start", "build and check on a phone"): the loop with the exact MCP tool names and CLI equivalents, how to read `crashed`, `blackRelaunch`, multiple-match tap errors, and when to switch to the advanced skills. `crewdroid` umbrella skill points to it first. AGENTS.md gets a 10-line "Vibe-coding loop" section. `check-skills.mjs` and `check-agent-files.mjs` still pass.
-  verify: `node scripts/check-vibe-loop.mjs && node scripts/check-skills.mjs && node scripts/check-agent-files.mjs`
-
 - [ ] T42 [KO] 1대 `up` 이 왜 49초(ready 101초)인지 찾아 고치기 — 3대 혼합 때 API 36 은 3.1초였음 (FR-27, FR-04)
   origin: human /brief 2026-10-26 reading `docs/measurements/single.md` (T36): boot 48.9 s, ready 101.5 s for ONE device, while `docs/measurements/slim.md` / the 3-device runs showed snapshot boots of 3-9 s. The README pitch (T40) quotes "boots in seconds" — this must hold first.
   area: src/up.ts, src/snapshot.ts, src/identity.ts (makeDistinct timing only), scripts/check-single.mjs, docs/measurements/single.md
