@@ -14,7 +14,7 @@ Local e2e: 해당 없음 — 에뮬레이터 시험은 각 Todo 의 verify 스�
 |---|---|
 | CPU | 16코어, WHPX |
 | Android SDK | `C:/Users/NYS/scoop/apps/android-clt/current` (emulator 37.1.11) |
-| 기존 AVD | old-avd-1~3 (5.8/5.5/5.2GB, google_apis 33) — MVP 통과 전 삭제·수정 금지 |
+| 기존 AVD | old-avd-1~3 (5.8/5.5/5.2GB, google_apis 33) — 2026-10-26 삭제 (android-33 이미지 8.2GB 와 함께, 24.7GiB 확보). 근거는 `docs/measurements/slim.md` |
 | Node / Java | 24.18 / OpenJDK 17 |
 
 ## 승인된 설치·다운로드 (2026-10-23 사용자 승인)
@@ -28,6 +28,6 @@ Local e2e: 해당 없음 — 에뮬레이터 시험은 각 Todo 의 verify 스�
 | 해도 됨 | 안 됨 |
 |---|---|
 | `emulator-<port>` 대상 adb | serial 없는 adb, USB 실기기 대상 adb |
-| crewdroid AVD(`crew-*`) 생성·삭제 | old-avd-1~3 수정·삭제 (`-read-only` 기동만) |
+| crewdroid AVD(`crew-*`) 생성·삭제 | 기본 AVD 수정·삭제 (`-read-only` 기동만) |
 | private-app 시험 실행 | private-app 파일 수정·커밋 |
 | 5580~ 포트 (MVP 만 5570~) | 사용자 5554~ 에뮬레이터 종료 |

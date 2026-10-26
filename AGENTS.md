@@ -29,6 +29,7 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `judge` | rules on server data: unique / count / noLostUpdate (`--rules <file> --source <url\|file>`) | implemented |
 | `hammer` | N virtual users against the API | implemented |
 | `run` | scenario: up, install, per-device loops + network schedule, judge, down | implemented |
+| `setup` | install SDK pieces (JDK 17, cmdline-tools, platform-tools, emulator, google_atd images); `--dry-run`, `--yes` | implemented |
 | `mcp` | stdio MCP server wrapping the commands above | implemented |
 | `prepare`, `identity`, `slim`, `measure` | base-image maintenance and measurement | implemented |
 | `help` | usage text | implemented |

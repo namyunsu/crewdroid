@@ -42,3 +42,13 @@
 - `crewdroid prepare` (그리고 `up` 의 첫 사용): 이미지를 먼저 slim 하고, 기본 AVD 를 다시 만든 뒤 압축하고 표시 파일을 쓴다.
 - 이미지 파일은 sdkmanager 가 다시 설치하면 원래 크기로 돌아온다. 그때는 `crewdroid slim` 을 다시 실행.
 - 쓰는 쪽 영향: 클론은 기본 AVD 파일을 읽기만 하므로 압축 파일에 쓰는 일이 없다. 0 으로 채운 스냅샷이라 클론의 페이지 캐시가 비어서 시작한다 (첫 앱 실행 때 디스크 읽기가 늘 수 있다) [추론: 따로 재지 않음; 시나리오·private-app 통과 여부는 `T15-2.txt`].
+
+## 옛 AVD 삭제 (T17, 2026-10-26)
+
+| 대상 | 확보 |
+|---|---|
+| AVD `old-avd-1`, `old-avd-2`, `old-avd-3` (`avdmanager delete avd`, `.ini` 포함) | 5.8 + 5.5 + 5.2 = 16.5 GiB (5.8/5.5/5.2 GB 표기) |
+| 이미지 `system-images;android-33;google_apis;x86_64` (`sdkmanager --uninstall`) | 8.2 GiB |
+| **합계** | **24.7 GiB** |
+
+[확인함 `~/.android/avd` 에 `old-avd-*` 없음, `<sdk>/system-images/android-33` 없음] crew-* AVD 와 다른 이미지는 건드리지 않았다.

@@ -16,6 +16,7 @@ import { apk } from "./apk.ts";
 import { fold } from "./fold.ts";
 import { envSet } from "./env.ts";
 import { appRun } from "./app.ts";
+import { setup, type StepName } from "./setup.ts";
 
 // AI NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
 const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
@@ -32,10 +33,11 @@ const { positionals, values } = parseArgs({
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
     app: { type: "string" }, pkg: { type: "boolean", default: false }, heap: { type: "string" }, png: { type: "string" }, activity: { type: "string" },
+    sdk: { type: "string" }, images: { type: "string" }, only: { type: "string" }, "dry-run": { type: "boolean", default: false }, yes: { type: "boolean", default: false },
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, mcp";
+const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, setup, mcp";
 
 async function main() {
   const [cmd] = positionals;
@@ -177,6 +179,12 @@ async function main() {
     if (!serial || !pkg || !what) throw new Error("usage: app <serial> <pkg> perm|open|links|clear|backup|restore|pressure|fill-storage [args] [--pkg]");
     const r = await appRun(serial, pkg, what, rest, { pkg: values.pkg });
     console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} ${Object.entries(r).filter(([k]) => k !== "serial").map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`).join(" ")}`);
+    return;
+  }
+  if (cmd === "setup") {
+    const r = await setup({ sdk: values.sdk, images: values.images?.split(","), only: values.only?.split(",") as StepName[] | undefined, dryRun: values["dry-run"], yes: values.yes });
+    const mb = (n?: number) => (n ? ` ${Math.round(n / 2 ** 20)} MB` : "");
+    console.log(values.json ? JSON.stringify(r, null, 2) : [`sdk: ${r.sdk}`, ...r.steps.map((s: any) => `${s.step}: ${s.status}${mb(s.downloadBytes)}`), `accel: ${r.host.accel.ok === null ? "unknown" : r.host.accel.ok ? "ok" : "FAILED"} (${r.host.accel.detail}); free disk: ${r.host.freeDiskGB ?? "?"} GB`, ...(r.envLine ? [`add to your environment: ${r.envLine}`] : [])].join("\n"));
     return;
   }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes
