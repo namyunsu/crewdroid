@@ -40,15 +40,8 @@ Rules for this wave (on top of the earlier rules):
 - Emulator order (one per batch): T36 -> T37 -> T38 -> T39 -> T41 -> T33. Batch 1: T36 + T35 + T17. T40 (pitch) runs last, after T39 and T41 are DONE (it links vibe.gif and quotes the loop time); it may share a batch with T33. Added later: T42 -> T43 -> T44 (hero motion graphic, boots 3 devices) -> T48 (demo app + real clips) -> T49 (agent benchmark) -> T50 (hero v2 from real clips + bench numbers) -> T40 (pitch, last).
 
 
-- [ ] T49 [KO] "AI 가 더 잘, 더 빨리 다룬다"를 숫자로: 에이전트 조작 벤치마크 (FR-35)
-  origin: human 2026-10-26: "AI가 이 에뮬을 더 잘 다루고 빠르게 다룬다는게 최고의 강점이야 너무 대충 만들지마". The pitch and the hero must prove this with measured numbers, not adjectives.
-  area: scripts/bench-agent.mjs, docs/measurements/agent-bench.json, docs/measurements/agent-bench.md, src/screen.ts (only if a faster tree dump is found)
-  model: opus
-  review: required
-  accept: After T48 (uses the Field Notes demo app). Same task, same device (s24ultra, API 34), 5 runs each, deterministic (no LLM): "open the app, add a note 'Fix pump #3', confirm it appears in the list". Path A = crewdroid way an agent uses it: `screen` (JSON tree) to observe, `tap --text` / `type` to act, `logs` to confirm. Path B = screenshot way (how pixel-based agents and computer-use drive an emulator window): `screencap -p` PNG to observe after every action, tap by coordinates found from that image (use the tree only to compute the coordinates the vision model would have to find — note this favours B). Measure per step and total: wall time, number of tool calls, observation payload bytes, and estimated model input tokens (text: chars/4; image: Anthropic's documented formula, tokens ≈ width*height/750 after scaling the long edge to <= 1568 px — cite the doc URL in the md), plus failure modes seen. Also measure "time to first usable device": crewdroid `up` (1 device) vs a stock AVD cold boot with a window (`emulator -avd <stock>` with Android Studio's default flags, then boot_completed) — reuse T01 numbers only if the same machine; otherwise measure now with a fresh google_atd AVD without crewdroid's slim/snapshot. Write `agent-bench.md` (table: A vs B, ratio column) and JSON. Honest wording: the numbers are observation cost and latency, not a model's success rate. The md ends with a 3-line "what this means for an agent" summary used by T50 and T40.
-  verify: `node scripts/bench-agent.mjs && node -e "const j=require('./docs/measurements/agent-bench.json');for(const k of ['A','B'])if(!(j[k]&&j[k].runs===5&&j[k].tokensPerTask>0&&j[k].secondsPerTask>0))throw new Error('bench '+k+' incomplete');if(!(j.firstDevice&&j.firstDevice.crewdroidSeconds>0&&j.firstDevice.stockSeconds>0))throw new Error('first-device timing missing');console.log('bench ok A/B tokens',j.A.tokensPerTask,j.B.tokensPerTask)"`
 
-- [ ] T50 [KO] 소개 영상 다시 만들기: 실제 녹화 중심 15초 (FR-34, T44 대체)
+- [ ] T50 [KO] 소개 영상 다시 만들기: 실제 녹화 중심 15초 (FR-34, T44 대체) BLOCKED: T49 측정이 "더 빠르고 저렴" 전제와 반대(docs/measurements/agent-bench.md). 영상 메시지를 사용자가 정해야 함.
   origin: same complaint as T48. Replaces T44's slide-style hero.gif (keep T44's render pipeline: HTML/CSS + Playwright frame stepping + ffmpeg).
   area: scripts/hero/ (index.html, hero.css, storyboard.json, render.mjs), scripts/check-hero.mjs, docs/demo/hero.gif, docs/demo/hero.mp4 (for the README `<video>` fallback link), docs/demo/hero-poster.png, docs/measurements/hero.json
   model: opus
@@ -57,7 +50,7 @@ Rules for this wave (on top of the earlier rules):
   verify: `node scripts/hero/render.mjs && node scripts/check-hero.mjs`
   manual: the user watches hero.gif and says yes (test-cases.md FR-34). Until then T40 may link it but the wave report must say "awaiting the user's look".
 
-- [ ] T40 [KO] 소개 바꾸기: 바이브 코딩용 가벼운 에뮬레이터를 앞세움 (FR-31)
+- [ ] T40 [KO] 소개 바꾸기: 바이브 코딩용 가벼운 에뮬레이터를 앞세움 (FR-31) BLOCKED: T50 대기
   area: README.md, README.ko.md, AGENTS.md (intro lines only), package.json (`description`, `keywords`), server.json (`description`), scripts/check-public.mjs (pitch checks), docs/release.md (GitHub description command)
   model: sonnet
   review: required

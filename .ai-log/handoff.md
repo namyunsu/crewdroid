@@ -1,10 +1,7 @@
-# Handoff (2026-10-26 19:41 shift 4, 3 batches)
-이번 shift: T44(hero.gif 슬라이드형, ee5c829 APPROVE), T33(net slow 2MB 업로드: probe http() 감시자 한도를 본문 크기에 비례, 0058e84 APPROVE). T40 은 작업 중 /brief 가 선행 조건(T48·T49·T50)을 바꿔 되돌림, 초안은 .ai-log/evidence/T40-draft.patch.
-다음 batch(에뮬레이터 한 번에 하나, 순서): T45(check-net/offline 기존 결함 진단, opus) → T48(데모 앱+클립) → T49(에이전트 벤치) → T50(hero 재제작) → T40(소개, 마지막; 초안 patch 재사용).
-알려진 문제: check-net(airplane 인데 업로드 성공, slow→nodata 가 업로드 안 끊음)·check-offline(RETRY p3 timeout)이 원본 코드에서도 실패 = T45. check-slow-upload.mjs:58 .replace(/s+/g) 는 /\s+/g 오타(출력용). src/triage.ts:31 tsc 오류(기존). scripts/demo-vibe.mjs:66 폰트 경로 Windows 하드코딩. platform.ts:92,94 빈 catch.
-MANUAL: T43 Mac/Linux 에서 setup→up→shot→down 시간 기록. T44 hero.gif 는 사용자가 이미 구리다고 함(T50 대체).
-시나리오(check-scenario)는 T33 후 안 돌림: photoBytes 65536 이라 영향 없다는 추론뿐, 다음 WRAP-UP 전에 한 번 돌릴 것.
-워커는 worktree 없이 ai/work 에서 직접 작업. %TEMP%\claude 아래 hero-caps/hero-view/hero.bak 임시 폴더가 남음(권한 거부로 못 지움).
-
-## 2026-10-26 23:1x shift (BUSY)
-bench-agent(PID 22632)가 락과 qemu 30788 을 쥐고 있어 dispatch 안 함. .ai-log/BUSY 기록. 끝나면 agent-bench.json/md(미추적, 23:07 기록)를 verify 하고 T49 를 마무리할 것. 이미 결과 파일이 있으니 새 워커 대신 verify 부터.
+# Handoff (2026-10-26 23:35 shift 5, 3 batches)
+이번 shift: T45(net 상태 전환이 online 을 거치고 부팅 직후 API31 네트워크 공백 → src/net.ts 에서 먼저 끊고 settle 대기, ba0a1ac APPROVE), T48(Field Notes 데모 앱 + 클립 5개, bfc6b69 APPROVE), T49(에이전트 벤치, 1274c6b APPROVE).
+핵심 문제: T49 결과가 전제와 반대. 트리 방식 9695토큰·23.9초 vs 스크린샷 6212토큰·10.3초 (crewdroid up 8.5초 vs stock 콜드 24.2초, 단 stock quick boot 5.8초). 원인: screen JSON 들여쓰기·필드 과다(2778토큰/회), uiautomator dump 3.5초/회, logs 3527토큰/회.
+BLOCKED: T50(영상)·T40(소개) — 사용자가 메시지를 정해야 함. 선택지: (a) screen/logs 출력 압축 + 덤프 속도 개선 Todo 를 먼저 만들어 숫자를 뒤집은 뒤 영상, (b) "빠르다/싸다" 대신 부팅 시간·RAM·JSON 구조·MCP 로 메시지 변경.
+알려진 문제: check-scenario 는 net.ts 변경(T45, setNet 3~15초 블로킹) 후 한 번도 안 돌림 — WRAP-UP 전에 한 번 돌릴 것(약 12분). src/triage.ts:31 tsc 오류(기존). scripts/demo-vibe.mjs:66 폰트 경로 Windows 하드코딩. platform.ts:92,94 빈 catch. bench-agent.mjs:163 빈 catch. %TEMP% 의 crewbench-*/t45/t48/t49/hero-* 폴더 권한 거부로 못 지움.
+MANUAL: T43 Mac/Linux 측정, T48 클립 5개를 사용자가 직접 봄, T44 hero.gif(T50 이 대체).
+다음: 사용자 결정 전에는 dev 에 진행할 TODO 없음 → QA/WRAP-UP(check-scenario 포함).
