@@ -1,13 +1,13 @@
 # crewdroid
 
+[![npm](https://img.shields.io/npm/v/crewdroid)](https://www.npmjs.com/package/crewdroid) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.namyunsu%2Fcrewdroid-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=crewdroid) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 **Headless Android device lab for AI agents.** Boot a fleet of mixed Galaxy emulators in one command, break each one's network on its own schedule, replay the same user flow at different timings, then judge the server data for concurrency bugs — duplicate, missing or overwritten records. No window, no clicking: every step is a CLI command with `--json` and an exit code, and the same commands are MCP tools and agent skills.
 
 ```bash
 npx crewdroid up --count 3        # 3 devices: s24ultra/API 34, fold5/API 34, flip7/API 36 — booted in ~7 s each
 npx crewdroid run scenarios/photo-upload.json --seed 1   # multi-user flow + network chaos + judge, exit 1 on a bug
 ```
-
-> Not on npm yet: use `npx -y github:namyunsu/crewdroid <command>` (and `"args": ["-y", "github:namyunsu/crewdroid", "mcp"]` in the MCP config below) until the npm release.
 
 ![3 emulated Galaxy devices (different screens and Android versions) running the same offline-first flow side by side](docs/demo/demo.gif)
 
