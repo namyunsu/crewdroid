@@ -4,7 +4,7 @@ Lightweight multi-user Android field lab on top of Google's emulator. Boots N he
 
 ## Install and run
 ```bash
-npm ci                                   # Node >= 22, Android SDK + emulator >= 36.4, WHPX/KVM
+npm ci                                   # Node >= 22, Android SDK + emulator >= 36.4; Windows x64, macOS (Apple Silicon) or Linux with WHPX/HVF/KVM
 npx tsx src/cli.ts up --count 3 --json   # boot 3 mixed devices (emulator-5580, 5582, ...)
 npx tsx src/cli.ts run scenarios/photo-upload.json --seed 1 --server-port 5595
 npx tsx src/cli.ts down                  # always stop what you started

@@ -6,6 +6,7 @@ import { createInterface } from "node:readline/promises";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { z } from "zod";
+import { imageAbi } from "./platform.ts";
 import { defaultSdk } from "./sdk.ts";
 import type { Tool } from "./mcp.ts";
 
@@ -23,7 +24,7 @@ const win = (p: string) => p === "win32";
 export const repoOs = (p: string) => (win(p) ? "windows" : p === "darwin" ? "macosx" : "linux"); // repository XML <host-os>
 export const adoptiumOs = (p: string) => (win(p) ? "windows" : p === "darwin" ? "mac" : "linux");
 export const adoptiumArch = (a: string) => (a === "arm64" ? "aarch64" : "x64");
-export const imageAbi = (a: string) => (a === "arm64" ? "arm64-v8a" : "x86_64");
+export { imageAbi };
 export const jreUrl = (p: string, a: string) => `https://api.adoptium.net/v3/binary/latest/17/ga/${adoptiumOs(p)}/${adoptiumArch(a)}/jre/hotspot/normal/eclipse`;
 export const cmdlineUrl = (build: string, p: string) => `https://dl.google.com/android/repository/commandlinetools-${win(p) ? "win" : p === "darwin" ? "mac" : "linux"}-${build}_latest.zip`;
 export const imagePackage = (api: string, a: string) => `system-images;android-${api};google_atd;${imageAbi(a)}`;

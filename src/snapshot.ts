@@ -1,16 +1,13 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
-import { KNOBS, avdHome, avdName, createAvd, imageInstalled, installImage, ramMB } from "./avd.ts";
+import { KNOBS, avdHome, avdName, createAvd, imageDir, imageInstalled, installImage, ramMB } from "./avd.ts";
 import { launchEmulator } from "./emulator.ts";
 import { waitBoot } from "./measure.ts";
-import { sdkRoot } from "./sdk.ts";
+import { killMatching } from "./platform.ts";
 import { MARK, slimAvd, slimImage } from "./slim.ts";
 
-const run = promisify(execFile);
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const PKG = "dev.crewdroid.probe";
 export const probeApk = () => join(import.meta.dirname, "..", "probe-app/app/build/outputs/apk/debug/app-debug.apk");
@@ -27,14 +24,14 @@ export function start(name: string, port: number, readOnly: boolean, extra: stri
 export async function killAll(name: string, serials: string[]) {
   for (const s of serials) await adb(s, ["emu", "kill"], 10000).catch(() => {});
   await sleep(5000);
-  await run("powershell", ["-NoProfile", "-Command", `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match '(^|[ @"])${name}([ "]|$)' -and $_.Name -match 'emulator|qemu' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`], { windowsHide: true }).catch(() => {});
+  await killMatching(`(^|[ @"])${name}([ "]|$)`).catch(() => {});
 }
 
 // Boots the base AVD once (writable), installs the probe app, saves a clean snapshot, shuts down, then slims it (T15):
 // image sparse + compressed first, old snapshots dropped, AVD files compressed after the save.
 export async function prepare(image: string, port = 5580, tries = 3): Promise<{ avd: string; snapshot: string; bootSeconds: number }> {
   if (!imageInstalled(image)) await installImage(image);
-  await slimImage(join(sdkRoot(), "system-images", ...image.split("/"), "x86_64"));
+  await slimImage(imageDir(image));
   const name = await createAvd(image);
   const dir = join(avdHome(), `${name}.avd`);
   const serial = `emulator-${port}`;

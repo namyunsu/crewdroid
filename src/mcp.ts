@@ -1,8 +1,6 @@
-import { execFile } from "node:child_process";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { promisify } from "node:util";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z, type ZodRawShape } from "zod";
@@ -10,11 +8,10 @@ import { adb } from "./adb.ts";
 import { hammer } from "./hammer.ts";
 import { judge } from "./judge.ts";
 import { NET_STATES, setNet } from "./net.ts";
+import { CREW_RE, listProcesses } from "./platform.ts";
 import { loadProfiles } from "./profiles.ts";
 import { runScenario } from "./scenario.ts";
 import { down, up, upDefaults } from "./up.ts";
-
-const run = promisify(execFile);
 
 // A feature module adds MCP tools by exporting `mcpTools: Tool[]`; serve() picks up every src/*.ts that does.
 // `long` tools get a `timeoutSec` input and should print progress with console.error (sent as logging notifications).
@@ -25,10 +22,8 @@ export interface Tool { name: string; description: string; input: ZodRawShape; l
 // Running crew emulators. AI NOTE: same process query as down() in up.ts (crew-* AVD on the command line); profile is
 // recovered by matching the device's current wm size/density against profiles/galaxy.json (up() does not record it).
 export async function devices(): Promise<{ serial: string; avd: string; api: number | null; profile: string; size: string; density: string; screen: string; booted: boolean }[]> {
-  const ps = `ConvertTo-Json -Compress -InputObject @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'emulator|qemu' -and $_.CommandLine -match '(^|[ @"])crew-[^ "]+([ "]|$)' } | ForEach-Object { $_.CommandLine })`;
-  const { stdout } = await run("powershell", ["-NoProfile", "-Command", ps], { windowsHide: true });
   const byPort = new Map<number, string>();
-  for (const cmd of JSON.parse(stdout.trim() || "[]") as string[]) {
+  for (const { cmd } of await listProcesses(CREW_RE)) {
     const port = Number(cmd.match(/-port\s+(\d+)/)?.[1]);
     const avd = cmd.match(/(?:^|[ @"])(crew-[^ "]+)/)?.[1];
     if (port > 0 && avd) byPort.set(port, avd);

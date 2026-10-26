@@ -7,6 +7,7 @@ import { adb } from "./adb.ts";
 import { avdHome, avdName } from "./avd.ts";
 import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
+import { CREW_RE, killTree, listProcesses, ramMethod } from "./platform.ts";
 import { emulatorPath } from "./sdk.ts";
 import { assign, atdImages, loadProfiles, loadProfilesFile, parseScreen, relaunchBlackApis } from "./profiles.ts";
 import { prepare, sleep, start } from "./snapshot.ts";
@@ -172,7 +173,7 @@ export async function measureUp(count: number, basePort = 5580, idleSec = 60, na
       date: new Date().toISOString(),
       pc: { cpuModel: cpus()[0].model, cores: cpus().length, ramGB: Math.round(totalmem() / 2 ** 30), os: `${process.platform} ${release()}` },
       emulatorVersion: stdout.match(/version\s+(\S+)/)?.[1] ?? "unknown",
-      idleSeconds: idleSec, diskTotalBytes: devices.reduce((a, d) => a + d.diskBytes, 0), devices,
+      method: ramMethod(), idleSeconds: idleSec, diskTotalBytes: devices.reduce((a, d) => a + d.diskBytes, 0), devices,
     };
   } finally {
     await down();
@@ -182,15 +183,11 @@ export async function measureUp(count: number, basePort = 5580, idleSec = 60, na
 // Kills only crewdroid instances: emulator/qemu processes whose command line names an AVD `crew-*`.
 export async function down(): Promise<{ killed: number[]; ports: number[] }> {
   claimEmulators();
-  const list = async () => {
-    const ps = `ConvertTo-Json -Compress -InputObject @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'emulator|qemu' -and $_.CommandLine -match '(^|[ @"])crew-[^ "]+([ "]|$)' } | ForEach-Object { [pscustomobject]@{ pid = $_.ProcessId; cmd = $_.CommandLine } })`;
-    const { stdout } = await run("powershell", ["-NoProfile", "-Command", ps], { windowsHide: true });
-    return JSON.parse(stdout.trim() || "[]") as { pid: number; cmd: string }[];
-  };
+  const list = () => listProcesses(CREW_RE);
   const procs = await list();
   const ports = [...new Set(procs.map((p) => Number(p.cmd.match(/-port\s+(\d+)/)?.[1])).filter((p) => p > 0))];
   for (const p of ports) await adb(`emulator-${p}`, ["emu", "kill"], 10000).catch(() => {});
   if (ports.length) await sleep(5000);
-  for (const p of await list()) await run("powershell", ["-NoProfile", "-Command", `Stop-Process -Id ${p.pid} -Force`], { windowsHide: true }).catch(() => {});
+  await killTree((await list()).map((p) => p.pid));
   return { killed: procs.map((p) => p.pid), ports };
 }
