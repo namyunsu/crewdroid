@@ -71,3 +71,9 @@
 2026-10-26 | check-net/offline 이 원본에서도 실패해 T33 verify 체인이 막힘, A/B 확인에 약 30분 | env broken (기존 결함)
 2026-10-26 | T40 을 보낸 뒤 /brief 가 todo.md 선행 조건을 바꿔 작업 폐기 | Todo changed mid-shift (사람 편집과 shift 겹침)
 2026-10-26 | 워커가 %TEMP% 임시 폴더 삭제를 권한에서 거부당함 | tool limit
+2026-10-26 | 이전 shift 시간초과 뒤에도 bench-agent.mjs(PID 22632)와 bench-stock-34 에뮬레이터가 살아 락을 쥠 | env broken / tool limit
+2026-10-26 | 이전 shift 의 bench-agent(22632)가 shift 사이에도 계속 돌아 에뮬레이터 점유 | env: 오래 걸리는 벤치가 shift 종료 후 살아남음
+2026-10-26 | T49 Todo 가 "AI 가 더 빠르고 저렴" 을 전제로 썼으나 측정은 반대 (트리 덤프 3.5초/회, JSON 들여쓰기) | Todo unclear: 측정 전에 결론을 Todo 에 적음
+2026-10-26 | 워커 임시 폴더(crewbench-*, t48, t45, t49) 삭제가 권한 거부로 남음 | env broken: 임시 폴더 삭제 권한
+2026-10-26 | T45 진단+수정 66분, T48 67분, T49 41분: 워커 1회가 한 shift 의 대부분 | tool limit
+2026-10-26 | check-scenario 가 한 번에 약 12분이라 foreground 대기가 10분 제한에 두 번 걸림 | tool limit

@@ -1,0 +1,694 @@
+{
+  "date": "2026-10-26T13:24:27.218Z",
+  "app": {
+    "pkg": "dev.crewdroid.demo",
+    "source": "demo-app/"
+  },
+  "server": "sample/server on :5596 (PUT /records/:id, GET /export)",
+  "devices": [
+    {
+      "serial": "emulator-5580",
+      "profile": "s24ultra",
+      "api": 34
+    },
+    {
+      "serial": "emulator-5582",
+      "profile": "fold5-main",
+      "api": 34
+    },
+    {
+      "serial": "emulator-5584",
+      "profile": "flip7-main",
+      "api": 36
+    }
+  ],
+  "clips": [
+    {
+      "name": "boot",
+      "file": "docs/demo/clips/boot.mp4",
+      "seconds": 3.17,
+      "bytes": 143835,
+      "height": 720,
+      "fps": 30,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s24ultra",
+          "api": 34,
+          "x": 0,
+          "width": 340
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "fold5-main",
+          "api": 34,
+          "x": 364,
+          "width": 616
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "flip7-main",
+          "api": 36,
+          "x": 1004,
+          "width": 316
+        }
+      ],
+      "recordedSeconds": 20.5,
+      "keptSeconds": 3.17,
+      "speed": 1,
+      "changesThroughout": true,
+      "firstLastDiffer": true,
+      "commands": [
+        {
+          "cmd": "crewdroid launch emulator-5580 dev.crewdroid.demo -- --es server http://10.0.2.2:5596",
+          "device": "emulator-5580",
+          "atSeconds": 0,
+          "effectSeconds": 1,
+          "realSeconds": 0.6,
+          "tookSeconds": 3.9
+        },
+        {
+          "cmd": "crewdroid launch emulator-5582 dev.crewdroid.demo -- --es server http://10.0.2.2:5596",
+          "device": "emulator-5582",
+          "atSeconds": 1,
+          "effectSeconds": 1.93,
+          "realSeconds": 4.5,
+          "tookSeconds": 4
+        },
+        {
+          "cmd": "crewdroid launch emulator-5584 dev.crewdroid.demo -- --es server http://10.0.2.2:5596",
+          "device": "emulator-5584",
+          "atSeconds": 1.93,
+          "effectSeconds": 3.17,
+          "realSeconds": 8.5,
+          "tookSeconds": 6.9
+        }
+      ],
+      "up": {
+        "cmd": "crewdroid up --count 3 --profiles s24ultra,fold5-main,flip7-main",
+        "seconds": 117,
+        "readySeconds": {
+          "s24ultra": 34,
+          "fold5-main": 30.2,
+          "flip7-main": 109.9
+        },
+        "settleSeconds": 121.7
+      },
+      "note": "Footage starts once `up` has returned: before that the headless screens are black (identity restart). `up` times are in `up`.",
+      "gitIgnored": false
+    },
+    {
+      "name": "agent",
+      "file": "docs/demo/clips/agent.mp4",
+      "seconds": 6.5,
+      "bytes": 122650,
+      "height": 720,
+      "fps": 30,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s24ultra",
+          "api": 34,
+          "x": 0,
+          "width": 340
+        }
+      ],
+      "recordedSeconds": 14.5,
+      "keptSeconds": 6.5,
+      "speed": 1,
+      "changesThroughout": true,
+      "firstLastDiffer": true,
+      "commands": [
+        {
+          "cmd": "crewdroid tap emulator-5580 --text New note",
+          "device": "emulator-5580",
+          "atSeconds": 0,
+          "effectSeconds": 0.2,
+          "realSeconds": 2.1,
+          "tookSeconds": 3.2
+        },
+        {
+          "cmd": "crewdroid type emulator-5580 Fix pump #3",
+          "device": "emulator-5580",
+          "atSeconds": 0.7,
+          "effectSeconds": 2,
+          "realSeconds": 5.9,
+          "tookSeconds": 1.4
+        },
+        {
+          "cmd": "crewdroid tap emulator-5580 --text Save",
+          "device": "emulator-5580",
+          "atSeconds": 2,
+          "effectSeconds": 5.33,
+          "realSeconds": 7.2,
+          "tookSeconds": 3.7
+        }
+      ],
+      "gitIgnored": false
+    },
+    {
+      "name": "offline",
+      "file": "docs/demo/clips/offline.mp4",
+      "seconds": 7.5,
+      "bytes": 180946,
+      "height": 720,
+      "fps": 30,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s24ultra",
+          "api": 34,
+          "x": 0,
+          "width": 340
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "flip7-main",
+          "api": 36,
+          "x": 364,
+          "width": 316
+        }
+      ],
+      "recordedSeconds": 29.4,
+      "keptSeconds": 7.63,
+      "speed": 1.02,
+      "changesThroughout": true,
+      "firstLastDiffer": true,
+      "commands": [
+        {
+          "cmd": "crewdroid net emulator-5580 airplane",
+          "device": "emulator-5580",
+          "atSeconds": 0,
+          "effectSeconds": 0.52,
+          "realSeconds": 1.7,
+          "tookSeconds": 5.2
+        },
+        {
+          "cmd": "crewdroid tap emulator-5580 --text New note",
+          "device": "emulator-5580",
+          "atSeconds": 0.52,
+          "effectSeconds": 0.59,
+          "realSeconds": 6.9,
+          "tookSeconds": 3.6
+        },
+        {
+          "cmd": "crewdroid type emulator-5580 Valve 7 replaced",
+          "device": "emulator-5580",
+          "atSeconds": 1.21,
+          "effectSeconds": 2.06,
+          "realSeconds": 11.1,
+          "tookSeconds": 0.9
+        },
+        {
+          "cmd": "crewdroid tap emulator-5580 --text Save",
+          "device": "emulator-5580",
+          "atSeconds": 2.06,
+          "effectSeconds": 4.75,
+          "realSeconds": 12,
+          "tookSeconds": 3.1
+        },
+        {
+          "cmd": "crewdroid net emulator-5580 online",
+          "device": "emulator-5580",
+          "atSeconds": 5.7,
+          "effectSeconds": 7.5,
+          "realSeconds": 16.6,
+          "tookSeconds": 7.3
+        }
+      ],
+      "gitIgnored": false
+    },
+    {
+      "name": "fold",
+      "file": "docs/demo/clips/fold.mp4",
+      "seconds": 4.77,
+      "bytes": 183104,
+      "height": 720,
+      "fps": 30,
+      "devices": [
+        {
+          "serial": "emulator-5582",
+          "profile": "fold5-main",
+          "api": 34,
+          "x": 0,
+          "width": 616
+        }
+      ],
+      "recordedSeconds": 10.4,
+      "keptSeconds": 4.77,
+      "speed": 1,
+      "changesThroughout": true,
+      "firstLastDiffer": true,
+      "commands": [
+        {
+          "cmd": "crewdroid fold emulator-5582",
+          "device": "emulator-5582",
+          "atSeconds": 0,
+          "effectSeconds": 0.53,
+          "realSeconds": 2.1,
+          "tookSeconds": 1.1
+        },
+        {
+          "cmd": "crewdroid swipe emulator-5582 up",
+          "device": "emulator-5582",
+          "atSeconds": 1.2,
+          "effectSeconds": 1.77,
+          "realSeconds": 4,
+          "tookSeconds": 0.7
+        },
+        {
+          "cmd": "crewdroid unfold emulator-5582",
+          "device": "emulator-5582",
+          "atSeconds": 2.07,
+          "effectSeconds": 2.57,
+          "realSeconds": 5.5,
+          "tookSeconds": 0.7
+        },
+        {
+          "cmd": "crewdroid swipe emulator-5582 down",
+          "device": "emulator-5582",
+          "atSeconds": 3,
+          "effectSeconds": 3.47,
+          "realSeconds": 7,
+          "tookSeconds": 0.6
+        }
+      ],
+      "gitIgnored": false
+    },
+    {
+      "name": "dark",
+      "file": "docs/demo/clips/dark.mp4",
+      "seconds": 4.9,
+      "bytes": 174071,
+      "height": 720,
+      "fps": 30,
+      "devices": [
+        {
+          "serial": "emulator-5584",
+          "profile": "flip7-main",
+          "api": 36,
+          "x": 0,
+          "width": 316
+        }
+      ],
+      "recordedSeconds": 9.7,
+      "keptSeconds": 4.9,
+      "speed": 1,
+      "changesThroughout": true,
+      "firstLastDiffer": true,
+      "commands": [
+        {
+          "cmd": "crewdroid env emulator-5584 dark on",
+          "device": "emulator-5584",
+          "atSeconds": 0,
+          "effectSeconds": 0,
+          "realSeconds": 1.9,
+          "tookSeconds": 0.7
+        },
+        {
+          "cmd": "crewdroid swipe emulator-5584 up",
+          "device": "emulator-5584",
+          "atSeconds": 0.7,
+          "effectSeconds": 1.33,
+          "realSeconds": 3.4,
+          "tookSeconds": 0.8
+        },
+        {
+          "cmd": "crewdroid swipe emulator-5584 down",
+          "device": "emulator-5584",
+          "atSeconds": 1.7,
+          "effectSeconds": 2.23,
+          "realSeconds": 4.8,
+          "tookSeconds": 0.7
+        },
+        {
+          "cmd": "crewdroid swipe emulator-5584 down",
+          "device": "emulator-5584",
+          "atSeconds": 2.53,
+          "effectSeconds": 3.27,
+          "realSeconds": 5.8,
+          "tookSeconds": 0.7
+        }
+      ],
+      "gitIgnored": false
+    }
+  ],
+  "shots": [
+    {
+      "profile": "s24ultra",
+      "serial": "emulator-5580",
+      "file": "docs/demo/clips/main-s24ultra.png",
+      "width": 1080,
+      "height": 2340,
+      "textNodes": 27,
+      "scrolledOff": 2,
+      "clipped": [],
+      "lowContrast": [],
+      "minContrast": 6.25,
+      "ratios": [
+        {
+          "text": "Field Notes",
+          "ratio": 15.31
+        },
+        {
+          "text": "Riverside depot · 8 notes",
+          "ratio": 8.52
+        },
+        {
+          "text": "Synced ✓",
+          "ratio": 7.97
+        },
+        {
+          "text": "NF",
+          "ratio": 6.25
+        },
+        {
+          "text": "Replace filter on intake line",
+          "ratio": 16.64
+        },
+        {
+          "text": "North field · 12:43",
+          "ratio": 9.26
+        },
+        {
+          "text": "PH",
+          "ratio": 7.1
+        },
+        {
+          "text": "Pressure gauge on valve 7 reads low",
+          "ratio": 16.64
+        },
+        {
+          "text": "Pump house · 11:26",
+          "ratio": 9.26
+        },
+        {
+          "text": "WA",
+          "ratio": 6.26
+        },
+        {
+          "text": "Cracked floor tile by loading dock",
+          "ratio": 16.64
+        },
+        {
+          "text": "Warehouse · 10:11",
+          "ratio": 9.26
+        },
+        {
+          "text": "WO",
+          "ratio": 6.7
+        },
+        {
+          "text": "Order 2 m of 25 mm hose",
+          "ratio": 16.64
+        },
+        {
+          "text": "Workshop · 08:31",
+          "ratio": 9.26
+        },
+        {
+          "text": "NF",
+          "ratio": 6.25
+        },
+        {
+          "text": "Calibrate soil sensor S-12",
+          "ratio": 16.64
+        },
+        {
+          "text": "North field · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "WO",
+          "ratio": 6.7
+        },
+        {
+          "text": "Restock first-aid kit in van 2",
+          "ratio": 16.64
+        },
+        {
+          "text": "Workshop · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "WA",
+          "ratio": 6.26
+        },
+        {
+          "text": "Forklift battery at 20 %",
+          "ratio": 16.64
+        },
+        {
+          "text": "Warehouse · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "New note",
+          "ratio": 6.25
+        }
+      ]
+    },
+    {
+      "profile": "fold5-main",
+      "serial": "emulator-5582",
+      "file": "docs/demo/clips/main-fold5-main.png",
+      "width": 1812,
+      "height": 2176,
+      "textNodes": 28,
+      "scrolledOff": 0,
+      "clipped": [],
+      "lowContrast": [],
+      "minContrast": 6.25,
+      "ratios": [
+        {
+          "text": "Field Notes",
+          "ratio": 15.31
+        },
+        {
+          "text": "Riverside depot · 8 notes",
+          "ratio": 8.52
+        },
+        {
+          "text": "Synced ✓",
+          "ratio": 7.97
+        },
+        {
+          "text": "NF",
+          "ratio": 6.25
+        },
+        {
+          "text": "Replace filter on intake line",
+          "ratio": 16.64
+        },
+        {
+          "text": "North field · 12:43",
+          "ratio": 9.26
+        },
+        {
+          "text": "PH",
+          "ratio": 7.1
+        },
+        {
+          "text": "Pressure gauge on valve 7 reads low",
+          "ratio": 16.64
+        },
+        {
+          "text": "Pump house · 11:26",
+          "ratio": 9.26
+        },
+        {
+          "text": "WA",
+          "ratio": 6.26
+        },
+        {
+          "text": "Cracked floor tile by loading dock",
+          "ratio": 16.64
+        },
+        {
+          "text": "Warehouse · 10:11",
+          "ratio": 9.26
+        },
+        {
+          "text": "WO",
+          "ratio": 6.7
+        },
+        {
+          "text": "Order 2 m of 25 mm hose",
+          "ratio": 16.64
+        },
+        {
+          "text": "Workshop · 08:31",
+          "ratio": 9.26
+        },
+        {
+          "text": "NF",
+          "ratio": 6.25
+        },
+        {
+          "text": "Calibrate soil sensor S-12",
+          "ratio": 16.64
+        },
+        {
+          "text": "North field · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "WO",
+          "ratio": 6.7
+        },
+        {
+          "text": "Restock first-aid kit in van 2",
+          "ratio": 16.64
+        },
+        {
+          "text": "Workshop · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "WA",
+          "ratio": 6.26
+        },
+        {
+          "text": "Forklift battery at 20 %",
+          "ratio": 16.64
+        },
+        {
+          "text": "Warehouse · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "NF",
+          "ratio": 6.25
+        },
+        {
+          "text": "Fence post down near gate B",
+          "ratio": 16.64
+        },
+        {
+          "text": "North field · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "New note",
+          "ratio": 6.25
+        }
+      ]
+    },
+    {
+      "profile": "flip7-main",
+      "serial": "emulator-5584",
+      "file": "docs/demo/clips/main-flip7-main.png",
+      "width": 1080,
+      "height": 2520,
+      "textNodes": 26,
+      "scrolledOff": 1,
+      "clipped": [],
+      "lowContrast": [],
+      "minContrast": 6.25,
+      "ratios": [
+        {
+          "text": "Field Notes",
+          "ratio": 15.31
+        },
+        {
+          "text": "Riverside depot · 8 notes",
+          "ratio": 8.52
+        },
+        {
+          "text": "Synced ✓",
+          "ratio": 7.97
+        },
+        {
+          "text": "NF",
+          "ratio": 6.25
+        },
+        {
+          "text": "Replace filter on intake line",
+          "ratio": 16.64
+        },
+        {
+          "text": "North field · 12:43",
+          "ratio": 9.26
+        },
+        {
+          "text": "PH",
+          "ratio": 7.1
+        },
+        {
+          "text": "Pressure gauge on valve 7 reads low",
+          "ratio": 16.64
+        },
+        {
+          "text": "Pump house · 11:26",
+          "ratio": 9.26
+        },
+        {
+          "text": "WA",
+          "ratio": 6.26
+        },
+        {
+          "text": "Cracked floor tile by loading dock",
+          "ratio": 16.64
+        },
+        {
+          "text": "Warehouse · 10:11",
+          "ratio": 9.26
+        },
+        {
+          "text": "WO",
+          "ratio": 6.7
+        },
+        {
+          "text": "Order 2 m of 25 mm hose",
+          "ratio": 16.64
+        },
+        {
+          "text": "Workshop · 08:31",
+          "ratio": 9.26
+        },
+        {
+          "text": "NF",
+          "ratio": 6.25
+        },
+        {
+          "text": "Calibrate soil sensor S-12",
+          "ratio": 16.64
+        },
+        {
+          "text": "North field · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "WO",
+          "ratio": 6.7
+        },
+        {
+          "text": "Restock first-aid kit in van 2",
+          "ratio": 16.64
+        },
+        {
+          "text": "Workshop · Yesterday",
+          "ratio": 9.26
+        },
+        {
+          "text": "WA",
+          "ratio": 6.26
+        },
+        {
+          "text": "Forklift battery at 20 %",
+          "ratio": 16.64
+        },
+        {
+          "text": "Warehouse · Yesterday",
+          "ratio": 6.25
+        },
+        {
+          "text": "New note",
+          "ratio": 6.25
+        }
+      ]
+    }
+  ],
+  "layoutOk": true,
+  "contrastOk": true
+}

@@ -39,24 +39,9 @@ Rules for this wave (on top of the earlier rules):
 - `npm publish` and `mcp-publisher publish` are the user's own steps (npm 2FA is a browser security key on the office PC). Prepare, never publish.
 - Emulator order (one per batch): T36 -> T37 -> T38 -> T39 -> T41 -> T33. Batch 1: T36 + T35 + T17. T40 (pitch) runs last, after T39 and T41 are DONE (it links vibe.gif and quotes the loop time); it may share a batch with T33. Added later: T42 -> T43 -> T44 (hero motion graphic, boots 3 devices) -> T48 (demo app + real clips) -> T49 (agent benchmark) -> T50 (hero v2 from real clips + bench numbers) -> T40 (pitch, last).
 
-- [ ] T48 [KO] 소개 영상용 진짜처럼 보이는 데모 앱 + 실제 동작 녹화 클립 (FR-34)
-  origin: human 2026-10-26 on T44's hero.gif: "소개영상 솔직히 너무 구리잖아 실제 어플을 기동한다 뭐 이런걸 넣어야지 ㅠㅜ 왜 이렇게 대충 만드는거야". Cause (planner's fault): T44 was told to embed still screenshots of the test probe app (navy screen, 5 lines of small text). The hero must show a real-looking app MOVING on real emulators.
-  area: demo-app/ (new Android module or a second flavor of probe-app, package `dev.crewdroid.demo`, never touching the probe's check= targets), scripts/hero/clips.mjs, docs/demo/clips/*.mp4 (git-ignored if > 2 MB each; keep the script reproducible), docs/measurements/hero-clips.json
-  model: opus
-  review: required
-  accept: A small but polished "Field Notes" app (Material 3 / Material Components, light theme with one strong accent colour, real app bar, cards with bundled vector illustrations or generated colour thumbnails, FAB "New note", bottom sheet editor, list animations, a sync chip "Synced ✓" / "Offline · N pending", pull-to-refresh). It works against the sample server (`sample/server`, POST /records) through an outbox like the probe so going offline really shows pending items and reconnecting really syncs them. Looks like a Play Store app at first glance — follow the `design-rules` skill (contrast, sizes, nothing cut on s24ultra/fold5-main/flip7-main screens; verify with `shot` on all three). `scripts/hero/clips.mjs` records REAL footage with `settings put system show_touches 1` (touch dots visible) on API 34/36 devices (avoid API 31, ADR 0005) using src/record.ts, driven by crewdroid commands only (`launch`, `tap --text`, `type`, `swipe`, `net`, `fold`/`unfold`, `env dark on`), and saves trimmed clips: (a) `boot.mp4` 3 devices from `up` start to the app's first frame (real timing), (b) `agent.mp4` one device: tap FAB -> type "Fix pump #3" -> Save -> card animates into the list, (c) `offline.mp4` two devices: `net airplane` on one -> its chip turns "Offline · 1 pending" while the other stays synced -> `net online` -> both show the new card, (d) `fold.mp4` fold5 unfold/fold with the layout reflowing to 2 columns, (e) `dark.mp4` `env dark on` flip. `hero-clips.json` lists every clip with duration, device, and the crewdroid command sequence + timestamps (T50 overlays those commands in sync). Check: every clip exists, 2-8 s, frames change throughout (no frozen second), first and last frames differ, and the app's main screen PNG from `shot` on all 3 profiles has no text clipped at the edges (uiautomator bounds inside the screen) and passes a contrast check on its text colours.
-  verify: `node scripts/hero/clips.mjs && node -e "const j=require('./docs/measurements/hero-clips.json');const need=['boot','agent','offline','fold','dark'];for(const n of need){const c=j.clips.find(x=>x.name===n);if(!c||c.seconds<2||c.seconds>8||!c.changesThroughout)throw new Error('clip '+n+' missing or static: '+JSON.stringify(c))}if(!j.layoutOk||!j.contrastOk)throw new Error('demo app layout/contrast check failed');console.log('clips ok')"`
-  manual: the user looks at the 5 clips (test-cases.md FR-34).
 
-- [ ] T49 [KO] "AI 가 더 잘, 더 빨리 다룬다"를 숫자로: 에이전트 조작 벤치마크 (FR-35)
-  origin: human 2026-10-26: "AI가 이 에뮬을 더 잘 다루고 빠르게 다룬다는게 최고의 강점이야 너무 대충 만들지마". The pitch and the hero must prove this with measured numbers, not adjectives.
-  area: scripts/bench-agent.mjs, docs/measurements/agent-bench.json, docs/measurements/agent-bench.md, src/screen.ts (only if a faster tree dump is found)
-  model: opus
-  review: required
-  accept: After T48 (uses the Field Notes demo app). Same task, same device (s24ultra, API 34), 5 runs each, deterministic (no LLM): "open the app, add a note 'Fix pump #3', confirm it appears in the list". Path A = crewdroid way an agent uses it: `screen` (JSON tree) to observe, `tap --text` / `type` to act, `logs` to confirm. Path B = screenshot way (how pixel-based agents and computer-use drive an emulator window): `screencap -p` PNG to observe after every action, tap by coordinates found from that image (use the tree only to compute the coordinates the vision model would have to find — note this favours B). Measure per step and total: wall time, number of tool calls, observation payload bytes, and estimated model input tokens (text: chars/4; image: Anthropic's documented formula, tokens ≈ width*height/750 after scaling the long edge to <= 1568 px — cite the doc URL in the md), plus failure modes seen. Also measure "time to first usable device": crewdroid `up` (1 device) vs a stock AVD cold boot with a window (`emulator -avd <stock>` with Android Studio's default flags, then boot_completed) — reuse T01 numbers only if the same machine; otherwise measure now with a fresh google_atd AVD without crewdroid's slim/snapshot. Write `agent-bench.md` (table: A vs B, ratio column) and JSON. Honest wording: the numbers are observation cost and latency, not a model's success rate. The md ends with a 3-line "what this means for an agent" summary used by T50 and T40.
-  verify: `node scripts/bench-agent.mjs && node -e "const j=require('./docs/measurements/agent-bench.json');for(const k of ['A','B'])if(!(j[k]&&j[k].runs===5&&j[k].tokensPerTask>0&&j[k].secondsPerTask>0))throw new Error('bench '+k+' incomplete');if(!(j.firstDevice&&j.firstDevice.crewdroidSeconds>0&&j.firstDevice.stockSeconds>0))throw new Error('first-device timing missing');console.log('bench ok A/B tokens',j.A.tokensPerTask,j.B.tokensPerTask)"`
 
-- [ ] T50 [KO] 소개 영상 다시 만들기: 실제 녹화 중심 15초 (FR-34, T44 대체)
+- [ ] T50 [KO] 소개 영상 다시 만들기: 실제 녹화 중심 15초 (FR-34, T44 대체) BLOCKED: T49 측정이 "더 빠르고 저렴" 전제와 반대(docs/measurements/agent-bench.md). 영상 메시지를 사용자가 정해야 함.
   origin: same complaint as T48. Replaces T44's slide-style hero.gif (keep T44's render pipeline: HTML/CSS + Playwright frame stepping + ffmpeg).
   area: scripts/hero/ (index.html, hero.css, storyboard.json, render.mjs), scripts/check-hero.mjs, docs/demo/hero.gif, docs/demo/hero.mp4 (for the README `<video>` fallback link), docs/demo/hero-poster.png, docs/measurements/hero.json
   model: opus
@@ -65,7 +50,7 @@ Rules for this wave (on top of the earlier rules):
   verify: `node scripts/hero/render.mjs && node scripts/check-hero.mjs`
   manual: the user watches hero.gif and says yes (test-cases.md FR-34). Until then T40 may link it but the wave report must say "awaiting the user's look".
 
-- [ ] T40 [KO] 소개 바꾸기: 바이브 코딩용 가벼운 에뮬레이터를 앞세움 (FR-31)
+- [ ] T40 [KO] 소개 바꾸기: 바이브 코딩용 가벼운 에뮬레이터를 앞세움 (FR-31) BLOCKED: T50 대기
   area: README.md, README.ko.md, AGENTS.md (intro lines only), package.json (`description`, `keywords`), server.json (`description`), scripts/check-public.mjs (pitch checks), docs/release.md (GitHub description command)
   model: sonnet
   review: required
@@ -74,10 +59,3 @@ Rules for this wave (on top of the earlier rules):
 
 Wave 2026-10-26 autopilot shift (found while verifying T33).
 
-- [ ] T45 [AUTO] `check-net` and `check-offline` fail on the current main with the original probe code (net state not applied / RETRY never seen) (FR-05, FR-09)
-  origin: T33 verify (.ai-log/evidence/T33-master-net-orig.txt, T32-offline-1.txt)
-  area: src/net.ts, scripts/check-net.mjs, scripts/check-offline.mjs (diagnosis first; touch only what the cause needs)
-  model: opus
-  review: required
-  accept: Find the cause with evidence, then fix it in code (not by loosening the checks). Observed: check-net "online baseline" or "airplane: upload fails" and "interrupted mid-transfer" claims fail — upload succeeds under airplane, and `slow` then `nodata` after 3 s does not stop a 1 MB upload (finished in 3.4 s); check-offline "timeout 60s waiting for RETRY p3". Suspects to test, not assume: net state applied before the cellular network is up after boot (`Network is unreachable` window after `net slow` seen in T33); a regression from T42 (single-device `up` skips root waits) or T43 (`src/platform.ts`); `git bisect` between the last commit where `check-net` passed (see docs/measurements or .ai-log/evidence for older green runs) and HEAD. No launch flag / AVD config / KNOBS change.
-  verify: `node scripts/check-net.mjs && node scripts/check-offline.mjs`

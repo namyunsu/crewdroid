@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bg"
+        android:paddingTop="24dp"
+        app:liftOnScroll="true">
+        <!-- AI NOTE: ATD draws no status bar; the 24 dp stands in for it and keeps screenrecord's timestamp line off the title. -->
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="72dp"
+            app:title="Field Notes"
+            app:subtitle="Riverside depot"
+            app:titleTextAppearance="@style/TextAppearance.FieldNotes.AppTitle"
+            app:subtitleTextAppearance="@style/TextAppearance.FieldNotes.AppSubtitle">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/sync"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="12dp"
+                android:clickable="false"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:chipStrokeWidth="0dp"
+                app:ensureMinTouchTargetSize="false" />
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="104dp" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="20dp"
+        android:text="New note"
+        android:textSize="17sp"
+        app:icon="@drawable/ic_add" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

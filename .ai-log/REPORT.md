@@ -1,32 +1,25 @@
-# crewdroid · 2026-10-26 07:55
+# crewdroid · 2026-10-26 23:55
 ## 작업 내역 요약
-완료 29 / BLOCKED 2 / 전체 31 · dev URL 없음(로컬 CLI)
+완료 46 / BLOCKED 2 / 전체 48 · dev URL 없음(로컬 CLI)
 ## 이제 되는 것
-- `crewdroid env <serial> <geo|battery|rotate|dark|font|locale|sms|call>`: 에뮬레이터의 위치·배터리·회전·다크모드·글꼴·언어·문자·전화를 한 줄로 바꾼다.
-- `crewdroid app <serial> perm|open|links|clear|backup|pressure|fill-storage`: 앱 권한, 딥링크, 데이터 삭제, 백업, 메모리·저장공간 압박을 건다.
-- `crewdroid perf` 가 API 31 기기에서 화면을 검게 만들지 않는다(앱을 껐다가 2초 뒤 다시 시작).
-- AGENTS.md 명령 표가 실제 CLI 와 맞고, 어긋나면 `node scripts/check-agent-files.mjs` 가 실패한다.
+- `crewdroid net <serial> airplane|online|...` 로 네트워크 상태를 바꿀 때, 먼저 끊고 안정될 때까지 기다린다. 부팅 직후 API 31 기기에서 네트워크가 잠깐 비던 문제가 없어졌다.
+- `demo-app/` 의 Field Notes 앱과 실제 에뮬레이터 녹화 클립 5개(부팅·에이전트 조작·오프라인·폴드·다크)가 생겼다.
+- `node scripts/bench-agent.mjs` 로 에이전트가 화면을 읽는 비용(토큰·초)을 트리 방식과 스크린샷 방식으로 비교할 수 있다.
 ## 알아둘 것
-없음
+- `src/net.ts`: 네트워크 상태 전환이 이제 3~15초 동안 멈춰서 기다린다. 시나리오처럼 전환을 많이 하는 곳이 느려질 수 있다. 먼저 볼 곳 `src/net.ts`. [확인함]  (check-scenario 3대 x 6회: BUGGY 3/3 잡고 clean 3/3 통과, `.ai-log/evidence/qa/check-scenario.txt`)
 ## 페인포인트
-- BLOCKED: 옛 AVD 3대 + android-33 이미지 삭제 — 삭제 명령이 자동 권한 분류기에 거부됨.
-- BLOCKED: 공개용 데모 GIF — 샘플 앱 화면이 정지라 녹화에 움직임이 없음(probe-app 수정 필요).
-- QA: 로컬 e2e 대상이 없어 건너뜀(ENV_NO_E2E_TARGET).
+- BLOCKED 영상(T50)·소개문(T40): 에이전트 비교 측정이 "더 빠르고 싸다"는 전제와 반대로 나왔다. 트리 방식 9695토큰·23.9초, 스크린샷 방식 6212토큰·10.3초. 원인은 screen JSON 이 크고(회당 2778토큰), uiautomator 덤프가 회당 3.5초, logs 가 회당 3527토큰이기 때문이다.
+- 로컬 e2e 대상이 없어 브라우저 QA는 해당 없음. 대신 npm test(52개 통과, 실패 0)와 check-scenario 로 확인했다.
+- `%TEMP%` 의 crewbench-*/t45/t48/t49/hero-* 폴더가 권한 거부로 안 지워진다.
 ## 앞으로 할 일
 직접 확인할 것:
-- `.agents/skills/android-perf/SKILL.md:60` 에 `am start -S -W` 가 남아 있음(스킬 수정은 승인 필요) [확인함]
-- `docs/measurements/features.md` 자동 행 라벨이 "T22" 로 찍힘 [확인함]
+- Field Notes 클립 5개(`docs/demo/` 또는 hero-clips.json 경로)를 직접 보고 쓸 만한지 판단
+- 기존 hero.gif 는 이미 구리다고 하셨으니 T50 이 대체할 때까지 그대로 둔다
+- Mac/Linux 에서 측정 한 번 돌려 보기(T43)
 정해야 할 것:
-- 옛 AVD(old-avd-1~3)와 android-33 google_apis 이미지를 직접 지울지(디스크 확보)
-- 데모 GIF 를 위해 probe-app 에 주기 갱신 UI 를 추가해도 되는지
+- 영상·소개 메시지: (a) screen/logs 출력을 줄이고 덤프를 빠르게 하는 작업을 먼저 하고 숫자를 뒤집은 뒤 영상, (b) "빠르다/싸다" 대신 부팅 시간·RAM·JSON 구조·MCP 를 내세우는 쪽으로 메시지 변경 — 둘 중 고르기
 다음 후보:
-- 데모 GIF 재시도: 공개 README 노출에 필요
-- 샘플 서버 PUT 멱등성 수정: 응답 유실 재시도가 가짜 충돌로 보임
-- 영문 README·공개 준비 점검(`check-public`)
-- 느린 망 2MB 업로드 120초 미동기화 원인 조사(재현 조건 필요)
-## 결정 필요
-- T17 옛 AVD 3대 + android-33 이미지 삭제: 자동 권한 분류기가 삭제 명령을 거부함 — 직접 지우거나 삭제 허용 필요.
-- `.agents/skills/android-perf/SKILL.md:60` 의 `am start -S -W`: 스킬 수정은 승인 필요(API 31 에서 화면이 검게 됨, T31 과 같은 원인).
-- mvp-private-app 가 `-lowram` 에서 3번 중 1번 채팅 15초 초과(friction 한 줄뿐, 재현 근거 없음) — 조사 Todo 를 만들지.
-## 자동 계획 (2026-10-26, 3회차)
-reviewer 승인 3건: T32 샘플 앱 실시간 상태 + 데모 GIF(T29 해소), T33 느린 망 2MB 업로드, T34 features.md 행 중복.
+- screen/logs 출력 압축: 에이전트 비용이 실제로 줄어든다
+- uiautomator 덤프 속도 개선: 회당 3.5초가 가장 큰 지연이다
+- 소개 영상 다시 만들기: 메시지가 정해지면 바로 가능
+- README 첫 화면 정리: 뭐 하는 프로젝트인지 바로 보이게

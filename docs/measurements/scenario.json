@@ -8,7 +8,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 1,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-25T16:21:54.623Z",
+      "date": "2026-10-26T14:36:25.110Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -26,31 +26,31 @@
               "state": "airplane"
             },
             {
-              "t": 13.8,
+              "t": 17.1,
               "state": "online"
             },
             {
-              "t": 17.4,
+              "t": 24.9,
               "state": "nodata"
             },
             {
-              "t": 27.7,
+              "t": 38.8,
               "state": "online"
             },
             {
-              "t": 30.7,
+              "t": 45.5,
               "state": "slow"
             },
             {
-              "t": 40.8,
+              "t": 59,
               "state": "online"
             },
             {
-              "t": 45.3,
+              "t": 66.9,
               "state": "flaky"
             },
             {
-              "t": 57.9,
+              "t": 79.2,
               "state": "online"
             }
           ],
@@ -58,7 +58,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 8,
+            "RETRY": 5,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -76,31 +76,31 @@
               "state": "nodata"
             },
             {
-              "t": 15.3,
+              "t": 19.4,
               "state": "online"
             },
             {
-              "t": 19.9,
+              "t": 27.6,
               "state": "slow"
             },
             {
-              "t": 31.8,
+              "t": 43.5,
               "state": "online"
             },
             {
-              "t": 36.4,
+              "t": 51.7,
               "state": "flaky"
             },
             {
-              "t": 44.2,
+              "t": 59.5,
               "state": "online"
             },
             {
-              "t": 46.9,
+              "t": 66.3,
               "state": "airplane"
             },
             {
-              "t": 58.2,
+              "t": 81.7,
               "state": "online"
             }
           ],
@@ -108,7 +108,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 8,
+            "RETRY": 6,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -126,31 +126,31 @@
               "state": "slow"
             },
             {
-              "t": 16.3,
+              "t": 20.5,
               "state": "online"
             },
             {
-              "t": 19.7,
+              "t": 27.5,
               "state": "flaky"
             },
             {
-              "t": 32,
+              "t": 40,
               "state": "online"
             },
             {
-              "t": 34.8,
+              "t": 47.1,
               "state": "airplane"
             },
             {
-              "t": 47,
+              "t": 64.4,
               "state": "online"
             },
             {
-              "t": 50,
+              "t": 74.9,
               "state": "nodata"
             },
             {
-              "t": 58,
+              "t": 87.4,
               "state": "online"
             }
           ],
@@ -158,7 +158,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 4,
+            "RETRY": 9,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -171,7 +171,7 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=0; all but one were overwritten",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=0; all but one were overwritten",
             "rows": [
               {
                 "id": "r2",
@@ -186,6 +186,13 @@
                 "version": 2,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-0"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 3,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-1"
               }
             ]
           },
@@ -213,79 +220,107 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=3; all but one were overwritten",
-            "rows": [
-              {
-                "id": "r2",
-                "baseVersion": 3,
-                "version": 4,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-2"
-              },
-              {
-                "id": "r2",
-                "baseVersion": 3,
-                "version": 5,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-2"
-              },
-              {
-                "id": "r2",
-                "baseVersion": 3,
-                "version": 9,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-5"
-              }
-            ]
-          },
-          {
-            "rule": "noLostUpdate(id,baseVersion)",
-            "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=5; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=4; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
-                "baseVersion": 5,
+                "baseVersion": 4,
+                "version": 5,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-3"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 4,
                 "version": 6,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-3"
-              },
-              {
-                "id": "r1",
-                "baseVersion": 5,
-                "version": 7,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-4"
               }
             ]
           },
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=6; all but one were overwritten",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=4; all but one were overwritten",
             "rows": [
               {
                 "id": "r2",
-                "baseVersion": 6,
-                "version": 7,
+                "baseVersion": 4,
+                "version": 5,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-4"
               },
               {
                 "id": "r2",
-                "baseVersion": 6,
-                "version": 8,
+                "baseVersion": 4,
+                "version": 6,
                 "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-4"
+                "value": "emulator-5580-2"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 7,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-3"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=8; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 9,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-5"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 10,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-5"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 11,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-5"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=9; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 9,
+                "version": 14,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-6"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 9,
+                "version": 15,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-7"
               }
             ]
           }
         ]
       },
-      "wallSeconds": 197,
+      "wallSeconds": 264,
       "host": {
-        "peakCpuPercent": 49,
-        "peakRamMB": 24528,
+        "peakCpuPercent": 78,
+        "peakRamMB": 28214,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -300,7 +335,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 1,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-25T16:25:30.880Z",
+      "date": "2026-10-26T14:40:28.857Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -318,40 +353,40 @@
               "state": "airplane"
             },
             {
-              "t": 14.2,
+              "t": 19.2,
               "state": "online"
             },
             {
-              "t": 17.7,
+              "t": 29.5,
               "state": "nodata"
             },
             {
-              "t": 28.2,
+              "t": 46.8,
               "state": "online"
             },
             {
-              "t": 31,
+              "t": 55.4,
               "state": "slow"
             },
             {
-              "t": 40.9,
+              "t": 69.2,
               "state": "online"
             },
             {
-              "t": 45.5,
+              "t": 77.1,
               "state": "flaky"
             },
             {
-              "t": 58,
+              "t": 89.3,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 14,
-            "RETRY": 3,
-            "CONFLICT": 2,
+            "SYNCED": 13,
+            "RETRY": 6,
+            "CONFLICT": 3,
             "DROPPED": 0
           }
         },
@@ -368,40 +403,40 @@
               "state": "nodata"
             },
             {
-              "t": 15.3,
+              "t": 19.5,
               "state": "online"
             },
             {
-              "t": 19.9,
+              "t": 27.8,
               "state": "slow"
             },
             {
-              "t": 31.8,
+              "t": 43.7,
               "state": "online"
             },
             {
-              "t": 36.4,
+              "t": 51.9,
               "state": "flaky"
             },
             {
-              "t": 44.2,
+              "t": 59.7,
               "state": "online"
             },
             {
-              "t": 47,
+              "t": 66,
               "state": "airplane"
             },
             {
-              "t": 58.2,
+              "t": 81.5,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 11,
-            "RETRY": 11,
-            "CONFLICT": 5,
+            "SYNCED": 12,
+            "RETRY": 12,
+            "CONFLICT": 4,
             "DROPPED": 0
           }
         },
@@ -418,40 +453,40 @@
               "state": "slow"
             },
             {
-              "t": 15.9,
+              "t": 19.9,
               "state": "online"
             },
             {
-              "t": 19.4,
+              "t": 26.7,
               "state": "flaky"
             },
             {
-              "t": 31.7,
+              "t": 39.3,
               "state": "online"
-            },
-            {
-              "t": 34.6,
-              "state": "airplane"
             },
             {
               "t": 46.7,
+              "state": "airplane"
+            },
+            {
+              "t": 64.9,
               "state": "online"
             },
             {
-              "t": 49.7,
+              "t": 74.4,
               "state": "nodata"
             },
             {
-              "t": 57.7,
+              "t": 86.2,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 13,
-            "RETRY": 4,
-            "CONFLICT": 3,
+            "SYNCED": 12,
+            "RETRY": 3,
+            "CONFLICT": 4,
             "DROPPED": 0
           }
         }
@@ -461,10 +496,10 @@
         "rules": 3,
         "violations": []
       },
-      "wallSeconds": 210,
+      "wallSeconds": 238,
       "host": {
-        "peakCpuPercent": 55,
-        "peakRamMB": 24639,
+        "peakCpuPercent": 64,
+        "peakRamMB": 28002,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -479,7 +514,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 2,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-25T16:29:05.414Z",
+      "date": "2026-10-26T14:44:09.518Z",
       "ok": false,
       "drained": true,
       "drainSeconds": 0,
@@ -497,31 +532,31 @@
               "state": "airplane"
             },
             {
-              "t": 13.4,
+              "t": 17.5,
               "state": "online"
             },
             {
-              "t": 19.9,
+              "t": 31,
               "state": "nodata"
             },
             {
-              "t": 28.2,
+              "t": 46.4,
               "state": "online"
             },
             {
-              "t": 33,
+              "t": 55,
               "state": "slow"
             },
             {
-              "t": 40.8,
+              "t": 67.1,
               "state": "online"
             },
             {
-              "t": 43.4,
+              "t": 73.6,
               "state": "flaky"
             },
             {
-              "t": 54.8,
+              "t": 85,
               "state": "online"
             }
           ],
@@ -547,31 +582,31 @@
               "state": "nodata"
             },
             {
-              "t": 9.5,
+              "t": 13.5,
               "state": "online"
             },
             {
-              "t": 15,
+              "t": 23.1,
               "state": "slow"
             },
             {
-              "t": 23.8,
+              "t": 35.8,
               "state": "online"
             },
             {
-              "t": 28.1,
+              "t": 43.7,
               "state": "flaky"
             },
             {
-              "t": 34.7,
+              "t": 50.3,
               "state": "online"
             },
             {
-              "t": 37.2,
+              "t": 56.3,
               "state": "airplane"
             },
             {
-              "t": 46.4,
+              "t": 69.7,
               "state": "online"
             }
           ],
@@ -579,7 +614,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 16,
-            "RETRY": 13,
+            "RETRY": 3,
             "CONFLICT": 0,
             "DROPPED": 0
           }
@@ -597,31 +632,542 @@
               "state": "slow"
             },
             {
-              "t": 10.6,
+              "t": 28,
               "state": "online"
             },
             {
-              "t": 14,
+              "t": 34.6,
               "state": "flaky"
             },
             {
-              "t": 21,
+              "t": 41.8,
               "state": "online"
             },
             {
-              "t": 24.1,
+              "t": 48,
               "state": "airplane"
             },
             {
-              "t": 30.7,
+              "t": 62,
               "state": "online"
             },
             {
-              "t": 34.9,
+              "t": 72.7,
               "state": "nodata"
             },
             {
-              "t": 41.6,
+              "t": 84,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 14,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": false,
+        "rules": 3,
+        "violations": [
+          {
+            "rule": "count(acks)",
+            "table": "uploads",
+            "message": "missing 1 of 24 expected key values (table has 23 rows)",
+            "rows": [
+              {
+                "id": "f67d11b4-9c36-46f9-955a-40ba6e12d629",
+                "key": "de674da1-aaf2-4a7e-a90b-9d174cd4deac",
+                "clientId": "a0f1ee5e2b40d993"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=0; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-0"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 3,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-1"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=0; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 1,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-1"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 2,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-0"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 3,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-0"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=4; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 4,
+                "version": 5,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-1"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 4,
+                "version": 6,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-3"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=6; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 6,
+                "version": 7,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-4"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 6,
+                "version": 8,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-4"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=4; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 5,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-5"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 9,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-6"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 4,
+                "version": 10,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-7"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=8; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r1",
+                "baseVersion": 8,
+                "version": 9,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-5"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 8,
+                "version": 11,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-6"
+              }
+            ]
+          }
+        ]
+      },
+      "wallSeconds": 215,
+      "host": {
+        "peakCpuPercent": 70,
+        "peakRamMB": 27611,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  },
+  {
+    "buggy": false,
+    "seed": 2,
+    "exit": 0,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 2,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-26T14:47:31.524Z",
+      "ok": true,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 3,
+              "state": "airplane"
+            },
+            {
+              "t": 19.5,
+              "state": "online"
+            },
+            {
+              "t": 31.4,
+              "state": "nodata"
+            },
+            {
+              "t": 43.3,
+              "state": "online"
+            },
+            {
+              "t": 53.2,
+              "state": "slow"
+            },
+            {
+              "t": 64.2,
+              "state": "online"
+            },
+            {
+              "t": 70.8,
+              "state": "flaky"
+            },
+            {
+              "t": 82.2,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 10,
+            "RETRY": 4,
+            "CONFLICT": 6,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 3.6,
+              "state": "nodata"
+            },
+            {
+              "t": 13.4,
+              "state": "online"
+            },
+            {
+              "t": 23,
+              "state": "slow"
+            },
+            {
+              "t": 35.7,
+              "state": "online"
+            },
+            {
+              "t": 43.6,
+              "state": "flaky"
+            },
+            {
+              "t": 50.2,
+              "state": "online"
+            },
+            {
+              "t": 56.1,
+              "state": "airplane"
+            },
+            {
+              "t": 69.1,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 14,
+            "RETRY": 6,
+            "CONFLICT": 2,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 2.1,
+              "state": "slow"
+            },
+            {
+              "t": 15.1,
+              "state": "online"
+            },
+            {
+              "t": 22,
+              "state": "flaky"
+            },
+            {
+              "t": 29,
+              "state": "online"
+            },
+            {
+              "t": 35.5,
+              "state": "airplane"
+            },
+            {
+              "t": 47,
+              "state": "online"
+            },
+            {
+              "t": 59,
+              "state": "nodata"
+            },
+            {
+              "t": 70.2,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 13,
+            "RETRY": 9,
+            "CONFLICT": 3,
+            "DROPPED": 0
+          }
+        }
+      ],
+      "judge": {
+        "ok": true,
+        "rules": 3,
+        "violations": []
+      },
+      "wallSeconds": 196,
+      "host": {
+        "peakCpuPercent": 64,
+        "peakRamMB": 27562,
+        "totalRamMB": 65462,
+        "cores": 16
+      }
+    }
+  },
+  {
+    "buggy": true,
+    "seed": 3,
+    "exit": 1,
+    "report": {
+      "scenario": "photo-upload",
+      "file": "scenarios/photo-upload.json",
+      "seed": 3,
+      "server": "http://10.0.2.2:5595",
+      "date": "2026-10-26T14:51:13.852Z",
+      "ok": false,
+      "drained": true,
+      "drainSeconds": 0,
+      "devices": [
+        {
+          "serial": "emulator-5580",
+          "profile": "s22",
+          "model": "Galaxy S22",
+          "api": 31,
+          "image": "android-31/google_atd",
+          "screen": "1080x2340@480",
+          "network": [
+            {
+              "t": 4,
+              "state": "airplane"
+            },
+            {
+              "t": 21.6,
+              "state": "online"
+            },
+            {
+              "t": 33.1,
+              "state": "nodata"
+            },
+            {
+              "t": 45.5,
+              "state": "online"
+            },
+            {
+              "t": 53.5,
+              "state": "slow"
+            },
+            {
+              "t": 68.4,
+              "state": "online"
+            },
+            {
+              "t": 76.3,
+              "state": "flaky"
+            },
+            {
+              "t": 82,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 6,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5582",
+          "profile": "s24ultra",
+          "model": "Galaxy S24 Ultra (FHD+ default)",
+          "api": 34,
+          "image": "android-34/google_atd",
+          "screen": "1080x2340@450",
+          "network": [
+            {
+              "t": 5.1,
+              "state": "nodata"
+            },
+            {
+              "t": 19.1,
+              "state": "online"
+            },
+            {
+              "t": 27,
+              "state": "slow"
+            },
+            {
+              "t": 37.6,
+              "state": "online"
+            },
+            {
+              "t": 44.1,
+              "state": "flaky"
+            },
+            {
+              "t": 56.1,
+              "state": "online"
+            },
+            {
+              "t": 62.4,
+              "state": "airplane"
+            },
+            {
+              "t": 72.6,
+              "state": "online"
+            }
+          ],
+          "outboxLeft": 0,
+          "log": {
+            "SAVED": 16,
+            "SYNCED": 16,
+            "RETRY": 8,
+            "CONFLICT": 0,
+            "DROPPED": 0
+          }
+        },
+        {
+          "serial": "emulator-5584",
+          "profile": "s26ultra",
+          "model": "Galaxy S26 Ultra (FHD+ default)",
+          "api": 36,
+          "image": "android-36/google_atd",
+          "screen": "1080x2340@420",
+          "network": [
+            {
+              "t": 3.9,
+              "state": "slow"
+            },
+            {
+              "t": 15.2,
+              "state": "online"
+            },
+            {
+              "t": 23.9,
+              "state": "flaky"
+            },
+            {
+              "t": 33.3,
+              "state": "online"
+            },
+            {
+              "t": 43.3,
+              "state": "airplane"
+            },
+            {
+              "t": 60.4,
+              "state": "online"
+            },
+            {
+              "t": 81.2,
+              "state": "nodata"
+            },
+            {
+              "t": 98.5,
               "state": "online"
             }
           ],
@@ -645,8 +1191,8 @@
             "message": "missing 1 of 24 expected key values (table has 23 rows)",
             "rows": [
               {
-                "id": "02c4a438-ca27-4c3f-b1d2-0639b9da5310",
-                "key": "6dfe16d8-447d-4409-a572-96184d6976cc",
+                "id": "775013b5-5b70-4fa5-a1d7-645dd1b276df",
+                "key": "5f986f87-5af6-44e0-b427-053616630191",
                 "clientId": "a0f1ee5e2b40d993"
               }
             ]
@@ -654,471 +1200,7 @@
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=1; all but one were overwritten",
-            "rows": [
-              {
-                "id": "r1",
-                "baseVersion": 1,
-                "version": 2,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-2"
-              },
-              {
-                "id": "r1",
-                "baseVersion": 1,
-                "version": 3,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-1"
-              }
-            ]
-          },
-          {
-            "rule": "noLostUpdate(id,baseVersion)",
-            "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=3; all but one were overwritten",
-            "rows": [
-              {
-                "id": "r1",
-                "baseVersion": 3,
-                "version": 4,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-2"
-              },
-              {
-                "id": "r1",
-                "baseVersion": 3,
-                "version": 5,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-4"
-              }
-            ]
-          },
-          {
-            "rule": "noLostUpdate(id,baseVersion)",
-            "table": "writes",
-            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=3; all but one were overwritten",
-            "rows": [
-              {
-                "id": "r2",
-                "baseVersion": 3,
-                "version": 4,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-0"
-              },
-              {
-                "id": "r2",
-                "baseVersion": 3,
-                "version": 5,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-5"
-              }
-            ]
-          },
-          {
-            "rule": "noLostUpdate(id,baseVersion)",
-            "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=8; all but one were overwritten",
-            "rows": [
-              {
-                "id": "r1",
-                "baseVersion": 8,
-                "version": 9,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-5"
-              },
-              {
-                "id": "r1",
-                "baseVersion": 8,
-                "version": 11,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-2"
-              }
-            ]
-          },
-          {
-            "rule": "noLostUpdate(id,baseVersion)",
-            "table": "writes",
-            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=5; all but one were overwritten",
-            "rows": [
-              {
-                "id": "r2",
-                "baseVersion": 5,
-                "version": 6,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-7"
-              },
-              {
-                "id": "r2",
-                "baseVersion": 5,
-                "version": 7,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-6"
-              }
-            ]
-          }
-        ]
-      },
-      "wallSeconds": 209,
-      "host": {
-        "peakCpuPercent": 50,
-        "peakRamMB": 24574,
-        "totalRamMB": 65462,
-        "cores": 16
-      }
-    }
-  },
-  {
-    "buggy": false,
-    "seed": 2,
-    "exit": 0,
-    "report": {
-      "scenario": "photo-upload",
-      "file": "scenarios/photo-upload.json",
-      "seed": 2,
-      "server": "http://10.0.2.2:5595",
-      "date": "2026-10-25T16:32:37.103Z",
-      "ok": true,
-      "drained": true,
-      "drainSeconds": 0,
-      "devices": [
-        {
-          "serial": "emulator-5580",
-          "profile": "s22",
-          "model": "Galaxy S22",
-          "api": 31,
-          "image": "android-31/google_atd",
-          "screen": "1080x2340@480",
-          "network": [
-            {
-              "t": 3,
-              "state": "airplane"
-            },
-            {
-              "t": 12.6,
-              "state": "online"
-            },
-            {
-              "t": 19,
-              "state": "nodata"
-            },
-            {
-              "t": 27.2,
-              "state": "online"
-            },
-            {
-              "t": 31.7,
-              "state": "slow"
-            },
-            {
-              "t": 39.2,
-              "state": "online"
-            },
-            {
-              "t": 41.5,
-              "state": "flaky"
-            },
-            {
-              "t": 52.8,
-              "state": "online"
-            }
-          ],
-          "outboxLeft": 0,
-          "log": {
-            "SAVED": 16,
-            "SYNCED": 15,
-            "RETRY": 3,
-            "CONFLICT": 1,
-            "DROPPED": 0
-          }
-        },
-        {
-          "serial": "emulator-5582",
-          "profile": "s24ultra",
-          "model": "Galaxy S24 Ultra (FHD+ default)",
-          "api": 34,
-          "image": "android-34/google_atd",
-          "screen": "1080x2340@450",
-          "network": [
-            {
-              "t": 3.6,
-              "state": "nodata"
-            },
-            {
-              "t": 9.5,
-              "state": "online"
-            },
-            {
-              "t": 14.9,
-              "state": "slow"
-            },
-            {
-              "t": 23.6,
-              "state": "online"
-            },
-            {
-              "t": 27.8,
-              "state": "flaky"
-            },
-            {
-              "t": 34.5,
-              "state": "online"
-            },
-            {
-              "t": 36.8,
-              "state": "airplane"
-            },
-            {
-              "t": 46,
-              "state": "online"
-            }
-          ],
-          "outboxLeft": 0,
-          "log": {
-            "SAVED": 16,
-            "SYNCED": 12,
-            "RETRY": 6,
-            "CONFLICT": 4,
-            "DROPPED": 0
-          }
-        },
-        {
-          "serial": "emulator-5584",
-          "profile": "s26ultra",
-          "model": "Galaxy S26 Ultra (FHD+ default)",
-          "api": 36,
-          "image": "android-36/google_atd",
-          "screen": "1080x2340@420",
-          "network": [
-            {
-              "t": 2.1,
-              "state": "slow"
-            },
-            {
-              "t": 10.7,
-              "state": "online"
-            },
-            {
-              "t": 14.1,
-              "state": "flaky"
-            },
-            {
-              "t": 20.9,
-              "state": "online"
-            },
-            {
-              "t": 23.8,
-              "state": "airplane"
-            },
-            {
-              "t": 30.3,
-              "state": "online"
-            },
-            {
-              "t": 34.2,
-              "state": "nodata"
-            },
-            {
-              "t": 40.5,
-              "state": "online"
-            }
-          ],
-          "outboxLeft": 0,
-          "log": {
-            "SAVED": 16,
-            "SYNCED": 13,
-            "RETRY": 5,
-            "CONFLICT": 3,
-            "DROPPED": 0
-          }
-        }
-      ],
-      "judge": {
-        "ok": true,
-        "rules": 3,
-        "violations": []
-      },
-      "wallSeconds": 206,
-      "host": {
-        "peakCpuPercent": 49,
-        "peakRamMB": 24352,
-        "totalRamMB": 65462,
-        "cores": 16
-      }
-    }
-  },
-  {
-    "buggy": true,
-    "seed": 3,
-    "exit": 1,
-    "report": {
-      "scenario": "photo-upload",
-      "file": "scenarios/photo-upload.json",
-      "seed": 3,
-      "server": "http://10.0.2.2:5595",
-      "date": "2026-10-25T16:36:21.916Z",
-      "ok": false,
-      "drained": true,
-      "drainSeconds": 0,
-      "devices": [
-        {
-          "serial": "emulator-5580",
-          "profile": "s22",
-          "model": "Galaxy S22",
-          "api": 31,
-          "image": "android-31/google_atd",
-          "screen": "1080x2340@480",
-          "network": [
-            {
-              "t": 4,
-              "state": "airplane"
-            },
-            {
-              "t": 16.3,
-              "state": "online"
-            },
-            {
-              "t": 23.5,
-              "state": "nodata"
-            },
-            {
-              "t": 30.8,
-              "state": "online"
-            },
-            {
-              "t": 34.1,
-              "state": "slow"
-            },
-            {
-              "t": 44.6,
-              "state": "online"
-            },
-            {
-              "t": 48.8,
-              "state": "flaky"
-            },
-            {
-              "t": 54.2,
-              "state": "online"
-            }
-          ],
-          "outboxLeft": 0,
-          "log": {
-            "SAVED": 16,
-            "SYNCED": 16,
-            "RETRY": 2,
-            "CONFLICT": 0,
-            "DROPPED": 0
-          }
-        },
-        {
-          "serial": "emulator-5582",
-          "profile": "s24ultra",
-          "model": "Galaxy S24 Ultra (FHD+ default)",
-          "api": 34,
-          "image": "android-34/google_atd",
-          "screen": "1080x2340@450",
-          "network": [
-            {
-              "t": 5.1,
-              "state": "nodata"
-            },
-            {
-              "t": 15.2,
-              "state": "online"
-            },
-            {
-              "t": 18.8,
-              "state": "slow"
-            },
-            {
-              "t": 25.3,
-              "state": "online"
-            },
-            {
-              "t": 28.2,
-              "state": "flaky"
-            },
-            {
-              "t": 39.2,
-              "state": "online"
-            },
-            {
-              "t": 41.8,
-              "state": "airplane"
-            },
-            {
-              "t": 47.8,
-              "state": "online"
-            }
-          ],
-          "outboxLeft": 0,
-          "log": {
-            "SAVED": 16,
-            "SYNCED": 16,
-            "RETRY": 7,
-            "CONFLICT": 0,
-            "DROPPED": 0
-          }
-        },
-        {
-          "serial": "emulator-5584",
-          "profile": "s26ultra",
-          "model": "Galaxy S26 Ultra (FHD+ default)",
-          "api": 36,
-          "image": "android-36/google_atd",
-          "screen": "1080x2340@420",
-          "network": [
-            {
-              "t": 3.9,
-              "state": "slow"
-            },
-            {
-              "t": 10.3,
-              "state": "online"
-            },
-            {
-              "t": 15.4,
-              "state": "flaky"
-            },
-            {
-              "t": 24,
-              "state": "online"
-            },
-            {
-              "t": 30,
-              "state": "airplane"
-            },
-            {
-              "t": 41.4,
-              "state": "online"
-            },
-            {
-              "t": 46.9,
-              "state": "nodata"
-            },
-            {
-              "t": 58.8,
-              "state": "online"
-            }
-          ],
-          "outboxLeft": 0,
-          "log": {
-            "SAVED": 16,
-            "SYNCED": 16,
-            "RETRY": 6,
-            "CONFLICT": 0,
-            "DROPPED": 0
-          }
-        }
-      ],
-      "judge": {
-        "ok": false,
-        "rules": 3,
-        "violations": [
-          {
-            "rule": "noLostUpdate(id,baseVersion)",
-            "table": "writes",
-            "message": "lost update: 2 writes to id=\"r1\" all based on baseVersion=0; all but one were overwritten",
+            "message": "lost update: 3 writes to id=\"r1\" all based on baseVersion=0; all but one were overwritten",
             "rows": [
               {
                 "id": "r1",
@@ -1133,13 +1215,20 @@
                 "version": 2,
                 "clientId": "caec0ef41bba6928",
                 "value": "emulator-5582-1"
+              },
+              {
+                "id": "r1",
+                "baseVersion": 0,
+                "version": 3,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-2"
               }
             ]
           },
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=0; all but one were overwritten",
+            "message": "lost update: 4 writes to id=\"r2\" all based on baseVersion=0; all but one were overwritten",
             "rows": [
               {
                 "id": "r2",
@@ -1158,44 +1247,44 @@
               {
                 "id": "r2",
                 "baseVersion": 0,
-                "version": 6,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-0"
-              }
-            ]
-          },
-          {
-            "rule": "noLostUpdate(id,baseVersion)",
-            "table": "writes",
-            "message": "lost update: 3 writes to id=\"r1\" all based on baseVersion=2; all but one were overwritten",
-            "rows": [
-              {
-                "id": "r1",
-                "baseVersion": 2,
-                "version": 3,
-                "clientId": "7b63461dff7631bc",
-                "value": "emulator-5584-4"
-              },
-              {
-                "id": "r1",
-                "baseVersion": 2,
                 "version": 4,
                 "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-2"
+                "value": "emulator-5580-0"
               },
               {
-                "id": "r1",
-                "baseVersion": 2,
-                "version": 5,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-5"
+                "id": "r2",
+                "baseVersion": 0,
+                "version": 6,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-1"
               }
             ]
           },
           {
             "rule": "noLostUpdate(id,baseVersion)",
             "table": "writes",
-            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=8; all but one were overwritten",
+            "message": "lost update: 2 writes to id=\"r2\" all based on baseVersion=6; all but one were overwritten",
+            "rows": [
+              {
+                "id": "r2",
+                "baseVersion": 6,
+                "version": 7,
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-3"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 6,
+                "version": 10,
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-3"
+              }
+            ]
+          },
+          {
+            "rule": "noLostUpdate(id,baseVersion)",
+            "table": "writes",
+            "message": "lost update: 3 writes to id=\"r2\" all based on baseVersion=8; all but one were overwritten",
             "rows": [
               {
                 "id": "r2",
@@ -1207,9 +1296,16 @@
               {
                 "id": "r2",
                 "baseVersion": 8,
-                "version": 10,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-3"
+                "version": 11,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-5"
+              },
+              {
+                "id": "r2",
+                "baseVersion": 8,
+                "version": 12,
+                "clientId": "7b63461dff7631bc",
+                "value": "emulator-5584-6"
               }
             ]
           },
@@ -1222,24 +1318,24 @@
                 "id": "r1",
                 "baseVersion": 6,
                 "version": 7,
-                "clientId": "caec0ef41bba6928",
-                "value": "emulator-5582-7"
+                "clientId": "a0f1ee5e2b40d993",
+                "value": "emulator-5580-4"
               },
               {
                 "id": "r1",
                 "baseVersion": 6,
                 "version": 8,
-                "clientId": "a0f1ee5e2b40d993",
-                "value": "emulator-5580-4"
+                "clientId": "caec0ef41bba6928",
+                "value": "emulator-5582-7"
               }
             ]
           }
         ]
       },
-      "wallSeconds": 219,
+      "wallSeconds": 216,
       "host": {
-        "peakCpuPercent": 50,
-        "peakRamMB": 25008,
+        "peakCpuPercent": 64,
+        "peakRamMB": 27728,
         "totalRamMB": 65462,
         "cores": 16
       }
@@ -1254,7 +1350,7 @@
       "file": "scenarios/photo-upload.json",
       "seed": 3,
       "server": "http://10.0.2.2:5595",
-      "date": "2026-10-25T16:40:00.772Z",
+      "date": "2026-10-26T14:54:45.123Z",
       "ok": true,
       "drained": true,
       "drainSeconds": 0,
@@ -1272,40 +1368,40 @@
               "state": "airplane"
             },
             {
-              "t": 16.5,
+              "t": 21.2,
               "state": "online"
             },
             {
-              "t": 23,
+              "t": 32.1,
               "state": "nodata"
             },
             {
-              "t": 30,
+              "t": 43.3,
               "state": "online"
             },
             {
-              "t": 33,
+              "t": 52.3,
               "state": "slow"
             },
             {
-              "t": 43.6,
+              "t": 66.8,
               "state": "online"
             },
             {
-              "t": 47.9,
+              "t": 74.6,
               "state": "flaky"
             },
             {
-              "t": 53.4,
+              "t": 80.1,
               "state": "online"
             }
           ],
           "outboxLeft": 0,
           "log": {
             "SAVED": 16,
-            "SYNCED": 14,
-            "RETRY": 7,
-            "CONFLICT": 2,
+            "SYNCED": 11,
+            "RETRY": 4,
+            "CONFLICT": 5,
             "DROPPED": 0
           }
         },
@@ -1322,31 +1418,31 @@
               "state": "nodata"
             },
             {
-              "t": 15.1,
+              "t": 19.1,
               "state": "online"
             },
             {
-              "t": 18.8,
+              "t": 26.3,
               "state": "slow"
             },
             {
-              "t": 25.3,
+              "t": 36.5,
               "state": "online"
             },
             {
-              "t": 28.2,
+              "t": 43.1,
               "state": "flaky"
             },
             {
-              "t": 39.1,
+              "t": 54.1,
               "state": "online"
             },
             {
-              "t": 41.7,
+              "t": 60.4,
               "state": "airplane"
             },
             {
-              "t": 47.7,
+              "t": 70.4,
               "state": "online"
             }
           ],
@@ -1372,31 +1468,31 @@
               "state": "slow"
             },
             {
-              "t": 10.1,
+              "t": 14,
               "state": "online"
             },
             {
-              "t": 15.2,
+              "t": 22.7,
               "state": "flaky"
             },
             {
-              "t": 23.7,
+              "t": 31.4,
               "state": "online"
             },
             {
-              "t": 29.7,
+              "t": 41.2,
               "state": "airplane"
             },
             {
-              "t": 41,
+              "t": 58,
               "state": "online"
             },
             {
-              "t": 46.6,
+              "t": 73.7,
               "state": "nodata"
             },
             {
-              "t": 58.5,
+              "t": 89.9,
               "state": "online"
             }
           ],
@@ -1404,7 +1500,7 @@
           "log": {
             "SAVED": 16,
             "SYNCED": 13,
-            "RETRY": 6,
+            "RETRY": 5,
             "CONFLICT": 3,
             "DROPPED": 0
           }
@@ -1415,10 +1511,10 @@
         "rules": 3,
         "violations": []
       },
-      "wallSeconds": 213,
+      "wallSeconds": 205,
       "host": {
-        "peakCpuPercent": 50,
-        "peakRamMB": 25032,
+        "peakCpuPercent": 64,
+        "peakRamMB": 27708,
         "totalRamMB": 65462,
         "cores": 16
       }

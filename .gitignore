@@ -7,6 +7,9 @@ probe-app/.gradle/
 probe-app/build/
 probe-app/app/build/
 probe-app/local.properties
+demo-app/.gradle/
+demo-app/build/
+demo-app/local.properties
 sample/server/data/
 .ai-log/*
 !.ai-log/status.md
