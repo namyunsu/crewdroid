@@ -63,6 +63,7 @@
 | FR-31 | 소개 바꾸기 | README 첫 화면·AGENTS.md·npm/MCP 설명·GitHub 설명이 "AI 코딩 에이전트용 가벼운 헤드리스 안드로이드 에뮬레이터(바이브 코딩)"를 앞세운다. 첫 화면은 4줄 시작(`setup` → `up` → `install` → `shot`)과 안드로이드 스튜디오 에뮬레이터 대비 표. 다자 동시성 시험은 "고급 기능" 절로. |
 | FR-32 | 0.2.0 준비 | 바이브 코딩 루프 데모 GIF(1대, 단계 자막), 버전 0.2.0(package.json·server.json), CHANGELOG. npm publish·Registry 재등록은 사람이 `docs/release.md` 순서대로(사무실 PC, 브라우저 승인). |
 | FR-33 | macOS·Linux 지원 | Apple Silicon Mac(arm64-v8a 이미지, Hypervisor.framework)과 Linux(KVM)에서 `setup`·`up`·`shot`·`down` 이 돈다. OS 차이는 한 모듈에만 둔다. Windows 동작은 그대로. Mac 실측은 사람이(manual). |
+| FR-34 | 15초 소개 모션 그래픽 | README 맨 위 15초 GIF: 문제(무거운 스튜디오 에뮬레이터) → 명령 하나로 7초 기동 → 버전·화면 바꾸기 → AI 가 조작 → 이름·한 줄 소개·설치 명령. 실제 기기 캡처를 쓰고 숫자는 측정 파일에서 읽는다. HTML/CSS 애니메이션을 헤드리스 브라우저로 프레임 단위 렌더. 보기 좋은지는 사람이 판단. |
 | FR-11 | MVP: private-app 이전 | crewdroid 로 띄운 기기로 private-app `techs.multi.ts` 가 통과하고, 기존 `avd-up.ps1` 대비 디스크·부팅·RAM·CPU 비교표와 데모 GIF 를 남긴다. |
 
 ## 3. 비기능 요구사항
@@ -118,3 +119,4 @@ UI 없음(CLI). 샘플 앱은 시험용 최소 화면이라 디자인 단계 생
 | 2026-10-26 | autopilot /brief auto, reviewer 승인 3건 | T32 샘플 앱 실시간 상태 화면 + 데모 GIF(FR-23, T29 해소), T33 느린 망 2MB 업로드 미완료 원인(ADR 0006 열린 질문), T34 features.md 행 중복 정리. 요구사항 변경 없음 |
 | 2026-10-26 | 사용자 "진짜 너무 무거운 안드로이드 스튜디오 에뮬레이터보다 AI가 다루기 훨씬 쉽고, 서버 자원 많이 안 먹고 빠르고 캡처도 잘 되고 OS·사양·크기도 바뀌는 심플한 에뮬레이터, 바이브 코딩용" / "싹 다 해 오토파일럿으로" | FR-26~FR-32 추가: 바이브 코딩 루프(setup·1대 up·install·launch·logs·shot·tap/type·MCP 루프·스킬)와 소개 바꾸기, 0.2.0 준비. 동시성 시험은 고급 기능으로 |
 | 2026-10-26 | 사용자 "이거 mac에서도 돌아가야해" | FR-33 추가 (T43): OS 전용 코드를 한 모듈로 모으고 macOS·Linux 경로 추가 |
+| 2026-10-26 | 사용자 "꼭 소개를 멋지게… 뭐하는 프로젝트인지 잘 몰라, 15초짜리 소개 모션그래픽" | FR-34 추가 (T44), T40 첫 화면 순서: hero.gif → "What is it?" 3줄 → 빠른 시작 |
