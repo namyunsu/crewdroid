@@ -8,12 +8,15 @@ license: MIT
 
 N headless emulators (mixed Galaxy screens and Android versions), per-device network states, then rules run on server data after the run.
 
+**Building or checking one app on one device** (install, launch, see the screen, tap, type, read logs)? Start with
+[android-vibe-loop](../android-vibe-loop/SKILL.md). The rest of this skill is the multi-device concurrency testing.
+
 ## When to use
 - "Two users upload at once and a row is duplicated / missing."
 - "Offline sync lost an update."
 - "Works on my phone, breaks on another screen size or API level."
 
-Not for poking a single device's UI: use mobile-mcp or Maestro directly (always pass an `emulator-<port>` serial).
+Poking a single device's UI: android-vibe-loop (crewdroid `screen`/`tap`/`type`/`shot`); mobile-mcp or Maestro also work (always pass an `emulator-<port>` serial).
 
 ## First 5 commands
 ```bash
@@ -31,6 +34,7 @@ In a checkout without the package installed, replace `crewdroid` with `npx tsx s
 - Measurements: `docs/measurements/`.
 
 ## More skills
+- [android-vibe-loop](../android-vibe-loop/SKILL.md): build, install, launch, look, tap, read logs on one device (start here).
 - [android-triage](../android-triage/SKILL.md): crash, ANR, app killed.
 - [android-screen](../android-screen/SKILL.md): blank / wrong screen, element not found.
 - [android-permissions-intents](../android-permissions-intents/SKILL.md): permission denied, deep link does not open.

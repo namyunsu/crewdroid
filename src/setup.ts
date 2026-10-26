@@ -219,7 +219,7 @@ export async function setup(o: SetupOpts = {}) {
 }
 
 export const mcpTools: Tool[] = [{
-  name: "setup", description: "Install the Android SDK pieces crewdroid needs (JDK 17 for sdkmanager, command-line tools, platform-tools, emulator, google_atd images). Dry run by default (lists present/missing and sizes); yes:true installs and accepts the SDK licences.",
+  name: "setup", description: "Use first on a new machine, or when up fails for a missing SDK/image: checks/installs the Android SDK pieces crewdroid needs (JDK 17 for sdkmanager, command-line tools, platform-tools, emulator, google_atd images). Dry run by default: returns steps [{step, status: present|missing, downloadBytes}]; yes:true installs and accepts the SDK licences.",
   input: {
     sdk: z.string().optional().describe("SDK directory (default ANDROID_SDK_ROOT / ANDROID_HOME, else ~/.crewdroid/android-sdk)"),
     images: z.array(z.string()).optional().describe('Android API levels of google_atd images, default ["34"]'),

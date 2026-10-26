@@ -124,22 +124,22 @@ export async function key(serial: string, k: string) {
 const serial = z.string().describe("emulator-<port>");
 export const mcpTools: Tool[] = [
   {
-    name: "tap", description: "Tap a point, or the centre of the element whose text/content-desc (text) or resource-id (id) matches (exact first, then case-insensitive contains). 0 or several matches (without index) fail and list the candidates.",
+    name: "tap", description: "Use to press a button or field: by text/content-desc (text), resource-id (id) or a point x,y. Element match = exact first, then case-insensitive contains. 0 or several matches (without index) fail and list the candidates; retry with index or id. Returns the tapped point and node.",
     input: { serial, x: z.number().int().optional(), y: z.number().int().optional(), text: z.string().optional(), id: z.string().optional().describe("resource-id, full or the part after :id/"), index: z.number().int().optional().describe("0-based, when several elements match") },
     run: (a) => tap(a.serial, a.text !== undefined ? { text: a.text } : a.id !== undefined ? { id: a.id } : a.x !== undefined && a.y !== undefined ? { x: a.x, y: a.y } : (() => { throw new Error("give x+y, text or id"); })(), a.index),
   },
   {
-    name: "type", description: "Type ASCII text with `input text` (spaces, quotes, & and % are safe); into = text or resource-id of the field to tap first. Non-ASCII (e.g. Korean) fails with the reason: ATD offers no way to type it without installing a keyboard app.",
+    name: "type", description: "Use to fill a text field: types ASCII text with `input text` (spaces, quotes, & and % are safe); into = text or resource-id of the field to tap first. Returns the field typed into. Non-ASCII (e.g. Korean) fails with the reason: ATD offers no way to type it without installing a keyboard app.",
     input: { serial, text: z.string(), into: z.string().optional() },
     run: (a) => type(a.serial, a.text, a.into),
   },
   {
-    name: "swipe", description: "Swipe up|down|left|right (finger direction, middle 50 % of the screen; up scrolls content down) `times` times, or a line x1,y1 -> x2,y2 in ms.",
+    name: "swipe", description: "Use to scroll or page: swipe up|down|left|right (finger direction, middle 50 % of the screen; up scrolls content down) `times` times, or a line x1,y1 -> x2,y2 in ms. Returns the from/to points.",
     input: { serial, direction: z.enum(DIRECTIONS).optional(), times: z.number().int().min(1).default(1), line: z.array(z.number().int()).length(4).optional().describe("[x1,y1,x2,y2]"), ms: z.number().int().min(1).default(300) },
     run: (a) => swipe(a.serial, { dir: a.direction, line: a.line, ms: a.ms, times: a.times }),
   },
   {
-    name: "key", description: "Press a key: back|home|enter|delete|tab|menu or any KEYCODE_*. Returns the focused window afterwards.",
+    name: "key", description: "Use for navigation and hardware keys: back|home|enter|delete|tab|menu or any KEYCODE_*. Returns the focused window afterwards.",
     input: { serial, key: z.string() },
     run: (a) => key(a.serial, a.key),
   },

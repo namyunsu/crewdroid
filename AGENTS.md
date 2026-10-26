@@ -43,6 +43,16 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `prepare`, `identity`, `slim`, `measure` | base-image maintenance and measurement | implemented |
 | `help` | usage text | implemented |
 
+## Vibe-coding loop (one device, build and check an app)
+Skill: `.agents/skills/android-vibe-loop/SKILL.md`. Same names as MCP tools and CLI commands; pass the serial from `up` to every step.
+1. `setup` (dry run; once per machine) -> every step `present`.
+2. `up` (no args = one s24ultra device) -> `devices[0].serial`, e.g. `emulator-5580`.
+3. `install <serial> app.apk` after each build; `launch <serial> <pkg> --restart` -> `crashed:false` (true = read `logs`).
+4. `screen <serial>` = accessibility tree (text, id, bounds) to find what to tap; `shot <serial>` = pixels to judge the look.
+5. `tap --text|--id|x y`, `type <text> --into <field>`, `swipe up`, `key back`; several matches -> retry with `--index N`.
+6. `logs <serial> <pkg> --since 1m` = only this app's lines. Repeat 3-6 per change; `down` when finished.
+Verified end to end over MCP by `node scripts/check-vibe-loop.mjs` (prints each step's time and the total).
+
 ## Safety rules (every agent must keep)
 - adb only against `emulator-<port>`. A USB phone may be plugged in; never use a bare `adb` or the phone serial. Go through `src/adb.ts`.
 - One crewdroid run at a time. `down` kills every `crew-*` instance, so a second session on the same checkout breaks the first ("device offline"). `up`/`down`/`slim`/`prepare` take `%TEMP%\crewdroid-emulators.lock`; if another live process owns it, stop and report; never kill it.

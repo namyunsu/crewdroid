@@ -48,13 +48,13 @@ export async function devices(): Promise<{ serial: string; avd: string; api: num
 }
 
 const core: Tool[] = [
-  { name: "devices", description: "List running crewdroid emulators: serial, avd, api, profile (matched by wm size/density).", input: {}, run: () => devices() },
+  { name: "devices", description: "Use to find the emulator-<port> serial every other tool needs, or to check what is already running. Returns [{serial, avd, api, profile, screen, booted}]; empty = call up.", input: {}, run: () => devices() },
   {
-    name: "up", long: true, description: "Boot headless crewdroid emulators (minutes). No count = ONE device (s24ultra, newest API <= 36); count > 1 mixes Galaxy profiles and Android versions.",
+    name: "up", long: true, description: "Start of the loop: boot headless emulators (1-3 min). No args = ONE device (s24ultra, newest API <= 36), the right choice for building/checking an app; count > 1 mixes Galaxy profiles and Android versions. Returns {devices:[{serial, api, profile, wmSize}]}; pass serial to every other tool.",
     input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), basePort: z.number().int().default(5580) },
     run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api }); },
   },
-  { name: "down", description: "Kill every crewdroid (crew-*) emulator.", input: {}, run: () => down() },
+  { name: "down", description: "End of the loop: kill every crewdroid (crew-*) emulator. Always call it when finished. Returns {killed: pids, ports}.", input: {}, run: () => down() },
   {
     name: "net", description: "Set one emulator's network state.",
     input: { serial: z.string().describe("emulator-<port>"), state: z.enum(NET_STATES as [string, ...string[]]), seed: z.number().int().default(1) },

@@ -30,7 +30,7 @@ export async function shot(serial: string, file?: string) {
 }
 
 export const mcpTools: Tool[] = [{
-  name: "shot", description: "Screenshot as an image (PNG, also saved to file or ./crewdroid-<serial>-<time>.png). On API 31 a fully black screen after an app relaunch (emulator bug, ADR 0005) is recovered first.",
+  name: "shot", description: "Use to SEE the screen (pixels: layout, colours, clipping). Returns an image item (PNG, also saved to file or ./crewdroid-<serial>-<time>.png) and a text line with path and size. To find a button or text to tap, use screen instead. On API 31 a fully black screen after an app relaunch (emulator bug, ADR 0005) is recovered first.",
   input: { serial: z.string().describe("emulator-<port>"), file: z.string().optional().describe("host path for the PNG") },
   run: (a) => shot(a.serial, a.file),
   content: (r: Awaited<ReturnType<typeof shot>>) => [

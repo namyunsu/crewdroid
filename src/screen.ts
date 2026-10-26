@@ -90,7 +90,7 @@ export async function screen(serial: string, png?: string) {
 }
 
 export const mcpTools: Tool[] = [{
-  name: "screen", description: "What is on screen: focused window (dumpsys window) and a compact accessibility tree from uiautomator ({cls,text,desc,id,bounds,clickable,depth}); optional PNG. On API 31 a fully black screen after an app relaunch (emulator bug, ADR 0005) is recovered first and reported in blackRelaunch.",
+  name: "screen", description: "Use to READ the screen before tap/type (tree, not pixels): focused window and a compact accessibility tree from uiautomator, nodes {cls,text,desc,id,bounds,clickable,depth}; optional PNG path. For how it looks, use shot. On API 31 a fully black screen after an app relaunch (emulator bug, ADR 0005) is recovered first and reported in blackRelaunch (not an app bug).",
   input: { serial: z.string().describe("emulator-<port>"), png: z.string().optional().describe("host path for a screenshot") },
   run: (a) => screen(a.serial, a.png),
 }];
