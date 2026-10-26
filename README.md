@@ -7,6 +7,8 @@ npx crewdroid up --count 3        # 3 devices: s24ultra/API 34, fold5/API 34, fl
 npx crewdroid run scenarios/photo-upload.json --seed 1   # multi-user flow + network chaos + judge, exit 1 on a bug
 ```
 
+> Not on npm yet: use `npx -y github:namyunsu/crewdroid <command>` (and `"args": ["-y", "github:namyunsu/crewdroid", "mcp"]` in the MCP config below) until the npm release.
+
 ![3 emulated Galaxy devices (different screens and Android versions) running the same offline-first flow side by side](docs/demo/demo.gif)
 
 ## Why not just the Android Emulator?
