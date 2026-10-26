@@ -18,6 +18,7 @@ export interface UpDevice {
   serial: string; port: number; avd: string; image: string; api: number; belowMinApi: boolean;
   profile: string; model: string; width: number; height: number; density: number; densitySource: string;
   wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[]; relaunchBlack: boolean;
+  phases: Record<string, number>; // seconds since launch at the end of each step (T42)
 }
 
 // One crewdroid run drives the emulators at a time. down() kills every crew-* instance, so a second run started meanwhile
@@ -32,6 +33,13 @@ export function claimEmulators() {
   if (owner && owner !== me && alive(Number(owner))) throw new Error(`another crewdroid run (pid ${owner}) is using the emulators; wait for it to finish (lock ${LOCK()})`);
   writeFileSync(LOCK(), me);
   process.env.CREWDROID_OWNER = me;
+}
+
+async function waitAdb(serial: string, t0: number, timeoutMs = 540000) {
+  while (Date.now() - t0 < timeoutMs) {
+    if ((await adb(serial, ["get-state"], 5000, false).catch(() => "")) === "device") return;
+    await sleep(500);
+  }
 }
 
 // AI NOTE: Android's wm size only accepts up to 2x the display's physical size per side (base AVD: 1080x2340), so
@@ -87,27 +95,42 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
     for (const [i, s] of slots.entries()) {
       await start(avdName(s.image), ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window);
       t0s.push(Date.now());
-      await sleep(3000);
+      if (i < slots.length - 1) await sleep(3000); // stagger launches; nothing to stagger after the last
     }
     const devices = await Promise.all(slots.map(async (s, i): Promise<UpDevice> => {
       const serial = serials[i];
+      const phases: Record<string, number> = {};
+      const mark = (k: string) => (phases[k] = Math.round((Date.now() - t0s[i]) / 100) / 10);
+      await waitAdb(serial, t0s[i]);
+      mark("adbDevice");
       const bootSeconds = await waitBoot(serial, t0s[i]);
+      mark("bootCompleted");
       // AI NOTE: ATD's /system/build.prop sets debug.hwui.drawing_enabled=0, so apps never post a frame (screencap black,
       // window stuck on the boot logo). Not persist.*: set on every boot; apps started after this draw (ADR 0003).
       await adb(serial, ["shell", "setprop", "debug.hwui.drawing_enabled", "1"]);
-      await sleep(5000);
-      await adb(serial, ["root"], 20000); // makeDistinct edits /data/system and wlan0 (see identity.ts)
-      await sleep(3000);
-      const distinctNotes = await makeDistinct(serial, i + 1);
+      mark("hwui");
+      // AI NOTE: prepare() saves the snapshot with adbd already root, so clones come up as root and the old fixed
+      // 5 s + 3 s around `adb root` were pure wait (T42). Root is still needed by makeDistinct, net (tc) and triage (/data/anr).
+      if ((await adb(serial, ["shell", "id", "-u"])) !== "0") {
+        await sleep(5000);
+        await adb(serial, ["root"], 20000);
+        await sleep(3000);
+      }
+      mark("root");
+      // T42: clones of one snapshot share android_id, serial, MAC, hostname; makeDistinct (framework restart + probe
+      // reinstall, ~27 s) only matters when two clones run side by side. A single device keeps the snapshot's identity.
+      const distinctNotes = slots.length > 1 ? await makeDistinct(serial, i + 1) : [];
+      mark("identity");
       await adb(serial, ["shell", "wm", "size", `${s.profile.width}x${s.profile.height}`]);
       await adb(serial, ["shell", "wm", "density", String(s.profile.density)]);
+      mark("wm");
       return {
         serial, port: ports[i], avd: avdName(s.image), image: s.image, api: s.api, belowMinApi: s.belowMinApi,
         profile: s.profile.name, model: s.profile.model, width: s.profile.width, height: s.profile.height,
         density: s.profile.density, densitySource: s.profile.densitySource,
         wmSize: await adb(serial, ["shell", "wm", "size"]), wmDensity: await adb(serial, ["shell", "wm", "density"]),
         bootSeconds: Math.round(bootSeconds * 10) / 10, readySeconds: Math.round((Date.now() - t0s[i]) / 100) / 10, distinctNotes,
-        relaunchBlack: relaunchBlackApis().includes(s.api),
+        relaunchBlack: relaunchBlackApis().includes(s.api), phases,
       };
     }));
     for (const d of devices.filter((x) => x.relaunchBlack)) {
