@@ -1,8 +1,8 @@
 // T22 verify: node scripts/check-triage.mjs [--base-port 5580] [--idle-seconds 30] [--out file]
 // Boots 3 mixed devices; on the API 34 one drives the probe app's check=crash|anr|jank and checks triage / screen / perf / apk
-// through the CLI. Appends the 3-device idle RAM/CPU before/after row to docs/measurements/features.md. Always downs its emulators.
+// through the CLI. Writes the 3-device idle RAM/CPU before/after row to docs/measurements/features.md (replaces its own T22 row on rerun). Always downs its emulators.
 import { execFile } from "node:child_process";
-import { appendFileSync, existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -98,8 +98,12 @@ try {
   const f = join(root, "docs", "measurements", "features.md");
   if (!existsSync(f)) writeFileSync(f, "# Runtime features: idle cost\n\nOne row per Todo that adds a runtime command (docs/todo.md lightness rule: no launch flag / AVD config / KNOBS change; idle RAM over +5 % -> opt-in). RAM = emulator+qemu working set, CPU = % of one host core over the idle window, probe app stopped.\n\n| date | Todo | devices | idle s | RAM before -> after (MB) | RAM delta | CPU before -> after (%) | note |\n|---|---|---|---|---|---|---|---|\n");
   const dRam = Math.round(((after.ramMB - before.ramMB) / before.ramMB) * 1000) / 10;
-  appendFileSync(f, `| ${new Date().toISOString().slice(0, 10)} | T22 triage/screen/perf/apk | 3 (${mix}) | ${v["idle-seconds"]} | ${before.ramMB} -> ${after.ramMB} | ${dRam >= 0 ? "+" : ""}${dRam} % | ${before.cpuPercent} -> ${after.cpuPercent} | no daemon; after = after crash/anr/jank/heap runs |\n`);
-  say(`idle RAM delta ${dRam >= 0 ? "+" : ""}${dRam} % (row appended to docs/measurements/features.md)`);
+  const row = `| ${new Date().toISOString().slice(0, 10)} | T22 triage/screen/perf/apk | 3 (${mix}) | ${v["idle-seconds"]} | ${before.ramMB} -> ${after.ramMB} | ${dRam >= 0 ? "+" : ""}${dRam} % | ${before.cpuPercent} -> ${after.cpuPercent} | no daemon; after = after crash/anr/jank/heap runs |`;
+  // one T22 row: a rerun replaces it
+  const keep = readFileSync(f, "utf8").split(/\r?\n/).filter((l) => !l.includes("| T22 triage/screen/perf/apk |"));
+  while (keep.at(-1) === "") keep.pop();
+  writeFileSync(f, keep.join("\n") + "\n" + row + "\n");
+  say(`idle RAM delta ${dRam >= 0 ? "+" : ""}${dRam} % (T22 row written to docs/measurements/features.md)`);
 } catch (e) {
   claim(false, `error: ${e.stack ?? e}`);
 } finally {
