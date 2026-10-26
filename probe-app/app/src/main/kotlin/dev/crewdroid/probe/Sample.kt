@@ -174,13 +174,18 @@ fun multipart(name: String, payload: ByteArray): Pair<String, ByteArray> {
 // (status, body); throws when the connection fails or stalls.
 fun http(method: String, url: String, headers: Map<String, String>, body: ByteArray? = null): Pair<Int, String> {
     val c = URL(url).openConnection() as HttpURLConnection
-    c.requestMethod = method; c.connectTimeout = 10000; c.readTimeout = 20000
+    c.requestMethod = method; c.connectTimeout = 10000; c.readTimeout = 20000 + maxOf(0, (body?.size ?: 0) - 1048576) / 12
     headers.forEach { (k, v) -> c.setRequestProperty(k, v) }
     // AI NOTE: a stalled socket (net nodata mid-transfer) never errors by itself and HttpURLConnection has no write timeout,
-    // so a watchdog drops the connection when no byte moved for 10 s.
+    // so a watchdog drops the connection when no write returned for 10 s + 1 s per 64 KB of body. write() returns once bytes fit the kernel
+    // send buffer (~1.4 MB on API 36) and then wakes in bursts; at net slow the peer's small receive window gives ~230 kbit/s, so a 2 MB body
+    // stalls ~25 s between wakes and a flat 10 s killed every attempt (ADR 0006).
+    // After the last write the buffered tail (up to ~50 s) still drains while we wait for the response: the watchdog stops and readTimeout
+    // (20 s, plus 1 s per 12 KB of body beyond 1 MB so a 1 MB body keeps its 20 s) guards that wait.
+    val idleMs = 10000L + (body?.size ?: 0) / 64
     val last = AtomicLong(System.currentTimeMillis())
     val done = AtomicBoolean(false)
-    Thread { while (!done.get()) { Thread.sleep(1000); if (System.currentTimeMillis() - last.get() > 10000) { c.disconnect(); break } } }.start()
+    Thread { while (!done.get()) { Thread.sleep(1000); if (System.currentTimeMillis() - last.get() > idleMs) { c.disconnect(); break } } }.start()
     try {
         if (body != null) {
             c.doOutput = true
@@ -189,6 +194,7 @@ fun http(method: String, url: String, headers: Map<String, String>, body: ByteAr
                 var i = 0
                 while (i < body.size) { val n = minOf(16384, body.size - i); o.write(body, i, n); i += n; last.set(System.currentTimeMillis()) }
             }
+            done.set(true)
         }
         last.set(System.currentTimeMillis())
         val code = c.responseCode
