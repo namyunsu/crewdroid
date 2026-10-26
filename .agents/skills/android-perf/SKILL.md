@@ -57,7 +57,7 @@ adb -s $SERIAL shell am force-stop $PKG
 
 ## Same thing with raw adb
 ```bash
-adb -s $SERIAL shell am start -S -W -n $PKG/.MainActivity      # TotalTime / WaitTime
+adb -s $SERIAL shell am force-stop $PKG && sleep 2 && adb -s $SERIAL shell am start -W -n $PKG/.MainActivity   # cold start; no `-S` (API 31 stays black, ADR 0005)
 adb -s $SERIAL shell dumpsys gfxinfo $PKG framestats            # per-frame timestamps (ns)
 ```
 
