@@ -8,6 +8,7 @@
     <color name="ink2">#3E4A44</color>
     <color name="accent">#0B6E4F</color>
     <color name="on_accent">#FFFFFF</color>
+    <color name="thumb_ink">#FFFFFF</color>
     <color name="ok_bg">#D7F0E3</color>
     <color name="ok_ink">#0A4F39</color>
     <color name="warn_bg">#FBE7BF</color>

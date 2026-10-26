@@ -2,7 +2,9 @@ package dev.crewdroid.demo
 
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
+import android.util.Log
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +20,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     private val poll = object : Runnable { override fun run() { Notes.refresh(); list.postDelayed(this, 2000) } }
     private lateinit var list: RecyclerView
     private lateinit var chip: Chip
-    private lateinit var toolbar: MaterialToolbar
+    private lateinit var subtitle: TextView
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         Notes.server = prefs.getString("server", null) ?: Notes.server
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_main)
-        toolbar = findViewById(R.id.toolbar)
+        subtitle = findViewById(R.id.app_subtitle)
         chip = findViewById(R.id.sync)
         list = findViewById(R.id.list)
         // 2 columns once the window is tablet-wide (Fold main screen), 1 on phones and the cover screen.
@@ -63,6 +64,20 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.fab).setOnClickListener { editor() }
         Notes.listener = { render() }
         render()
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) logLayout()
+    }
+
+    // AI NOTE: debug builds only, read by scripts/check-layout.mjs (T51). The accessibility tree keeps the full text of an ellipsized
+    // label, so the drawn truncation is logged here: dropped characters of the title/subtitle, and how many px the sync chip
+    // is narrower than its own drawable wants (Chip draws its text itself, so it has no TextView layout to ask).
+    private fun logLayout() {
+        var last = ""
+        val title = findViewById<TextView>(R.id.app_title)
+        fun cut(t: TextView) = t.layout?.let { l -> (0 until l.lineCount).sumOf { l.getEllipsisCount(it) } } ?: -1
+        window.decorView.viewTreeObserver.addOnGlobalLayoutListener {
+            val now = "LAYOUT title=${cut(title)} subtitle=${cut(subtitle)} sync=${maxOf(0, chip.chipDrawable.intrinsicWidth - chip.width)}"
+            if (now != last) { last = now; Log.i(Notes.TAG, now) }
+        }
     }
 
     override fun onResume() { super.onResume(); list.post(poll) }
@@ -80,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         chip.text = text
         chip.chipBackgroundColor = ColorStateList.valueOf(getColor(bg))
         chip.setTextColor(getColor(ink))
-        toolbar.subtitle = "Riverside depot · ${Notes.all.size} notes"
+        subtitle.text = "Riverside depot · ${Notes.all.size} notes"
     }
 
     private fun editor() {
