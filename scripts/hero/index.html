@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- crewdroid 15 s hero (T44). render.mjs injects window.HERO (storyboard, measured numbers, capture paths) and calls seek(t)
+     for every frame; all CSS animations stay paused and are driven by that virtual clock, so a frame depends only on t. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="hero.css">
+</head>
+<body>
+<main id="stage">
+  <section class="scene" id="problem">
+    <div class="win">
+      <div class="win-bar"><i></i><i></i><i></i></div>
+      <div class="win-body"><div class="win-phone"></div></div>
+    </div>
+    <h1>Android Studio emulator</h1>
+    <p class="sub">heavy · one window · built for clicking</p>
+  </section>
+
+  <section class="scene" id="answer">
+    <div class="term">
+      <p class="cmd">$ <span id="typed"></span><b class="caret">_</b></p>
+      <p class="ready">ready in <span id="counter">0.0</span> s</p>
+      <p class="note">no window · no Android Studio</p>
+    </div>
+    <img class="phone pop" data-shot="0" alt="">
+  </section>
+
+  <section class="scene" id="any-screen">
+    <h2>Any Android version, any screen</h2>
+    <div class="row">
+      <figure><img data-shot="0" alt=""><figcaption><b data-api="0"></b><br><span data-profile="0"></span></figcaption></figure>
+      <figure><img data-shot="1" alt=""><figcaption><b data-api="1"></b><br><span data-profile="1"></span></figcaption></figure>
+      <figure><img data-shot="2" alt=""><figcaption><b data-api="2"></b><br><span data-profile="2"></span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="scene" id="agent">
+    <div class="left">
+      <h2>Your AI agent<br>drives it</h2>
+      <ol class="steps"><li>install</li><li>launch</li><li>shot</li><li>tap</li></ol>
+      <p class="loop">loop up→down <span data-n="loop"></span> s</p>
+    </div>
+    <div class="vibe"><img data-vibe="0" alt=""><img data-vibe="1" alt=""><img data-vibe="2" alt=""><img data-vibe="3" alt=""></div>
+    <p class="clients">MCP · Claude Code · Cursor</p>
+  </section>
+
+  <section class="scene" id="logo">
+    <h1 class="logo">crewdroid</h1>
+    <p class="tagline">Lightweight Android emulator for AI coding agents</p>
+    <p class="pill">npx crewdroid setup</p>
+    <p class="stats">3 devices: <span data-n="ram"></span> GB RAM, <span data-n="disk"></span> GB disk</p>
+  </section>
+</main>
+<script>
+const H = window.HERO;
+const sc = Object.fromEntries(H.storyboard.scenes.map((s) => [s.id, s]));
+const last = H.storyboard.scenes.at(-1).id;
+for (const s of H.storyboard.scenes) {
+  const el = document.getElementById(s.id);
+  el.style.setProperty("--s", s.start);
+  el.style.setProperty("--e", s.end);
+  if (s.id === last) el.classList.add("last");
+}
+document.querySelectorAll("[data-shot]").forEach((e) => (e.src = H.shots[e.dataset.shot].src));
+document.querySelectorAll("[data-api]").forEach((e) => (e.textContent = `API ${H.shots[e.dataset.api].api}`));
+document.querySelectorAll("[data-profile]").forEach((e) => (e.textContent = H.shots[e.dataset.profile].profile));
+document.querySelectorAll("[data-vibe]").forEach((e) => (e.src = H.vibe[e.dataset.vibe]));
+document.querySelectorAll("[data-n]").forEach((e) => (e.textContent = H.numbers[e.dataset.n]));
+
+const CMD = "npx crewdroid up";
+const steps = [...document.querySelectorAll(".steps li")], vibes = [...document.querySelectorAll("[data-vibe]")];
+// The virtual clock: pin every CSS animation to t, then the few JS-driven bits (typing, counter, lit step).
+window.seek = (t) => {
+  for (const a of document.getAnimations()) { a.pause(); a.currentTime = t * 1000; }
+  const a = sc.answer, typeEnd = a.start + 0.8, countEnd = a.start + 1.4;
+  document.getElementById("typed").textContent = CMD.slice(0, Math.round(CMD.length * Math.min(1, Math.max(0, (t - a.start - 0.2) / (typeEnd - a.start - 0.2)))));
+  const k = Math.min(1, Math.max(0, (t - typeEnd) / (countEnd - typeEnd)));
+  document.getElementById("counter").textContent = (k * H.numbers.ready).toFixed(1);
+  const g = sc.agent, i = Math.min(3, Math.max(-1, Math.floor((t - g.start - 0.4) / 0.7)));
+  steps.forEach((li, j) => li.classList.toggle("on", j <= i));
+  vibes.forEach((v, j) => v.classList.toggle("on", j === Math.max(0, i)));
+};
+seek(0);
+</script>
+</body>
+</html>

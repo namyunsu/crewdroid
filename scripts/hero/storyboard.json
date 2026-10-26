@@ -1,0 +1,15 @@
+{
+  "width": 960,
+  "height": 540,
+  "fps": 30,
+  "gifFps": 15,
+  "seconds": 15,
+  "profiles": ["s24ultra", "fold5-main", "flip7-main"],
+  "scenes": [
+    { "id": "problem", "start": 0, "end": 3, "text": "Android Studio emulator: heavy, one window, built for clicking" },
+    { "id": "answer", "start": 3, "end": 6, "text": "npx crewdroid up -> real phone screenshot, ready in <single.md> s" },
+    { "id": "any-screen", "start": 6, "end": 9, "text": "Any Android version, any screen: 3 real captures with API labels" },
+    { "id": "agent", "start": 9, "end": 12.5, "text": "Your AI agent drives it: install -> launch -> shot -> tap next to vibe.gif frames" },
+    { "id": "logo", "start": 12.5, "end": 15, "text": "crewdroid / Lightweight Android emulator for AI coding agents / npx crewdroid setup" }
+  ]
+}

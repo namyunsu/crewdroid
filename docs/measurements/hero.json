@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-26T08:22:18.888Z",
+  "numbers": {
+    "ready": 7.4,
+    "loop": 79,
+    "ram": "4.12",
+    "disk": "7.12"
+  },
+  "shown": {
+    "ready": 7.4,
+    "readyText": "ready in 7.4 s"
+  },
+  "sources": {
+    "ready": "docs/measurements/single.md (mean ready)",
+    "loop": "docs/measurements/demo-vibe.json loopSeconds",
+    "ram": "docs/measurements/ram.md",
+    "disk": "docs/measurements/slim.md"
+  },
+  "captures": [
+    {
+      "serial": "emulator-5580",
+      "api": 34,
+      "profile": "s24ultra",
+      "width": 1080,
+      "height": 2340
+    },
+    {
+      "serial": "emulator-5582",
+      "api": 34,
+      "profile": "fold5-main",
+      "width": 1812,
+      "height": 2176
+    },
+    {
+      "serial": "emulator-5584",
+      "api": 36,
+      "profile": "flip7-main",
+      "width": 1080,
+      "height": 2520
+    }
+  ],
+  "layout": [
+    {
+      "scene": "problem",
+      "problems": []
+    },
+    {
+      "scene": "answer",
+      "problems": []
+    },
+    {
+      "scene": "any-screen",
+      "problems": []
+    },
+    {
+      "scene": "agent",
+      "problems": []
+    },
+    {
+      "scene": "logo",
+      "problems": []
+    }
+  ],
+  "gif": {
+    "path": "docs/demo/hero.gif",
+    "width": 960,
+    "height": 540,
+    "fps": 15,
+    "bytes": 1420700,
+    "seconds": 15
+  }
+}
