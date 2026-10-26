@@ -111,7 +111,7 @@ async function main() {
   if (cmd === "run") {
     const [, file] = positionals;
     if (!file) throw new Error("usage: run <scenario.json> [--seed N] [--count 3] [--server-port 5599] [--out file]");
-    const r = await runScenario(file, { count: Number(values.count), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]) });
+    const r = await runScenario(file, { count: Number(values.count), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]), profiles: values.profiles?.split(",") });
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
     if (values.json) console.log(text);

@@ -77,6 +77,10 @@ object Outbox {
     }
 
     fun size() = pending().size
+    // T32: only the default screen (ProbeActivity.sample) reads these; no log line or broadcast changes.
+    @Volatile var synced = 0
+    @Volatile var conflict = 0
+    @Volatile var last = "-"
     fun version(id: String) = prefs.getInt("v:$id", 0)
     private fun pending() = (dir.listFiles { f -> f.name.endsWith(".json") } ?: emptyArray()).sortedBy { it.name }
     private fun bin(f: File) = File(f.path.removeSuffix(".json") + ".bin")
@@ -116,9 +120,12 @@ object Outbox {
             when {
                 code in 200..299 -> {
                     if (e.getString("kind") == "edit") prefs.edit().putInt("v:$id", JSONObject(text).getInt("version")).commit()
-                    Log.i(TAG, "SYNCED $id $key http=$code")
+                    Log.i(TAG, "SYNCED $id $key http=$code"); synced++; last = "synced $id"
                 }
-                code == 409 -> Log.i(TAG, "CONFLICT $id base=${e.optInt("base")} server=${runCatching { JSONObject(text).getInt("version") }.getOrDefault(-1)}")
+                code == 409 -> {
+                    Log.i(TAG, "CONFLICT $id base=${e.optInt("base")} server=${runCatching { JSONObject(text).getInt("version") }.getOrDefault(-1)}")
+                    conflict++; last = "conflict $id"
+                }
                 code in 400..499 -> Log.i(TAG, "DROPPED $id http=$code")
                 else -> {
                     // AI NOTE: the key was fixed at save time and is resent unchanged on every retry, so a retry after a lost ack

@@ -1,13 +1,13 @@
-// T13 verify: node scripts/check-demo-gif.mjs [--mvp docs/measurements/mvp.json] [--gif docs/demo/techs.gif]
+// T13 verify: node scripts/check-demo-gif.mjs [--mvp docs/measurements/mvp.json] [--gif docs/demo/techs.gif] [--max-mb N] [--max-seconds N] (T29)
 // Reads gif.panels from mvp.json, decodes each panel of the GIF with ffmpeg and fails unless, in the second half of the GIF,
 // the panel is not flat (luma range > 40, <= 90% of pixels in 2 adjacent luma buckets) and differs from its first frame; and the 3 panels' w/h ratios are pairwise different.
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 const root = join(import.meta.dirname, "..");
-const { values: v } = parseArgs({ options: { mvp: { type: "string", default: join(root, "docs/measurements/mvp.json") }, gif: { type: "string", default: join(root, "docs/demo/techs.gif") } } });
+const { values: v } = parseArgs({ options: { mvp: { type: "string", default: join(root, "docs/measurements/mvp.json") }, gif: { type: "string", default: join(root, "docs/demo/techs.gif") }, "max-mb": { type: "string" }, "max-seconds": { type: "string" } } });
 const fail = (m) => (console.error(`FAIL: ${m}`), process.exit(1));
 const panels = JSON.parse(readFileSync(v.mvp, "utf8")).gif?.panels;
 if (panels?.length !== 3) fail(`${v.mvp} has no gif.panels (3 expected)`);
@@ -21,6 +21,12 @@ const MAX_DOMINANT = 0.9; // blank grey panel ~0.99 of pixels in 2 adjacent luma
 const MIN_RANGE = 40; // luma 0..255
 const MIN_DIFF = 0.02; // share of pixels that moved by > 24 luma vs the first frame
 const problems = [];
+if (v["max-mb"]) { const mb = statSync(v.gif).size / 2 ** 20; if (mb > Number(v["max-mb"])) problems.push(`${v.gif} is ${mb.toFixed(2)} MB (max ${v["max-mb"]})`); }
+if (v["max-seconds"]) {
+  const r = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", v.gif]);
+  const sec = Number(String(r.stdout).trim());
+  if (!(sec <= Number(v["max-seconds"]))) problems.push(`${v.gif} lasts ${sec} s (max ${v["max-seconds"]})`);
+}
 let nFrames = 0;
 const ratio = (p) => p.width / p.height;
 for (const p of panels) {

@@ -74,7 +74,33 @@ class ProbeActivity : Activity() {
     private fun sample() {
         Outbox.init(this)
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        setContentView(android.widget.TextView(this).apply { text = "Crew sample app\noutbox: ${Outbox.size()} pending"; textSize = 20f; setPadding(48, 96, 48, 48) })
+        // T32: refreshed once a second so a screen recording shows the outbox draining. Three bars (pending amber, synced green,
+        // conflict red; full width = 16 entries) fill enough of the screen that recorded panels are neither flat nor static.
+        val tv = android.widget.TextView(this).apply { textSize = 26f; setPadding(48, 96, 48, 48); setTextColor(android.graphics.Color.WHITE) }
+        val bars = listOf(android.graphics.Color.rgb(255, 176, 0), android.graphics.Color.rgb(0, 200, 90), android.graphics.Color.rgb(230, 50, 50))
+            .map { c -> android.view.View(this).apply { setBackgroundColor(c) } }
+        val root = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL; setBackgroundColor(android.graphics.Color.rgb(16, 32, 48))
+            addView(tv)
+            bars.forEach { addView(it, android.widget.LinearLayout.LayoutParams(0, 0, 1f).apply { topMargin = 24 }) }
+        }
+        val tick = object : Runnable {
+            override fun run() {
+                val n = listOf(Outbox.size(), Outbox.synced, Outbox.conflict)
+                val text = "Crew sample app\noutbox: ${n[0]} pending\nsynced: ${n[1]}\nconflict: ${n[2]}\nlast: ${Outbox.last}"
+                // redraw only when something changed (no idle relayout every second)
+                if (text != tv.text.toString() && root.width > 0) {
+                    tv.text = text
+                    bars.forEachIndexed { i, b -> b.layoutParams = b.layoutParams.apply { width = root.width * minOf(n[i], 16) / 16 } }
+                }
+                root.postDelayed(this, 1000)
+            }
+        }
+        root.addOnAttachStateChangeListener(object : android.view.View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: android.view.View) { tick.run() }
+            override fun onViewDetachedFromWindow(v: android.view.View) { root.removeCallbacks(tick) }
+        })
+        setContentView(root)
     }
 
     private fun env() {

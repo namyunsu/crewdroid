@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-26T00:28:33.780Z",
+  "scenario": "photo-upload",
+  "seed": 1,
+  "buggy": true,
+  "runOk": false,
+  "drained": true,
+  "judge": {
+    "ok": false,
+    "violations": 7,
+    "summary": "VIOLATION count(acks) (uploads): 1 rows\nVIOLATION noLostUpdate(id,baseVersion) (writes): 2 rows\nVIOLATION noLostUpdate(id,baseVersion) (writes): 2 rows\nVIOLATION noLostUpdate(id,baseVersion) (writes): 2 rows"
+  },
+  "devices": [
+    {
+      "serial": "emulator-5580",
+      "profile": "s24ultra",
+      "api": 34,
+      "screen": "1080x2340@450",
+      "log": {
+        "SAVED": 16,
+        "SYNCED": 16,
+        "RETRY": 5,
+        "CONFLICT": 0,
+        "DROPPED": 0
+      }
+    },
+    {
+      "serial": "emulator-5582",
+      "profile": "fold5-main",
+      "api": 34,
+      "screen": "1812x2176@420",
+      "log": {
+        "SAVED": 16,
+        "SYNCED": 16,
+        "RETRY": 8,
+        "CONFLICT": 0,
+        "DROPPED": 0
+      }
+    },
+    {
+      "serial": "emulator-5584",
+      "profile": "flip7-main",
+      "api": 36,
+      "screen": "1080x2520@480",
+      "log": {
+        "SAVED": 16,
+        "SYNCED": 16,
+        "RETRY": 12,
+        "CONFLICT": 0,
+        "DROPPED": 0
+      }
+    }
+  ],
+  "gif": {
+    "path": "docs/demo/demo.gif",
+    "height": 480,
+    "fps": 8,
+    "bytes": 261119,
+    "seconds": 18.88,
+    "recordedSeconds": 76,
+    "speed": 4.8,
+    "panels": [
+      {
+        "serial": "emulator-5580",
+        "profile": "s24ultra",
+        "api": 34,
+        "x": 0,
+        "width": 222,
+        "height": 480
+      },
+      {
+        "serial": "emulator-5582",
+        "profile": "fold5-main",
+        "api": 34,
+        "x": 222,
+        "width": 400,
+        "height": 480
+      },
+      {
+        "serial": "emulator-5584",
+        "profile": "flip7-main",
+        "api": 36,
+        "x": 622,
+        "width": 206,
+        "height": 480
+      }
+    ]
+  }
+}
