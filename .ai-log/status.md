@@ -50,3 +50,9 @@ T42 DONE
 T44 TODO
 T43 DONE (MANUAL: Mac/Linux run)
 T44 TODO
+T45 TODO
+T48 TODO
+T49 TODO
+T50 TODO
+T33 DONE
+T44 DONE (MANUAL: 사용자가 hero.gif 를 보고 판정 — 사용자는 이미 구리다고 함, T50 이 대체)
