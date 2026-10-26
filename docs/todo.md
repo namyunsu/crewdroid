@@ -59,3 +59,4 @@ Rules for this wave (on top of the earlier rules):
 
 Wave 2026-10-26 autopilot shift (found while verifying T33).
 
+Wave 2026-10-27 autopilot /brief auto (plan 2 of this run). Design/layout gap (brief step 2b): the Field Notes demo app (T48, 2026-10-26) is the UI every intro clip shows, and no layout sweep exists for it. Boots 1 emulator.

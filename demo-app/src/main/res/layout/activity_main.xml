@@ -13,28 +13,48 @@
         app:liftOnScroll="true">
         <!-- AI NOTE: ATD draws no status bar; the 24 dp stands in for it and keeps screenrecord's timestamp line off the title. -->
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <!-- AI NOTE: not a MaterialToolbar (T51): a toolbar title/subtitle is one line and ellipsizes next to the sync chip at large font on a 360 dp screen; here both wrap. -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:minHeight="72dp"
-            app:title="Field Notes"
-            app:subtitle="Riverside depot"
-            app:titleTextAppearance="@style/TextAppearance.FieldNotes.AppTitle"
-            app:subtitleTextAppearance="@style/TextAppearance.FieldNotes.AppSubtitle">
+            android:orientation="horizontal"
+            android:paddingVertical="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/app_title"
+                    android:textAppearance="@style/TextAppearance.FieldNotes.AppTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Field Notes" />
+
+                <TextView
+                    android:id="@+id/app_subtitle"
+                    android:textAppearance="@style/TextAppearance.FieldNotes.AppSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/sync"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end|center_vertical"
-                android:layout_marginEnd="12dp"
                 android:clickable="false"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 app:chipStrokeWidth="0dp"
                 app:ensureMinTouchTargetSize="false" />
-        </com.google.android.material.appbar.MaterialToolbar>
+        </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout

@@ -56,3 +56,5 @@ T49 DONE
 T50 BLOCKED:T49 측정이 전제와 반대 — 영상 메시지 사용자 결정 필요
 T33 DONE
 T44 DONE (MANUAL: 사용자가 hero.gif 를 보고 판정 — 사용자는 이미 구리다고 함, T50 이 대체)
+T51 TODO
+T51 DONE
