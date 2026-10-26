@@ -5,3 +5,6 @@
 MANUAL: T43 Mac/Linux 에서 setup→up→shot→down 시간 기록. T44 hero.gif 는 사용자가 이미 구리다고 함(T50 대체).
 시나리오(check-scenario)는 T33 후 안 돌림: photoBytes 65536 이라 영향 없다는 추론뿐, 다음 WRAP-UP 전에 한 번 돌릴 것.
 워커는 worktree 없이 ai/work 에서 직접 작업. %TEMP%\claude 아래 hero-caps/hero-view/hero.bak 임시 폴더가 남음(권한 거부로 못 지움).
+
+## 2026-10-26 23:1x shift (BUSY)
+bench-agent(PID 22632)가 락과 qemu 30788 을 쥐고 있어 dispatch 안 함. .ai-log/BUSY 기록. 끝나면 agent-bench.json/md(미추적, 23:07 기록)를 verify 하고 T49 를 마무리할 것. 이미 결과 파일이 있으니 새 워커 대신 verify 부터.

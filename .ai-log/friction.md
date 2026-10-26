@@ -72,3 +72,4 @@
 2026-10-26 | T40 을 보낸 뒤 /brief 가 todo.md 선행 조건을 바꿔 작업 폐기 | Todo changed mid-shift (사람 편집과 shift 겹침)
 2026-10-26 | 워커가 %TEMP% 임시 폴더 삭제를 권한에서 거부당함 | tool limit
 2026-10-26 | 이전 shift 시간초과 뒤에도 bench-agent.mjs(PID 22632)와 bench-stock-34 에뮬레이터가 살아 락을 쥠 | env broken / tool limit
+2026-10-26 | 이전 shift 의 bench-agent(22632)가 shift 사이에도 계속 돌아 에뮬레이터 점유 | env: 오래 걸리는 벤치가 shift 종료 후 살아남음
