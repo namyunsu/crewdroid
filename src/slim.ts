@@ -1,25 +1,12 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { createHash } from "node:crypto";
 import { closeSync, existsSync, ftruncateSync, openSync, readFileSync, readSync, readdirSync, renameSync, rmSync, statSync, utimesSync, writeFileSync, writeSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DATA_PARTITION, KNOBS, avdHome, avdName } from "./avd.ts";
+import { DATA_PARTITION, KNOBS, avdHome, avdName, imageDir } from "./avd.ts";
+import { allocBytes, listProcesses, ntfs, ntfsCompress, ntfsSparseFlag } from "./platform.ts";
 import { atdImages } from "./profiles.ts";
-import { sdkRoot } from "./sdk.ts";
 import { SNAPSHOT, prepare } from "./snapshot.ts";
 import { claimEmulators } from "./up.ts";
-
-const run = promisify(execFile);
-const ps = (cmd: string) => run("powershell", ["-NoProfile", "-Command", cmd], { windowsHide: true, maxBuffer: 64 * 2 ** 20 }).then((r) => r.stdout);
-
-// Real on-disk allocation (GetCompressedFileSizeW: sparse holes and NTFS compression excluded), summed over every file under each path.
-export async function allocBytes(paths: string[]): Promise<number[]> {
-  const list = paths.map((p) => `'${p.replace(/'/g, "''")}'`).join(",");
-  const out = await ps(`Add-Type -Namespace W -Name K -MemberDefinition '[DllImport("kernel32.dll",CharSet=CharSet.Unicode)] public static extern uint GetCompressedFileSizeW(string p, out uint h);';
-    @(${list}) | ForEach-Object { $t=[int64]0; if (Test-Path -LiteralPath $_) { Get-ChildItem -LiteralPath $_ -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object { $h=[uint32]0; $l=[W.K]::GetCompressedFileSizeW($_.FullName,[ref]$h); $t += [int64]$h*4294967296 + $l } }; $t }`);
-  return out.trim().split(/\r?\n/).map(Number);
-}
 
 const CHUNK = 4 * 2 ** 20, UNIT = 64 * 1024; // NTFS sparse files allocate in 64 KiB units
 const ZERO = Buffer.alloc(UNIT);
@@ -35,7 +22,7 @@ export async function sparsify(file: string): Promise<string> {
   const tmp = `${file}.slim-tmp`;
   rmSync(tmp, { force: true });
   writeFileSync(tmp, "");
-  await run("fsutil", ["sparse", "setflag", tmp], { windowsHide: true });
+  await ntfsSparseFlag(tmp);
   const h = createHash("sha256"), src = openSync(file, "r"), dst = openSync(tmp, "r+"), buf = Buffer.alloc(CHUNK);
   let pos = 0;
   try {
@@ -56,16 +43,15 @@ export async function sparsify(file: string): Promise<string> {
   return sha256;
 }
 
-// NTFS (LZNT1) compression, transparent to readers; the emulator boots from compressed images and snapshots (T15).
-const compact = (paths: string[]) => run("compact", ["/c", "/q", ...paths], { windowsHide: true, maxBuffer: 16 * 2 ** 20 });
-
+// NTFS (LZNT1) compression is transparent to readers; the emulator boots from compressed images and snapshots (T15).
 // System image dir (read-only for the emulator): every *.img sparse + compressed, then re-hashed. `<img>.sha256` holds the
-// original content hash and marks the file done.
+// original content hash and marks the file done. No-op off Windows.
 export async function slimImage(dir: string) {
+  if (!ntfs()) return;
   for (const f of readdirSync(dir).filter((n) => n.endsWith(".img")).map((n) => join(dir, n))) {
     if (existsSync(`${f}.sha256`)) continue;
     const sha256 = await sparsify(f);
-    await compact([f]);
+    await ntfsCompress([f]);
     if (hashFile(f) !== sha256) throw new Error(`${f} changed after compression`);
     writeFileSync(`${f}.sha256`, `${sha256}\n`);
   }
@@ -73,7 +59,7 @@ export async function slimImage(dir: string) {
 
 export const MARK = "crewdroid-slim.json";
 // coldBoot only changes how clones start, not the snapshot
-export const slimSettings = () => ({ ...KNOBS, coldBoot: undefined, dataPartition: DATA_PARTITION, zeroFreeRam: "MemFree-512MB", ntfsCompressed: true });
+export const slimSettings = () => ({ ...KNOBS, coldBoot: undefined, dataPartition: DATA_PARTITION, zeroFreeRam: "MemFree-512MB", ntfsCompressed: ntfs() });
 
 // Base AVD after prepare() saved its snapshot (emulator stopped): compress every file (snapshot RAM, userdata qcow2, ...).
 // Clones only read these files. The marker records the settings the snapshot was made with.
@@ -81,7 +67,7 @@ export async function slimAvd(dir: string) {
   const files: string[] = [];
   const walk = (d: string) => { for (const e of readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(join(d, e.name)) : files.push(join(d, e.name)); };
   walk(dir);
-  await compact(files);
+  if (ntfs()) await ntfsCompress(files);
   writeFileSync(join(dir, MARK), JSON.stringify(slimSettings()) + "\n");
 }
 
@@ -93,10 +79,10 @@ export function avdSlim(dir: string) {
 }
 
 // any AVD instance (crew or not); the launcher's short-lived `emulator -kill <pid> -sleep 20` helper does not count
-const anyEmulator = async () => (await ps(`@(Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'emulator|qemu' -and $_.CommandLine -match ' -avd ' }).Count`)).trim() !== "0";
+const anyEmulator = async () => (await listProcesses(" -avd ")).length > 0;
 
 export function slimPaths() {
-  const images = atdImages().map((x) => ({ ...x, imageDir: join(sdkRoot(), "system-images", ...x.image.split("/"), "x86_64"), avdDir: join(avdHome(), `${avdName(x.image)}.avd`) }));
+  const images = atdImages().map((x) => ({ ...x, imageDir: imageDir(x.image), avdDir: join(avdHome(), `${avdName(x.image)}.avd`) }));
   return { images, temp: join(tmpdir(), "AndroidEmulator") }; // temp: where -read-only clones keep their overlays
 }
 
@@ -120,7 +106,7 @@ export async function slim(basePort = 5580) {
   const mark = async (step: string) => { const d = await diskUse(); steps.push({ step, totalBytes: d.totalBytes }); return d; };
   const before = await mark("before");
   for (const x of images) await slimImage(x.imageDir);
-  await mark("images sparse + compressed");
+  await mark(ntfs() ? "images sparse + compressed" : "images (sparse + compress skipped: NTFS only)");
   const prepared: string[] = [];
   for (const x of images.filter((x) => !avdSlim(x.avdDir))) {
     await prepare(x.image, basePort);
@@ -130,5 +116,5 @@ export async function slim(basePort = 5580) {
   // no emulator runs (checked above), so every TMP* overlay is a leftover of a killed clone
   if (existsSync(temp)) for (const n of readdirSync(temp).filter((n) => n.startsWith("TMP"))) rmSync(join(temp, n), { force: true });
   const after = await mark("stale clone overlays deleted");
-  return { date: new Date().toISOString(), settings: slimSettings(), prepared, steps, before, after };
+  return { date: new Date().toISOString(), settings: slimSettings(), prepared, steps, before, after, ...(ntfs() ? {} : { skipped: "NTFS only" }) };
 }

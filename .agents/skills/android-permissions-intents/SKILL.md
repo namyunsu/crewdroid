@@ -51,9 +51,9 @@ adb -s $SERIAL shell am start -W -n $PKG/.ProbeActivity --es check id | grep 'St
 
 5. Does a link resolve to any activity? Check before opening it.
 ```bash verify
-adb -s $SERIAL shell cmd package resolve-activity --brief -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d crewdroid://probe/x | tail -1 | grep 'No activity found'
+adb -s $SERIAL shell cmd package resolve-activity --brief -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d crewdroid://probe/x | tail -1 | grep "$PKG/"
 ```
-   (The probe app has no deep-link filter, so this link resolves nowhere.) A matching app prints `<pkg>/<activity>`.
+   (The probe app declares `crewdroid://probe/...`, so this prints its activity.) A matching app prints `<pkg>/<activity>`.
    `No activity found` = no `<intent-filter>` with `VIEW` + `BROWSABLE` + `DEFAULT` and a matching `<data scheme/host/path>`;
    list the app's filters with `crewdroid apk <file.apk>` (android-apk) and compare scheme, host and path exactly.
 

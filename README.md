@@ -106,9 +106,11 @@ The bundled sample app (Kotlin, offline outbox, `probe-app/`) and sample server 
 
 ## Requirements
 
-- Android SDK with command-line tools and emulator >= 36.4 (`ANDROID_SDK_ROOT` or `ANDROID_HOME` must point at it, or `~/.crewdroid/android-sdk` must exist). No SDK yet: `npx crewdroid setup --yes` installs JDK 17 (for sdkmanager only), command-line tools, platform-tools, emulator and the `google_atd` image (`--images 34,31,36`, `--dry-run` lists sizes first); crewdroid downloads the `google_atd` x86_64 images it needs (API 31/34/36, ~0.9 GB each) and shrinks them with `slim`
+- Android SDK with command-line tools and emulator >= 36.4 (`ANDROID_SDK_ROOT` or `ANDROID_HOME` must point at it, or `~/.crewdroid/android-sdk` must exist). No SDK yet: `npx crewdroid setup --yes` installs JDK 17 (for sdkmanager only), command-line tools, platform-tools, emulator and the `google_atd` image (`--images 34,31,36`, `--dry-run` lists sizes first); crewdroid downloads the `google_atd` images it needs for the host CPU (x86_64, or arm64-v8a on Apple Silicon / ARM Linux; API 31/34/36, ~0.9 GB each) and shrinks them with `slim`
 - Node >= 22
-- Hardware acceleration: WHPX (Windows) or KVM (Linux)
+- Windows 10/11 x64, macOS on Apple Silicon, or Linux x64/arm64
+- Hardware acceleration: WHPX (Windows), Hypervisor.framework (macOS) or KVM (Linux, `/dev/kvm`); `setup` reports `emulator -accel-check`
+- macOS/Linux: `slim` skips the NTFS sparse/compress steps (snapshot zero-fill and stale-overlay cleanup still run); RAM figures are process RSS (shared pages not split)
 
 ## Commands
 

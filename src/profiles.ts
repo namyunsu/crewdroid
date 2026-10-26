@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { hostAbi } from "./platform.ts";
 import { sdkRoot } from "./sdk.ts";
 
 export interface Profile {
@@ -36,11 +37,11 @@ export function loadProfilesFile(file: string): Profile[] {
 // APIs whose screen can stay black after a force-stop + immediate relaunch (`am start -S`), SurfaceView or not (ADR 0005).
 export const relaunchBlackApis = (): number[] => galaxy().relaunchBlackApis ?? [];
 
-// Installed google_atd x86_64 images, e.g. [{ image: "android-31/google_atd", api: 31 }], sorted by API.
+// Installed google_atd images for the host ABI, e.g. [{ image: "android-31/google_atd", api: 31 }], sorted by API.
 export function atdImages(): { image: string; api: number }[] {
   const root = join(sdkRoot(), "system-images");
   return readdirSync(root)
-    .filter((d) => /^android-\d+$/.test(d) && existsSync(join(root, d, "google_atd", "x86_64", "system.img")))
+    .filter((d) => /^android-\d+$/.test(d) && existsSync(join(root, d, "google_atd", hostAbi(), "system.img")))
     .map((d) => ({ image: `${d}/google_atd`, api: Number(d.slice(8)) }))
     .sort((a, b) => a.api - b.api);
 }

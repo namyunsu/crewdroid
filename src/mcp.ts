@@ -1,8 +1,6 @@
-import { execFile } from "node:child_process";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { promisify } from "node:util";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z, type ZodRawShape } from "zod";
@@ -10,11 +8,10 @@ import { adb } from "./adb.ts";
 import { hammer } from "./hammer.ts";
 import { judge } from "./judge.ts";
 import { NET_STATES, setNet } from "./net.ts";
+import { CREW_RE, listProcesses } from "./platform.ts";
 import { loadProfiles } from "./profiles.ts";
 import { runScenario } from "./scenario.ts";
 import { down, up, upDefaults } from "./up.ts";
-
-const run = promisify(execFile);
 
 // A feature module adds MCP tools by exporting `mcpTools: Tool[]`; serve() picks up every src/*.ts that does.
 // `long` tools get a `timeoutSec` input and should print progress with console.error (sent as logging notifications).
@@ -25,10 +22,8 @@ export interface Tool { name: string; description: string; input: ZodRawShape; l
 // Running crew emulators. AI NOTE: same process query as down() in up.ts (crew-* AVD on the command line); profile is
 // recovered by matching the device's current wm size/density against profiles/galaxy.json (up() does not record it).
 export async function devices(): Promise<{ serial: string; avd: string; api: number | null; profile: string; size: string; density: string; screen: string; booted: boolean }[]> {
-  const ps = `ConvertTo-Json -Compress -InputObject @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'emulator|qemu' -and $_.CommandLine -match '(^|[ @"])crew-[^ "]+([ "]|$)' } | ForEach-Object { $_.CommandLine })`;
-  const { stdout } = await run("powershell", ["-NoProfile", "-Command", ps], { windowsHide: true });
   const byPort = new Map<number, string>();
-  for (const cmd of JSON.parse(stdout.trim() || "[]") as string[]) {
+  for (const { cmd } of await listProcesses(CREW_RE)) {
     const port = Number(cmd.match(/-port\s+(\d+)/)?.[1]);
     const avd = cmd.match(/(?:^|[ @"])(crew-[^ "]+)/)?.[1];
     if (port > 0 && avd) byPort.set(port, avd);
@@ -48,13 +43,13 @@ export async function devices(): Promise<{ serial: string; avd: string; api: num
 }
 
 const core: Tool[] = [
-  { name: "devices", description: "List running crewdroid emulators: serial, avd, api, profile (matched by wm size/density).", input: {}, run: () => devices() },
+  { name: "devices", description: "Use to find the emulator-<port> serial every other tool needs, or to check what is already running. Returns [{serial, avd, api, profile, screen, booted}]; empty = call up.", input: {}, run: () => devices() },
   {
-    name: "up", long: true, description: "Boot headless crewdroid emulators (minutes). No count = ONE device (s24ultra, newest API <= 36); count > 1 mixes Galaxy profiles and Android versions.",
+    name: "up", long: true, description: "Start of the loop: boot headless emulators (1-3 min). No args = ONE device (s24ultra, newest API <= 36), the right choice for building/checking an app; count > 1 mixes Galaxy profiles and Android versions. Returns {devices:[{serial, api, profile, wmSize}]}; pass serial to every other tool.",
     input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), basePort: z.number().int().default(5580) },
     run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api }); },
   },
-  { name: "down", description: "Kill every crewdroid (crew-*) emulator.", input: {}, run: () => down() },
+  { name: "down", description: "End of the loop: kill every crewdroid (crew-*) emulator. Always call it when finished. Returns {killed: pids, ports}.", input: {}, run: () => down() },
   {
     name: "net", description: "Set one emulator's network state.",
     input: { serial: z.string().describe("emulator-<port>"), state: z.enum(NET_STATES as [string, ...string[]]), seed: z.number().int().default(1) },

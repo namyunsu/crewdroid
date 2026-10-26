@@ -1,13 +1,15 @@
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { hostAbi } from "./platform.ts";
 import { sdkRoot } from "./sdk.ts";
 
 export const avdHome = () => process.env.ANDROID_AVD_HOME || join(process.env.USERPROFILE || process.env.HOME || "", ".android", "avd");
 
-// image "android-34/google_atd" -> AVD "crew-android-34-google_atd", sdk package "system-images;android-34;google_atd;x86_64"
+// image "android-34/google_atd" -> AVD "crew-android-34-google_atd", sdk package "system-images;android-34;google_atd;<host abi>"
 export const avdName = (image: string) => `crew-${image.replace("/", "-")}`;
-export const imagePackage = (image: string) => `system-images;${image.replace("/", ";")};x86_64`;
+export const imagePackage = (image: string) => `system-images;${image.replace("/", ";")};${hostAbi()}`;
+export const imageDir = (image: string) => join(sdkRoot(), "system-images", ...image.split("/"), hostAbi());
 
 const bat = (n: string) => join(sdkRoot(), "cmdline-tools", "latest", "bin", process.platform === "win32" ? `${n}.bat` : n);
 
@@ -24,7 +26,7 @@ function exec(cmd: string, args: string[], stdin?: string): Promise<string> {
 }
 
 export function imageInstalled(image: string): boolean {
-  return existsSync(join(sdkRoot(), "system-images", ...image.split("/"), "x86_64", "system.img"));
+  return existsSync(join(imageDir(image), "system.img"));
 }
 
 export async function installImage(image: string) {

@@ -96,17 +96,17 @@ export async function logs(serial: string, pkg: string, o: { since?: string; lev
 
 export const mcpTools: Tool[] = [
   {
-    name: "install", description: "adb install -r [-g] an APK on one emulator or `all` running crew devices. Per device: package and Success or the adb failure code (INSTALL_FAILED_*).",
+    name: "install", description: "Use after each build: adb install -r [-g] a host .apk on one emulator or `all` crew devices (replaces the old version, keeps data). Returns ok and per device package + Success or the adb failure code (INSTALL_FAILED_*).",
     input: { target: z.string().describe("emulator-<port> or all"), apk: z.string().describe("host path to the .apk"), grant: z.boolean().default(false).describe("-g: grant all runtime permissions") },
     run: (a) => install(a.target, a.apk, a.grant),
   },
   {
-    name: "launch", description: "Start an app (am start -W): component, TotalTime, and crashed:true + crash summary when the process is gone 2 s later. restart = force-stop, 2 s, start.",
+    name: "launch", description: "Use to open the app after install, or restart it (restart:true) after a change. am start -W, then checks the process 2 s later. Returns component, totalTime ms and crashed; crashed:true comes with crash {exception, topFrame} (then call logs or triage).",
     input: { serial: z.string().describe("emulator-<port>"), pkg: z.string(), activity: z.string().optional().describe("e.g. .MainActivity; default = launcher activity"), restart: z.boolean().default(false), extras: z.array(z.string()).default([]).describe('am start extras, e.g. ["--es","check","crash"]') },
     run: (a) => launch(a.serial, a.pkg, { activity: a.activity, restart: a.restart, extras: a.extras }),
   },
   {
-    name: "logs", description: "Only one app's logcat lines (its pid; falls back to its last pid when not running). Capped at the newest 500 lines, newest last.",
+    name: "logs", description: "Use to see what the app printed or why it failed: one app's logcat lines only (its pid; its last pid when not running). Returns {lines:[{time, level, tag, message}]}, newest last, max 500; since:\"1m\" limits to recent lines.",
     input: { serial: z.string().describe("emulator-<port>"), pkg: z.string(), since: z.string().optional().describe("60s | 90 | 2m"), level: z.enum(["V", "D", "I", "W", "E"]).default("V"), seconds: z.number().int().min(1).max(300).optional().describe("follow for N s") },
     run: async (a) => { const r = await logs(a.serial, a.pkg, a); return { ...r, truncated: r.lines.length > 500, lines: r.lines.slice(-500) }; },
   },

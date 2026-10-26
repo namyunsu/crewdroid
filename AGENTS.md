@@ -4,7 +4,7 @@ Lightweight multi-user Android field lab on top of Google's emulator. Boots N he
 
 ## Install and run
 ```bash
-npm ci                                   # Node >= 22, Android SDK + emulator >= 36.4, WHPX/KVM
+npm ci                                   # Node >= 22, Android SDK + emulator >= 36.4; Windows x64, macOS (Apple Silicon) or Linux with WHPX/HVF/KVM
 npx tsx src/cli.ts up --count 3 --json   # boot 3 mixed devices (emulator-5580, 5582, ...)
 npx tsx src/cli.ts run scenarios/photo-upload.json --seed 1 --server-port 5595
 npx tsx src/cli.ts down                  # always stop what you started
@@ -42,6 +42,16 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `mcp` | stdio MCP server wrapping the commands above | implemented |
 | `prepare`, `identity`, `slim`, `measure` | base-image maintenance and measurement | implemented |
 | `help` | usage text | implemented |
+
+## Vibe-coding loop (one device, build and check an app)
+Skill: `.agents/skills/android-vibe-loop/SKILL.md`. Same names as MCP tools and CLI commands; pass the serial from `up` to every step.
+1. `setup` (dry run; once per machine) -> every step `present`.
+2. `up` (no args = one s24ultra device) -> `devices[0].serial`, e.g. `emulator-5580`.
+3. `install <serial> app.apk` after each build; `launch <serial> <pkg> --restart` -> `crashed:false` (true = read `logs`).
+4. `screen <serial>` = accessibility tree (text, id, bounds) to find what to tap; `shot <serial>` = pixels to judge the look.
+5. `tap --text|--id|x y`, `type <text> --into <field>`, `swipe up`, `key back`; several matches -> retry with `--index N`.
+6. `logs <serial> <pkg> --since 1m` = only this app's lines. Repeat 3-6 per change; `down` when finished.
+Verified end to end over MCP by `node scripts/check-vibe-loop.mjs` (prints each step's time and the total).
 
 ## Safety rules (every agent must keep)
 - adb only against `emulator-<port>`. A USB phone may be plugged in; never use a bare `adb` or the phone serial. Go through `src/adb.ts`.

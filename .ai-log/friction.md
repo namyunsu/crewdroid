@@ -66,3 +66,8 @@
 2026-10-26 | 워커 worktree base 가 ai/work 보다 낡아 병합 충돌(cli.ts COMMANDS) 반복 | rule missing: 브리프에 base 갱신 지시
 2026-10-26 | 락 파일이 재사용된 PID 를 살아있는 소유자로 오판 | env broken
 2026-10-26 | check-public 스크러브가 테스트 가짜 시리얼 문자열에 걸림 | tool limit
+2026-10-26 | T41 이 package.json 만 0.2.0 으로 올리고 plugin.json 누락 → T43 워커의 check-agent-files 실패 | Todo unclear (버전 올릴 파일 목록 없음)
+2026-10-26 | 리뷰어가 verify 를 다시 돌려 single.md(추적 파일)가 바뀜 → 되돌림 | tool limit
+2026-10-26 | check-net/offline 이 원본에서도 실패해 T33 verify 체인이 막힘, A/B 확인에 약 30분 | env broken (기존 결함)
+2026-10-26 | T40 을 보낸 뒤 /brief 가 todo.md 선행 조건을 바꿔 작업 폐기 | Todo changed mid-shift (사람 편집과 shift 겹침)
+2026-10-26 | 워커가 %TEMP% 임시 폴더 삭제를 권한에서 거부당함 | tool limit

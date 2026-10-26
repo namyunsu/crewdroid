@@ -6,6 +6,7 @@ import { createInterface } from "node:readline/promises";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { z } from "zod";
+import { imageAbi } from "./platform.ts";
 import { defaultSdk } from "./sdk.ts";
 import type { Tool } from "./mcp.ts";
 
@@ -23,7 +24,7 @@ const win = (p: string) => p === "win32";
 export const repoOs = (p: string) => (win(p) ? "windows" : p === "darwin" ? "macosx" : "linux"); // repository XML <host-os>
 export const adoptiumOs = (p: string) => (win(p) ? "windows" : p === "darwin" ? "mac" : "linux");
 export const adoptiumArch = (a: string) => (a === "arm64" ? "aarch64" : "x64");
-export const imageAbi = (a: string) => (a === "arm64" ? "arm64-v8a" : "x86_64");
+export { imageAbi };
 export const jreUrl = (p: string, a: string) => `https://api.adoptium.net/v3/binary/latest/17/ga/${adoptiumOs(p)}/${adoptiumArch(a)}/jre/hotspot/normal/eclipse`;
 export const cmdlineUrl = (build: string, p: string) => `https://dl.google.com/android/repository/commandlinetools-${win(p) ? "win" : p === "darwin" ? "mac" : "linux"}-${build}_latest.zip`;
 export const imagePackage = (api: string, a: string) => `system-images;android-${api};google_atd;${imageAbi(a)}`;
@@ -219,7 +220,7 @@ export async function setup(o: SetupOpts = {}) {
 }
 
 export const mcpTools: Tool[] = [{
-  name: "setup", description: "Install the Android SDK pieces crewdroid needs (JDK 17 for sdkmanager, command-line tools, platform-tools, emulator, google_atd images). Dry run by default (lists present/missing and sizes); yes:true installs and accepts the SDK licences.",
+  name: "setup", description: "Use first on a new machine, or when up fails for a missing SDK/image: checks/installs the Android SDK pieces crewdroid needs (JDK 17 for sdkmanager, command-line tools, platform-tools, emulator, google_atd images). Dry run by default: returns steps [{step, status: present|missing, downloadBytes}]; yes:true installs and accepts the SDK licences.",
   input: {
     sdk: z.string().optional().describe("SDK directory (default ANDROID_SDK_ROOT / ANDROID_HOME, else ~/.crewdroid/android-sdk)"),
     images: z.array(z.string()).optional().describe('Android API levels of google_atd images, default ["34"]'),

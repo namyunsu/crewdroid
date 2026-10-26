@@ -1,16 +1,17 @@
-// T13/T29 verify: node scripts/check-demo-gif.mjs [--mvp docs/measurements/demo.json] [--gif docs/demo/demo.gif] [--max-mb N] [--max-seconds N] (T29)
+// T13/T29 verify: node scripts/check-demo-gif.mjs [--mvp docs/measurements/demo.json] [--gif docs/demo/demo.gif] [--max-mb N] [--max-seconds N] [--panels 1..3, default 3] (T29, T41)
 // Reads gif.panels from the demo JSON, decodes each panel of the GIF with ffmpeg and fails unless, in the second half of the GIF,
-// the panel is not flat (luma range > 40, <= 90% of pixels in 2 adjacent luma buckets) and differs from its first frame; and the 3 panels' w/h ratios are pairwise different.
+// the panel is not flat (luma range > 40, <= 90% of pixels in 2 adjacent luma buckets) and differs from its first frame; and the panels' w/h ratios are pairwise different.
 import { spawnSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 const root = join(import.meta.dirname, "..");
-const { values: v } = parseArgs({ options: { mvp: { type: "string", default: join(root, "docs/measurements/demo.json") }, gif: { type: "string", default: join(root, "docs/demo/demo.gif") }, "max-mb": { type: "string" }, "max-seconds": { type: "string" } } });
+const { values: v } = parseArgs({ options: { mvp: { type: "string", default: join(root, "docs/measurements/demo.json") }, gif: { type: "string", default: join(root, "docs/demo/demo.gif") }, "max-mb": { type: "string" }, "max-seconds": { type: "string" }, panels: { type: "string", default: "3" } } });
 const fail = (m) => (console.error(`FAIL: ${m}`), process.exit(1));
 const panels = JSON.parse(readFileSync(v.mvp, "utf8")).gif?.panels;
-if (panels?.length !== 3) fail(`${v.mvp} has no gif.panels (3 expected)`);
+const NP = Number(v.panels);
+if (!(NP >= 1 && NP <= 3) || panels?.length !== NP) fail(`${v.mvp} has no gif.panels (${v.panels} expected)`);
 
 // AI NOTE: the screenrecord --bugreport timestamp overlay sits in the top strip and changes every frame, so a black panel
 // would look "live"; it is cropped away before measuring.
@@ -54,8 +55,8 @@ for (const p of panels) {
   console.log(`${p.serial} ${p.profile} API ${p.api} x=${p.x} ${p.width}x${p.height}: ${live}/${total} second-half frames live ${ok ? "ok" : "NOT LIVE"}`);
   if (!ok) problems.push(`${p.serial} (${p.profile}, API ${p.api}) is not live`);
 }
-for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) {
+for (let i = 0; i < NP; i++) for (let j = i + 1; j < NP; j++) {
   if (Math.abs(ratio(panels[i]) - ratio(panels[j])) < 0.01) problems.push(`${panels[i].serial} and ${panels[j].serial} have the same w/h ratio`);
 }
 if (problems.length) fail(problems.join("; "));
-console.log(`OK: demo GIF has 3 live panels (${nFrames} frames)`);
+console.log(`OK: demo GIF has ${NP} live panel${NP > 1 ? "s" : ""} (${nFrames} frames)`);

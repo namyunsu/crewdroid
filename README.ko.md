@@ -23,4 +23,11 @@ npx crewdroid run scenarios/photo-upload.json --seed 1   # 버그가 있으면 e
 
 "동시에 누르기" 배리어는 일부러 없다. 현장의 동시성 버그는 재시도·오프라인 큐·늦은 수정이 겹쳐서 나지, 같은 밀리초에 눌러서 나지 않는다 ([ADR 0002](docs/adr/0002-no-barrier.md)).
 
+## 요구 사항
+
+- Node >= 22, 안드로이드 SDK + 에뮬레이터 >= 36.4 (없으면 `npx crewdroid setup --yes`)
+- Windows 10/11 x64, Apple Silicon macOS, Linux x64/arm64. 이미지는 호스트 CPU 에 맞춰 x86_64 또는 arm64-v8a
+- 하드웨어 가속: WHPX(Windows), Hypervisor.framework(macOS), KVM(Linux, `/dev/kvm`)
+- macOS/Linux 의 `slim` 은 NTFS 희소·압축 단계를 건너뛰고, RAM 수치는 프로세스 RSS(공유 페이지 나누지 않음)
+
 명령 표·진단·환경·앱 제어·프로필 추가·안전 규칙은 영문 [README.md](README.md) 에 있다. 측정 원본은 [`docs/measurements/`](docs/measurements/), 요구사항은 [`docs/prd.md`](docs/prd.md).
