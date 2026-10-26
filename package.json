@@ -6,11 +6,11 @@
   "bin": { "crewdroid": "bin/crewdroid.mjs" },
   "files": ["bin", "src", "profiles", "judge", "scenarios", "sample/server", "LICENSE", "README.md", "README.ko.md", "server.json"],
   "keywords": ["android", "emulator", "mcp", "mcp-server", "claude-code", "agent-skills", "mobile-testing", "concurrency"],
-  "repository": { "type": "git", "url": "https://github.com/namyunsu/crewdroid.git" },
+  "repository": { "type": "git", "url": "git+https://github.com/namyunsu/crewdroid.git" },
   "license": "MIT",
   "author": "Yunsu Nam",
   "mcpName": "io.github.namyunsu/crewdroid",
-  "engines": { "node": ">=24" },
+  "engines": { "node": ">=22" },
   "scripts": {
     "test": "node --import tsx --test test/*.test.ts"
   },
