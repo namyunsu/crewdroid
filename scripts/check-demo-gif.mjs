@@ -1,5 +1,5 @@
-// T13 verify: node scripts/check-demo-gif.mjs [--mvp docs/measurements/mvp.json] [--gif docs/demo/techs.gif] [--max-mb N] [--max-seconds N] (T29)
-// Reads gif.panels from mvp.json, decodes each panel of the GIF with ffmpeg and fails unless, in the second half of the GIF,
+// T13/T29 verify: node scripts/check-demo-gif.mjs [--mvp docs/measurements/demo.json] [--gif docs/demo/demo.gif] [--max-mb N] [--max-seconds N] (T29)
+// Reads gif.panels from the demo JSON, decodes each panel of the GIF with ffmpeg and fails unless, in the second half of the GIF,
 // the panel is not flat (luma range > 40, <= 90% of pixels in 2 adjacent luma buckets) and differs from its first frame; and the 3 panels' w/h ratios are pairwise different.
 import { spawnSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 const root = join(import.meta.dirname, "..");
-const { values: v } = parseArgs({ options: { mvp: { type: "string", default: join(root, "docs/measurements/mvp.json") }, gif: { type: "string", default: join(root, "docs/demo/techs.gif") }, "max-mb": { type: "string" }, "max-seconds": { type: "string" } } });
+const { values: v } = parseArgs({ options: { mvp: { type: "string", default: join(root, "docs/measurements/demo.json") }, gif: { type: "string", default: join(root, "docs/demo/demo.gif") }, "max-mb": { type: "string" }, "max-seconds": { type: "string" } } });
 const fail = (m) => (console.error(`FAIL: ${m}`), process.exit(1));
 const panels = JSON.parse(readFileSync(v.mvp, "utf8")).gif?.panels;
 if (panels?.length !== 3) fail(`${v.mvp} has no gif.panels (3 expected)`);

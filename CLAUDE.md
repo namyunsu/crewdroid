@@ -14,7 +14,6 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 - `node scripts/check-mcp.mjs` (after `up --count 2`) -> `OK: mobile-mcp and maestro mcp reach the crewdroid emulators`
 - `node scripts/check-offline.mjs [--server-port N]` (boots its own 2 emulators) -> `OK: offline outbox claims hold`
 - `npx tsx src/cli.ts run scenarios/photo-upload.json [--seed N --server-port 5595]` / `node scripts/check-scenario.mjs` (boots 3 emulators x6 runs, ~12 min) -> `OK: scenario runs catch BUGGY and pass clean`
-- `node scripts/mvp-private-app.mjs --runs 3` (private-app @techs on crewdroid devices, base-port 5570, ~10 min) -> `OK: private-app @techs passed 3/3 on crewdroid devices`
 - `node scripts/check-triage.mjs` (3 mixed devices idle row + 1 device checks) -> `OK: triage, screen, perf and apk claims hold`
 - `node scripts/check-skills.mjs` (1 device, runs every ```bash verify``` block) -> `OK: 7 skills hold, ...`; `node scripts/check-agent-files.mjs` -> `OK: agent files hold ...`; `node scripts/check-public.mjs` -> `OK: public-release checks passed`
 - `node scripts/check-hidden.mjs` -> `OK: ... all MainWindowHandle 0`
@@ -22,7 +21,7 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 - mobile-mcp (`.mcp.json`, needs `MOBILEMCP_LEGACY_ROBOT=1`): every tool takes `device: "emulator-<port>"`. `maestro mcp`: `run`/`inspect_screen`/`take_screenshot` take `device_id: "emulator-<port>"` (required; no default device).
 
 ## Directory map
-- `src/` CLI (`adb.ts` guarded adb, `sdk.ts` SDK paths, `emulator.ts` hidden launcher, `scenario.ts` runner, `integrations/private-app.ts`) · `scripts/check-*.mjs` Todo verifies · `docs/measurements/` measurement JSON + tables (deliverables)
+- `src/` CLI (`adb.ts` guarded adb, `sdk.ts` SDK paths, `emulator.ts` hidden launcher, `scenario.ts` runner, `record.ts` side-by-side recorder) · `scripts/check-*.mjs` Todo verifies · `docs/measurements/` measurement JSON + tables (deliverables)
 - `probe-app/` Android probe/sample app · `sample/server/` sample server with `BUGGY=1` · `profiles/galaxy.json` device profiles · `flows/` Maestro YAML · `scenarios/` scenario files · `docs/demo/` demo GIF
 
 ## Domain glossary
@@ -33,11 +32,10 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 
 ## Gotchas
 - A USB phone is plugged in. Every adb call goes through `src/adb.ts` and must target `emulator-<port>`; mobile-mcp / Maestro device lists may show the phone — always pass an emulator serial.
-- `old-avd-1..3` (private-app) must not change: launch only with `-read-only`, never delete. Do not edit `<private-app repo>`.
-- Ports: crewdroid 5580+; user 5554+; private-app 5570+ (T11 only).
+- Ports: crewdroid 5580+; user 5554+; 5570+ reserved for other suites.
 - ATD images have no Chrome/camera app/gallery/launcher; see `docs/adr/0003-image.md` once T02 writes it.
 - API 31 ATD: `am start -S` (or force-stop then start at once) usually leaves the whole screen black (SF keeps the new Task hidden); SurfaceView itself renders. Use force-stop, 2 s, start. No flag fixes it; `up` prints a WARN (`docs/adr/0005-api31-surfaceview.md`).
-- Long-running emulators drift to ~5 host cores each (private-app T21): measure on fresh boots.
+- Long-running emulators drift to ~5 host cores each: measure on fresh boots.
 - Emulator host address from the device: `10.0.2.2`.
 - One crewdroid run at a time: `down()` kills every `crew-*` instance, so two sessions on one checkout kill each other's clones ("device offline"). `up`/`down`/`slim`/`prepare` take `%TEMP%\crewdroid-emulators.lock` (owner PID); to hold it across a chain of commands, `export CREWDROID_OWNER=$(cat /proc/$$/winpid)` first.
 - Emulators held by another process (lock owner alive, not you): write `.ai-log/BUSY` (one line: pid, what) and stop; autopilot waits 20 min. Never kill the other run.

@@ -44,7 +44,7 @@ writeFileSync(join(work, "tail.txt"), `crewdroid judge\n${summary}\n`);
 // Recordings run as long as the scenario (minutes): speed them up so body + tail fit in 20 s.
 const longest = Math.max(...(await Promise.all(videos.map(secs))));
 const speed = Math.max(1, longest / BODY_MAX);
-// AI NOTE: frame 0 of a --bugreport recording is the "Android screenrecord" intro text (see mvp-private-app.mjs); drop it, keep the pts.
+// AI NOTE: frame 0 of a --bugreport recording is the "Android screenrecord" intro text ; drop it, keep the pts.
 const scaled = videos.map((_, i) => `[${i}:v]select='gt(n,0)',setpts=PTS/${speed.toFixed(3)},fps=${FPS},scale=-2:${H}[v${i}]`).join(";");
 const font = "C\\:/Windows/Fonts/consola.ttf";
 // tail: the last frame is held for TAIL s and the judge text is drawn over the bottom of the 3 panels from the moment the hold starts
