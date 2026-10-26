@@ -3,7 +3,7 @@
 // square) three ways per device, screencap cropped to the bounds the probe logs ("CrewProbe SURFACE l,t,r,b"):
 //   canvas / gl: force-stop, wait 2 s, start (lockCanvas / GLSurfaceView) -> must not be one colour on any device;
 //   gl -S:       `am start -S` while the previous instance is on screen -> one colour is allowed only on a device that up()
-//                flagged relaunchBlack AND printed its WARN line for (ADR 0005).
+//                flagged relaunchBlack AND printed its WARN line for (ADR 0005); then screen() must recover it (unblack).
 // -> down. PNGs: .ai-log/evidence/T28-surface-<serial>-<step>.png
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { adb, assertSerial } from "../src/adb.ts";
 import { perf } from "../src/perf.ts";
+import { screen } from "../src/screen.ts";
 import { adbPath } from "../src/sdk.ts";
 import { PKG, probeApk, sleep } from "../src/snapshot.ts";
 import { down, up } from "../src/up.ts";
@@ -59,6 +60,7 @@ process.stderr.write = (s, ...a) => { warns.push(...String(s).split(/\r?\n/).fil
 
 const problems = [];
 let excused = 0;
+let recovered = 0;
 await down();
 try {
   const u = await up(2, Number(v["base-port"]), ["s22", "s24ultra"]);
@@ -75,6 +77,15 @@ try {
       console.log(`${d.serial} ${d.profile} API ${d.api} relaunchBlack=${d.relaunchBlack} warned=${warned} ${step} bounds ${s.bounds.join(",")}: top #${s.rgb} ${(s.share * 100).toFixed(1)} %, ${s.colours} colours ${flat ? (ok ? "FLAT (flagged + WARN, ADR 0005)" : "FLAT") : "ok"}`);
       if (!ok) problems.push(`${d.serial} (API ${d.api}) ${step}: SurfaceView crop is ${(s.share * 100).toFixed(1)} % #${s.rgb}`);
       if (flat && ok) excused++;
+      // black-relaunch recovery: screen() must bring a flat relaunch shot back (HOME + start without -S), and say so.
+      if (step === "gl-S" && flat) {
+        const r = await screen(d.serial);
+        const after = await grab(d, "gl-S-recovered");
+        const back = after.share <= MAX_SHARE;
+        console.log(`${d.serial} API ${d.api} screen() blackRelaunch=${JSON.stringify(r.blackRelaunch)} -> top #${after.rgb} ${(after.share * 100).toFixed(1)} %, ${after.colours} colours ${back ? "ok" : "STILL FLAT"}`);
+        if (!r.blackRelaunch.recovered || !back) problems.push(`${d.serial} (API ${d.api}) screen() did not recover the black relaunch: ${JSON.stringify(r.blackRelaunch)}, crop ${(after.share * 100).toFixed(1)} %`);
+        else recovered++;
+      }
     }
     // T31: perf's cold start (force-stop, 2 s, start; no -S) must draw on every device, API 31 included. No excuse here.
     await adb(d.serial, ["logcat", "-c"]);
@@ -90,4 +101,4 @@ try {
   await down();
 }
 if (problems.length) { console.error(`FAIL: ${problems.join("; ")}`); process.exit(1); }
-console.log(`OK: SurfaceView (canvas + GL) renders on API 31 and 34; ${excused} flat relaunch shot(s) on relaunchBlack devices with WARN (ADR 0005)`);
+console.log(`OK: SurfaceView (canvas + GL) renders on API 31 and 34; ${excused} flat relaunch shot(s) on relaunchBlack devices with WARN, ${recovered} recovered by screen() (ADR 0005)`);

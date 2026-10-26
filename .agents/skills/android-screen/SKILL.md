@@ -45,8 +45,10 @@ adb -s $SERIAL shell dumpsys activity activities | grep -m2 -E 'topResumedActivi
    - Focus is your activity but the tree has no nodes: the app draws nothing (empty layout, failed load, still on a splash). Check its log
      (android-triage step 5).
    - Focus is `null` / `mCurrentFocus=null`: no window yet or the app just died (android-triage).
-   - The tree has your nodes but the PNG is black: a SurfaceView/GL surface on this image (ATD renders without a GPU; on API 31 ATD SurfaceView content
-     has been seen not to render at all).
+   - `crewdroid screen` printed `blackRelaunch`: an emulator bug, not your app. On API 31 an app killed and started again at once
+     (`am start -S`, a test runner's relaunch) stays black; `screen` already pressed HOME and resumed it (`recovered: true`) before
+     capturing. `recovered: false` means it stayed black after 2 tries: relaunch with `am force-stop`, wait 2 s, `am start` (ADR 0005).
+   - The tree has your nodes but the PNG is black on another API: a SurfaceView/GL surface without a GPU (ATD); compare with API 34.
 
 5. Jetpack Compose: `Modifier.testTag("x")` appears as `id` only with `Modifier.semantics { testTagsAsResourceId = true }` on a parent;
    otherwise find nodes by `text` / `desc`.

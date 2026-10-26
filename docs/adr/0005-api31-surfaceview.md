@@ -52,5 +52,11 @@ private-app 통화 화면(SurfaceView 2개)이 API 31 에서만 검었다 (T13-3
 - 위 후보 모두 효과가 없었다. 원인이 이미지(Android 12 system_server/SurfaceFlinger) 안이라 `up` 의 옵션·속성으로 닿지 않는다 [추론: 위 표].
 - 남은 길: API 31 을 아예 빼기(혼합 버전 요구 FR 와 충돌), 또는 테스트가 `-S` 대신 stop → 2 초 → start 를 쓰기. 후자를 경고 문구로 알린다. stop 후 2 초도 이번에 잰 약 70 회 중 1 회(drawing_enabled=0 클론, canvas 다음 첫 회) 검었으므로 "보장"이 아니라 "크게 줄임"이다 [확인함 `T28-1.txt`].
 
+## 자동 복구 (2026-10-26, 사용자 결정 "구버전 사용자도 많으니 API 31 유지")
+- `crewdroid screen` (MCP `screen` 도) 이 캡처 전에 `unblack()` 을 돈다: 기기가 relaunchBlack API 이고 raw screencap 이 전부 검정이면 HOME → 같은 액티비티 `am start -W -n`(-S 없이) → 1.5 초 → 다시 확인, 최대 2 회. 결과는 `blackRelaunch {black, recovered, tries}` 로 돌려줘 AI 가 앱 버그로 오판하지 않게 한다.
+- crewdroid 밖의 도구(Maestro `launchApp`, mobile-mcp 재실행, 다른 시험 하네스의 `am start -S`)가 만든 검은 화면도 다음 `screen` 호출에서 흡수된다.
+- 확인: `check-surface.mjs` 가 API 31 에서 `-S` 로 검정 100 % 를 만든 뒤 `screen()` → `recovered:true, tries:1`, 초록 96.2 % 20색으로 돌아옴 [확인함 2026-10-26 실행].
+- 한계: API 31 에서 앱의 진짜 화면이 완전 검정이면 HOME+재개를 한 번 겪는다(무해, `recovered:false` 로 보고).
+
 ## private-app 와의 관계
 private-app 의 다중 시험은 앱을 `am start -S -n ...LoginActivity` 로 띄운다 (`private-app-server/tests/e2e/multi/harness.ts`) [확인함 읽기만]. 그래서 T13-3 의 검은 통화 화면도 이 경합일 가능성이 크다 [추론]. T13-3 기록의 "로그인/방 목록은 그려지고 통화 화면만 검다"는 이 설명과 딱 맞지 않아, private-app 앱 자체로는 다시 재지 않았다 [모름]. `PRIVATE_APP_PROFILES` 에서 s22(API 31) 를 뺀 결정은 그대로 둔다.

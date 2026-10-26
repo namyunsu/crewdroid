@@ -139,7 +139,7 @@ async function main() {
     const [, serial] = positionals;
     if (!serial) throw new Error("usage: screen <serial> [--png <file>]");
     const r = await screen(serial, values.png);
-    console.log(values.json ? JSON.stringify(r, null, 2) : [`focus: ${r.focus}`, ...r.nodes.map((n) => `${"  ".repeat(n.depth)}${n.cls.split(".").at(-1)} ${JSON.stringify(n.text || n.desc || n.id)} [${n.bounds}]${n.clickable ? " clickable" : ""}`)].join("\n"));
+    console.log(values.json ? JSON.stringify(r, null, 2) : [...(r.blackRelaunch.black ? [`blackRelaunch: API 31 black screen after relaunch, ${r.blackRelaunch.recovered ? "recovered" : "NOT recovered"} (ADR 0005)`] : []), `focus: ${r.focus}`, ...r.nodes.map((n) => `${"  ".repeat(n.depth)}${n.cls.split(".").at(-1)} ${JSON.stringify(n.text || n.desc || n.id)} [${n.bounds}]${n.clickable ? " clickable" : ""}`)].join("\n"));
     return;
   }
   if (cmd === "perf") {

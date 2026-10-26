@@ -135,7 +135,7 @@ Read-only commands (nothing stays running on the device). Each takes `--json`; t
 | Command | Output |
 |---|---|
 | `crewdroid triage <serial> [--app <pkg>] [--heap out.hprof]` | `crashes` (logcat crash buffer: pkg, exception, top frame in the app, time), `anrs` (ActivityManager log + `dumpsys activity exit-info`), `anrTraces` (`/data/anr` headers, or `"unreadable"` without root), `exits` (exit reasons), `recentLog` (the app's last 200 lines), `summary`. `--heap` runs `am dumpheap` and pulls the hprof. |
-| `crewdroid screen <serial> [--png file]` | focused window (`dumpsys window`) and a compact `uiautomator` tree `[{cls, text, desc, id, bounds, clickable, depth}]`. Compose `testTag` shows as `id` only under `testTagsAsResourceId = true`. |
+| `crewdroid screen <serial> [--png file]` | focused window (`dumpsys window`) and a compact `uiautomator` tree `[{cls, text, desc, id, bounds, clickable, depth}]`. Compose `testTag` shows as `id` only under `testTagsAsResourceId = true`. On API 31 a fully black screen left by an app relaunch (Android 12 emulator bug, any tool's `am start -S`) is recovered first (HOME + resume) and reported as `blackRelaunch`, so it is never mistaken for an app bug. |
 | `crewdroid perf <serial> <pkg> [--activity .Main] [-- <am start extras>]` | cold start (`am force-stop`, 2 s, `am start -W`; TotalTime ms), frames / jank % / p50-p90-p99 from `dumpsys gfxinfo`, PSS total / Java / native KB from `dumpsys meminfo`. ATD images have no GPU: compare frame numbers between runs, not with a phone. |
 | `crewdroid apk <file.apk>` | host only (`aapt2` from the newest `build-tools`): package, version, min/target SDK, permissions, exported activities, deep-link filters. |
 
