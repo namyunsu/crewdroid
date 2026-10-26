@@ -12,17 +12,19 @@ import { judge } from "./judge.ts";
 import { NET_STATES, setNet } from "./net.ts";
 import { loadProfiles } from "./profiles.ts";
 import { runScenario } from "./scenario.ts";
-import { down, up } from "./up.ts";
+import { down, up, upDefaults } from "./up.ts";
 
 const run = promisify(execFile);
 
 // A feature module adds MCP tools by exporting `mcpTools: Tool[]`; serve() picks up every src/*.ts that does.
 // `long` tools get a `timeoutSec` input and should print progress with console.error (sent as logging notifications).
-export interface Tool { name: string; description: string; input: ZodRawShape; long?: boolean; run(args: any): Promise<unknown> }
+// `content` (optional) turns the result into MCP content items (e.g. an image); without it the result is sent as JSON text.
+export type ContentItem = { type: "text"; text: string } | { type: "image"; mimeType: string; data: string };
+export interface Tool { name: string; description: string; input: ZodRawShape; long?: boolean; run(args: any): Promise<unknown>; content?(result: any): ContentItem[] }
 
 // Running crew emulators. AI NOTE: same process query as down() in up.ts (crew-* AVD on the command line); profile is
 // recovered by matching the device's current wm size/density against profiles/galaxy.json (up() does not record it).
-export async function devices(): Promise<{ serial: string; avd: string; api: number | null; profile: string; size: string; density: string }[]> {
+export async function devices(): Promise<{ serial: string; avd: string; api: number | null; profile: string; size: string; density: string; screen: string; booted: boolean }[]> {
   const ps = `ConvertTo-Json -Compress -InputObject @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'emulator|qemu' -and $_.CommandLine -match '(^|[ @"])crew-[^ "]+([ "]|$)' } | ForEach-Object { $_.CommandLine })`;
   const { stdout } = await run("powershell", ["-NoProfile", "-Command", ps], { windowsHide: true });
   const byPort = new Map<number, string>();
@@ -40,16 +42,17 @@ export async function devices(): Promise<{ serial: string; avd: string; api: num
     const serial = `emulator-${port}`;
     const [size, density] = [await wm(serial, "size"), await wm(serial, "density")];
     const match = profiles.filter((p) => `${p.width}x${p.height}` === size && String(p.density) === density).map((p) => p.name);
-    return { serial, avd, api: Number(avd.match(/android-(\d+)/)?.[1]) || null, profile: match.join(",") || "unknown", size, density };
+    const booted = (await adb(serial, ["shell", "getprop", "sys.boot_completed"], 5000, false).catch(() => "")).trim() === "1";
+    return { serial, avd, api: Number(avd.match(/android-(\d+)/)?.[1]) || null, profile: match.join(",") || "unknown", size, density, screen: `${size}@${density}`, booted };
   }));
 }
 
 const core: Tool[] = [
   { name: "devices", description: "List running crewdroid emulators: serial, avd, api, profile (matched by wm size/density).", input: {}, run: () => devices() },
   {
-    name: "up", long: true, description: "Boot N headless crewdroid emulators with mixed Galaxy profiles and Android versions (minutes).",
-    input: { count: z.number().int().min(1).default(3), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), basePort: z.number().int().default(5580) },
-    run: (a) => up(a.count, a.basePort, a.profiles),
+    name: "up", long: true, description: "Boot headless crewdroid emulators (minutes). No count = ONE device (s24ultra, newest API <= 36); count > 1 mixes Galaxy profiles and Android versions.",
+    input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), basePort: z.number().int().default(5580) },
+    run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api }); },
   },
   { name: "down", description: "Kill every crewdroid (crew-*) emulator.", input: {}, run: () => down() },
   {
@@ -103,7 +106,7 @@ export async function serve() {
         const r = t.long
           ? await Promise.race([work, new Promise((_, no) => { timer = setTimeout(() => no(new Error(`${t.name} timed out after ${a.timeoutSec}s (emulators may still run; call down)`)), a.timeoutSec * 1000); })])
           : await work;
-        return text(JSON.stringify(r ?? null, null, 2));
+        return t.content ? { content: t.content(r), isError: false } : text(JSON.stringify(r ?? null, null, 2));
       } catch (e) {
         return text(`error: ${e instanceof Error ? e.message : String(e)}`, true);
       } finally {

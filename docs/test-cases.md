@@ -93,3 +93,29 @@ UI·웹 서비스가 없어서 XSS·새로고침 연타 같은 웹 케이스는 
 
 ## FR-25 API 31 SurfaceView
 - API 31·34 에서 SurfaceView 영역 screencap 이 단색이 아니거나, API 31 이 `surfaceView:false` + WARN 줄 `[verify]` T28
+
+## FR-26 setup
+- 이미 설치된 PC 에서 `setup` → 전부 present, 다운로드 없음 `[verify]` T35
+- 빈 폴더 `--dry-run` → 단계·크기만, 폴더 비어 있음; `--only cmdline-tools,platform-tools --yes` → adb 실행됨; `--yes` 없이 비대화형 → 1 `[verify]` T35
+- 깨끗한 Linux/mac 에서 `npx crewdroid setup --yes` 후 `crewdroid up` `[manual]` T35
+
+## FR-27 1대 up
+- 인자 없는 `up` → 1대(s24ultra, API 34/36), `--api 31` → API 31, `--api 99` → 1, `devices` 에 보임, 1대 기동 시간 3회 기록 `[verify]` T36
+
+## FR-28 설치·실행·로그
+- 설치 성공/APK 아닌 파일 실패, launch 액티비티 자동 찾기, `--restart` 로 크래시 감지, logs 가 그 앱 줄만 `[verify]` T37
+
+## FR-29 캡처·입력
+- shot PNG 크기 = wm size·단색 아님, MCP shot 이 이미지로 옴, 특수문자 입력·버튼 누르기·스크롤 끝·뒤로 가기, 후보 없음·화면 밖 좌표 → 1 `[verify]` T38
+- 한글 입력: 되거나 이유와 함께 실패(결과 기록) `[verify]` T38
+
+## FR-30 바이브 코딩 루프
+- MCP 만으로 up→install→launch→shot→screen→type→tap→logs→restart crash→down, 전체 시간 기록 `[verify]` T39
+- Claude Code 새 세션에서 "내 안드로이드 앱 띄워서 화면 봐 줘" 로 android-vibe-loop 이 트리거 `[manual]` T39
+
+## FR-31 소개
+- README 첫 화면에 pitch·4줄 시작·GIF, README 명령이 전부 실제 명령, 표의 숫자마다 측정 파일 링크 `[verify]` T40
+
+## FR-32 0.2.0
+- 1패널 데모 GIF 살아 있음·≤3MB·≤25초, 버전 0.2.0 일치 `[verify]` T41
+- 사무실 PC 에서 `npm publish` + `mcp-publisher publish` `[manual]` T41

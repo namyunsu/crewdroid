@@ -6,7 +6,7 @@ import { prepare } from "./snapshot.ts";
 import { identity } from "./identity.ts";
 import { hammer } from "./hammer.ts";
 import { flakyLoop, setNet, type NetState } from "./net.ts";
-import { claimEmulators, down, measureUp, up } from "./up.ts";
+import { claimEmulators, down, measureUp, up, upDefaults } from "./up.ts";
 import { runScenario } from "./scenario.ts";
 import { slim } from "./slim.ts";
 import { triage } from "./triage.ts";
@@ -16,6 +16,10 @@ import { apk } from "./apk.ts";
 import { fold } from "./fold.ts";
 import { envSet } from "./env.ts";
 import { appRun } from "./app.ts";
+import { setup, type StepName } from "./setup.ts";
+import { install, launch, logs } from "./appctl.ts";
+import { key, swipe, tap, type } from "./input.ts";
+import { shot } from "./shot.ts";
 
 // AI NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
 const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
@@ -27,19 +31,22 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
-    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
+    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string" }, api: { type: "string" }, profile: { type: "string" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
     app: { type: "string" }, pkg: { type: "boolean", default: false }, heap: { type: "string" }, png: { type: "string" }, activity: { type: "string" },
+    sdk: { type: "string" }, images: { type: "string" }, only: { type: "string" }, "dry-run": { type: "boolean", default: false }, yes: { type: "boolean", default: false },
+    grant: { type: "boolean", default: false }, restart: { type: "boolean", default: false }, since: { type: "string" }, level: { type: "string" }, seconds: { type: "string" },
+    text: { type: "string" }, id: { type: "string" }, index: { type: "string" }, into: { type: "string" }, times: { type: "string" },
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, mcp";
+const COMMANDS = "up, devices, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, setup, install, launch, logs, shot, tap, type, swipe, key, mcp";
 
 async function main() {
   const [cmd] = positionals;
-  if (values.help || cmd === "help") return console.log(`usage: crewdroid <command> [options]\ncommands: ${COMMANDS}\nexample: crewdroid up --count 3`);
+  if (values.help || cmd === "help") return console.log(`usage: crewdroid <command> [options]\ncommands: ${COMMANDS}\nexample: crewdroid up (one device) | crewdroid up --count 3 | crewdroid up --api 31`);
   if (cmd === "measure") {
     if (!values.avd && !values.up) throw new Error("--avd a,b,c or --up N required");
     const r = values.up
@@ -65,15 +72,24 @@ async function main() {
     if (!values.image) throw new Error("--image android-34/google_atd required");
     const port = Number(values["base-port"]);
     claimEmulators();
-    const r = cmd === "prepare" ? await prepare(values.image, port) : await identity(values.image, Number(values.count), port, !values["no-distinct"]);
+    const r = cmd === "prepare" ? await prepare(values.image, port) : await identity(values.image, Number(values.count ?? 3), port, !values["no-distinct"]);
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
     console.log(values.json || cmd === "prepare" ? text : `collisions: ${(r as any).collisions.join(",") || "none"}; still same after: ${(r as any).stillSame.join(",") || "none"}`);
     return;
   }
   if (cmd === "up") {
-    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window, { screens: values.screen?.flatMap((x) => x.split(",")), profilesFile: values["profiles-file"] });
+    const screens = values.screen?.flatMap((x) => x.split(","));
+    const api = values.api === undefined ? undefined : Number(values.api);
+    if (api !== undefined && !Number.isInteger(api)) throw new Error(`--api must be a number like 31|34|36, got '${values.api}'`);
+    const d = upDefaults({ count: values.count === undefined ? undefined : Number(values.count), profiles: (values.profiles ?? values.profile)?.split(","), api, screens, profilesFile: values["profiles-file"] });
+    const r = await up(d.count, Number(values["base-port"]), d.names, values.window, { screens, profilesFile: values["profiles-file"], api: d.api });
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density}`).join("\n"));
+    return;
+  }
+  if (cmd === "devices") {
+    const r = await (await import("./mcp.ts")).devices();
+    console.log(values.json ? JSON.stringify(r, null, 2) : r.map((d) => `${d.serial} API ${d.api} ${d.profile} ${d.screen} ${d.booted ? "booted" : "booting"}`).join("\n") || "no crewdroid emulators running");
     return;
   }
   if (cmd === "slim") {
@@ -111,7 +127,7 @@ async function main() {
   if (cmd === "run") {
     const [, file] = positionals;
     if (!file) throw new Error("usage: run <scenario.json> [--seed N] [--count 3] [--server-port 5599] [--out file]");
-    const r = await runScenario(file, { count: Number(values.count), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]), profiles: values.profiles?.split(",") });
+    const r = await runScenario(file, { count: Number(values.count ?? 3), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]), profiles: values.profiles?.split(",") });
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
     if (values.json) console.log(text);
@@ -177,6 +193,72 @@ async function main() {
     if (!serial || !pkg || !what) throw new Error("usage: app <serial> <pkg> perm|open|links|clear|backup|restore|pressure|fill-storage [args] [--pkg]");
     const r = await appRun(serial, pkg, what, rest, { pkg: values.pkg });
     console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} ${Object.entries(r).filter(([k]) => k !== "serial").map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`).join(" ")}`);
+    return;
+  }
+  if (cmd === "setup") {
+    const r = await setup({ sdk: values.sdk, images: values.images?.split(","), only: values.only?.split(",") as StepName[] | undefined, dryRun: values["dry-run"], yes: values.yes });
+    const mb = (n?: number) => (n ? ` ${Math.round(n / 2 ** 20)} MB` : "");
+    console.log(values.json ? JSON.stringify(r, null, 2) : [`sdk: ${r.sdk}`, ...r.steps.map((s: any) => `${s.step}: ${s.status}${mb(s.downloadBytes)}`), `accel: ${r.host.accel.ok === null ? "unknown" : r.host.accel.ok ? "ok" : "FAILED"} (${r.host.accel.detail}); free disk: ${r.host.freeDiskGB ?? "?"} GB`, ...(r.envLine ? [`add to your environment: ${r.envLine}`] : [])].join("\n"));
+    return;
+  }
+  if (cmd === "install") {
+    const [, target, file] = positionals;
+    if (!target || !file) throw new Error("usage: install <serial|all> <apk> [--grant]");
+    const r = await install(target, file, values.grant);
+    console.log(values.json ? JSON.stringify(r, null, 2) : r.results.map((x) => `${x.serial} ${x.package ?? "?"} ${x.result}`).join("\n"));
+    if (!r.ok) process.exitCode = 1;
+    return;
+  }
+  if (cmd === "launch") {
+    const [, serial, pkg, ...extras] = positionals; // extras after `--` go to am start, e.g. `-- --es check crash`
+    if (!serial || !pkg) throw new Error("usage: launch <serial> <pkg> [--activity .Main] [--restart] [-- <am start extras>]");
+    const r = await launch(serial, pkg, { activity: values.activity, restart: values.restart, extras });
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.component} ${r.launchState} TotalTime=${r.totalTime}ms${r.crashed ? ` CRASHED: ${r.crash?.exception ?? "process gone, no crash record"}` : ""}`);
+    return;
+  }
+  if (cmd === "logs") {
+    const [, serial, pkg] = positionals;
+    if (!serial || !pkg) throw new Error("usage: logs <serial> <pkg> [--since 60s|2m] [--level V|D|I|W|E] [--seconds N]");
+    const r = await logs(serial, pkg, { since: values.since, level: values.level, seconds: values.seconds ? Number(values.seconds) : undefined });
+    if (values.json) console.log(JSON.stringify(r, null, 2));
+    else { if (r.note) console.error(r.note); for (const l of r.lines) console.log(`${l.time} ${l.level} ${l.tag}: ${l.message}`); }
+    return;
+  }
+  if (cmd === "shot") {
+    const [, serial, file] = positionals;
+    if (!serial) throw new Error("usage: shot <serial> [file.png]");
+    const r = await shot(serial, file);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.path} ${r.width}x${r.height} ${r.bytes} bytes${r.blackRelaunch.black ? ` blackRelaunch: ${r.blackRelaunch.recovered ? "recovered" : "NOT recovered"} (ADR 0005)` : ""}`);
+    return;
+  }
+  if (cmd === "tap") {
+    const [, serial, x, y] = positionals;
+    const t = values.text !== undefined ? { text: values.text } : values.id !== undefined ? { id: values.id } : x !== undefined && y !== undefined ? { x: Number(x), y: Number(y) } : undefined;
+    if (!serial || !t) throw new Error("usage: tap <serial> <x> <y> | --text <T> | --id <resource-id> [--index N]");
+    const r = await tap(serial, t, values.index === undefined ? undefined : Number(values.index));
+    console.log(values.json ? JSON.stringify(r, null, 2) : `tapped ${r.x},${r.y}${r.node ? ` ${JSON.stringify(r.node.text || r.node.desc)} id=${r.node.id || "-"} [${r.node.bounds}]` : ""}`);
+    return;
+  }
+  if (cmd === "type") {
+    const [, serial, text] = positionals;
+    if (!serial || text === undefined) throw new Error("usage: type <serial> <text> [--into <text|id>]  (ASCII only)");
+    const r = await type(serial, text, values.into);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `typed ${JSON.stringify(r.text)}${r.into ? ` into ${r.into.id || r.into.text}` : ""}`);
+    return;
+  }
+  if (cmd === "swipe") {
+    const [, serial, ...rest] = positionals;
+    if (!serial || !rest.length) throw new Error("usage: swipe <serial> up|down|left|right [--times N] | swipe <serial> x1 y1 x2 y2 [ms]");
+    const coords = rest.length >= 4;
+    const r = await swipe(serial, { dir: coords ? undefined : rest[0], line: coords ? rest.slice(0, 4).map(Number) : undefined, ms: coords && rest[4] ? Number(rest[4]) : undefined, times: values.times ? Number(values.times) : undefined });
+    console.log(values.json ? JSON.stringify(r, null, 2) : `swiped ${r.from} -> ${r.to} ${r.ms}ms x${r.times}`);
+    return;
+  }
+  if (cmd === "key") {
+    const [, serial, k] = positionals;
+    if (!serial || !k) throw new Error("usage: key <serial> back|home|enter|delete|tab|menu|KEYCODE_*");
+    const r = await key(serial, k);
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.key} -> focus ${r.focus}`);
     return;
   }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes

@@ -15,11 +15,20 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 ## Commands
 | Command | What it does | Status |
 |---|---|---|
-| `up` | boot N emulators (`--count`, mixed profiles from `profiles/galaxy.json`) | implemented |
+| `up` | no flags = 1 device (s24ultra, newest API <= 36); `--count N` mixed profiles from `profiles/galaxy.json`; `--api 31\|34\|36` pins the image; `--profile` = `--profiles` | implemented |
+| `devices` | list running crew emulators: serial, api, profile, screen, booted | implemented |
 | `down` | kill every `crew-*` emulator | implemented |
 | `net` | per-device network state: airplane / nodata / slow / flaky / online | implemented |
 | `env` | location, battery, rotation, dark mode, font, locale, network, SMS/call (`env <serial> <what> [args]`) | implemented |
 | `app` | permissions, deep links, data clear, backup, resource pressure | implemented |
+| `install` | `adb install -r [-g]` an APK on one emulator or `all` (`install <serial\|all> <apk> [--grant]`) | implemented |
+| `launch` | start an app, TotalTime, crash summary (`launch <serial> <pkg> [--activity .Main] [--restart] [-- <extras>]`) | implemented |
+| `logs` | one app's logcat lines (`logs <serial> <pkg> [--since 60s] [--level I] [--seconds N]`) | implemented |
+| `shot` | screenshot PNG (`shot <serial> [file.png]`; MCP returns image content) | implemented |
+| `tap` | tap a point or an element (`tap <serial> <x> <y>` \| `--text T` \| `--id ID` `[--index N]`) | implemented |
+| `type` | type ASCII text (`type <serial> <text> [--into <text\|id>]`; non-ASCII exits 1 with the reason) | implemented |
+| `swipe` | `swipe <serial> up\|down\|left\|right [--times N]` or `x1 y1 x2 y2 [ms]` | implemented |
+| `key` | `key <serial> back\|home\|enter\|delete\|tab\|menu\|KEYCODE_*` | implemented |
 | `fold` | fold a fold/flip profile to its cover screen (`fold <serial>`) | implemented |
 | `unfold` | unfold a fold/flip profile to its main screen (`unfold <serial>`) | implemented |
 | `triage` | crashes, ANRs, exit reasons, heap dump | implemented |
@@ -29,6 +38,7 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `judge` | rules on server data: unique / count / noLostUpdate (`--rules <file> --source <url\|file>`) | implemented |
 | `hammer` | N virtual users against the API | implemented |
 | `run` | scenario: up, install, per-device loops + network schedule, judge, down | implemented |
+| `setup` | install SDK pieces (JDK 17, cmdline-tools, platform-tools, emulator, google_atd images); `--dry-run`, `--yes` | implemented |
 | `mcp` | stdio MCP server wrapping the commands above | implemented |
 | `prepare`, `identity`, `slim`, `measure` | base-image maintenance and measurement | implemented |
 | `help` | usage text | implemented |

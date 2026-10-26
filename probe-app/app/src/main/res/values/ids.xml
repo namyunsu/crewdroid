@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T38 check=form: the EditText's resource-id (dev.crewdroid.probe:id/name), found by crewdroid tap or type with id name -->
+    <item name="name" type="id" />
+</resources>
