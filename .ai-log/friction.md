@@ -76,3 +76,4 @@
 2026-10-26 | T49 Todo 가 "AI 가 더 빠르고 저렴" 을 전제로 썼으나 측정은 반대 (트리 덤프 3.5초/회, JSON 들여쓰기) | Todo unclear: 측정 전에 결론을 Todo 에 적음
 2026-10-26 | 워커 임시 폴더(crewbench-*, t48, t45, t49) 삭제가 권한 거부로 남음 | env broken: 임시 폴더 삭제 권한
 2026-10-26 | T45 진단+수정 66분, T48 67분, T49 41분: 워커 1회가 한 shift 의 대부분 | tool limit
+2026-10-26 | check-scenario 가 한 번에 약 12분이라 foreground 대기가 10분 제한에 두 번 걸림 | tool limit
