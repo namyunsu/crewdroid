@@ -55,6 +55,13 @@
 | FR-23 | 공개용 데모 GIF | 샘플 앱으로 혼합 3대가 시나리오를 돌고 판정 결과가 보이는 GIF(≤ 3MB, ≤ 20초). private-app 화면은 쓰지 않는다. |
 | FR-24 | 샘플 서버 멱등키 | 정상 모드 PUT 은 같은 `idempotency-key` 재시도에 처음 응답을 돌려주고 새 버전을 만들지 않는다(응답 유실 재시도가 가짜 충돌로 보이지 않게). BUGGY=1 은 그대로. |
 | FR-25 | API 31 SurfaceView 원인 | API 31 ATD 가 SurfaceView 화면을 못 그리는 원인을 샘플 앱 SurfaceView 로 재현해 밝힌다. 고칠 수 있으면 `up` 에 반영, 아니면 ADR 에 근거를 남기고 프로필이 API 31 에 배정될 때 경고한다. |
+| FR-26 | 한 번에 설치 (`setup`) | `crewdroid setup` 이 Android SDK 커맨드라인 도구·platform-tools·emulator·기본 ATD 이미지(API 34, 선택으로 31/36)와 필요하면 JDK 17 을 받아 설치하고, 이미 있으면 아무것도 받지 않는다. `--dry-run` 은 받을 것과 크기만 보여준다. SDK 라이선스는 `--yes` 또는 대화형 동의가 있어야 받는다. Windows 는 실측, Linux/mac 은 같은 코드 경로(수동 확인). |
+| FR-27 | 1대 바로 띄우기 | 인자 없는 `crewdroid up` 은 기본 1대(s24ultra 프로필, 설치된 가장 높은 API ≤ 36)를 띄운다. `--api N`, `--profile`, `--screen` 으로 바꾼다. `crewdroid devices` 가 떠 있는 기기를 보여준다. 1대 기동 시간을 측정해 남긴다. |
+| FR-28 | 앱 설치·실행·로그 | `install <serial\|all> <apk> [--grant]`, `launch <serial> <pkg> [--activity] [--restart]`(재시작은 종료→2초→실행, ADR 0005), `logs <serial> <pkg> [--since] [--level] [--seconds]`(그 앱 pid 의 로그만). 모두 MCP 도구. |
+| FR-29 | 캡처·입력 | `shot <serial> [file]` 은 PNG 한 장을 저장하고 경로를 출력(MCP 는 이미지로 돌려줌, API 31 검은 화면 복구 포함). `tap <serial> (x y \| --text T \| --id ID)`, `type <serial> <text>`, `swipe <serial> up\|down\|left\|right`, `key <serial> back\|home\|enter`. 글자/id 로 누를 때 후보가 여럿이면 목록과 함께 실패. 영문이 아닌 글자 입력은 되는 방법을 찾거나 이유와 함께 실패. mobile-mcp 없이 crewdroid 하나로 앱을 조작한다. |
+| FR-30 | 바이브 코딩 루프 | AI 가 MCP 만으로 up → install → launch → shot → tap/type → logs → down 을 끝까지 돈다. 이 루프를 실제 기기 1대에서 자동 검증하고, `android-vibe-loop` 스킬로 짧게 안내한다. |
+| FR-31 | 소개 바꾸기 | README 첫 화면·AGENTS.md·npm/MCP 설명·GitHub 설명이 "AI 코딩 에이전트용 가벼운 헤드리스 안드로이드 에뮬레이터(바이브 코딩)"를 앞세운다. 첫 화면은 4줄 시작(`setup` → `up` → `install` → `shot`)과 안드로이드 스튜디오 에뮬레이터 대비 표. 다자 동시성 시험은 "고급 기능" 절로. |
+| FR-32 | 0.2.0 준비 | 바이브 코딩 루프 데모 GIF(1대, 단계 자막), 버전 0.2.0(package.json·server.json), CHANGELOG. npm publish·Registry 재등록은 사람이 `docs/release.md` 순서대로(사무실 PC, 브라우저 승인). |
 | FR-11 | MVP: private-app 이전 | crewdroid 로 띄운 기기로 private-app `techs.multi.ts` 가 통과하고, 기존 `avd-up.ps1` 대비 디스크·부팅·RAM·CPU 비교표와 데모 GIF 를 남긴다. |
 
 ## 3. 비기능 요구사항
@@ -108,3 +115,4 @@ UI 없음(CLI). 샘플 앱은 시험용 최소 화면이라 디자인 단계 생
 | 2026-10-26 | docs/source/requirements-2026-10-25.md + 조사 2건 + /brief 문답 | FR-16~FR-25 추가 (기기 환경·앱 제어·진단·MCP 서버·에이전트 파일·스킬·공개 준비·데모 GIF·멱등키·API 31). 결정: 웨이브는 AI 노출·공개 준비 먼저, 멱등키는 정상 모드만 존중, API 31 은 원인 조사, LICENSE MIT, 공개 전환은 사람 |
 | 2026-10-26 | autopilot /brief auto, reviewer 승인 2건 | T30 AGENTS.md 명령 표(fold/unfold/app) 보완(FR-20), T31 perf 의 `am start -S` 제거(FR-18/FR-25). 요구사항 변경 없음 |
 | 2026-10-26 | autopilot /brief auto, reviewer 승인 3건 | T32 샘플 앱 실시간 상태 화면 + 데모 GIF(FR-23, T29 해소), T33 느린 망 2MB 업로드 미완료 원인(ADR 0006 열린 질문), T34 features.md 행 중복 정리. 요구사항 변경 없음 |
+| 2026-10-26 | 사용자 "진짜 너무 무거운 안드로이드 스튜디오 에뮬레이터보다 AI가 다루기 훨씬 쉽고, 서버 자원 많이 안 먹고 빠르고 캡처도 잘 되고 OS·사양·크기도 바뀌는 심플한 에뮬레이터, 바이브 코딩용" / "싹 다 해 오토파일럿으로" | FR-26~FR-32 추가: 바이브 코딩 루프(setup·1대 up·install·launch·logs·shot·tap/type·MCP 루프·스킬)와 소개 바꾸기, 0.2.0 준비. 동시성 시험은 고급 기능으로 |
