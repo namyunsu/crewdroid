@@ -58,12 +58,6 @@ Rules for this wave (on top of the earlier rules):
 
 
 
-- [ ] T37 [KO] `install` · `launch` · `logs` (FR-28)
-  area: src/appctl.ts (new; do not grow src/app.ts), src/cli.ts, scripts/check-install.mjs, test/appctl.test.ts, probe-app/ (only if a log line is missing)
-  model: sonnet
-  review: required
-  accept: `crewdroid install <serial|all> <apk> [--grant] [--json]`: `adb install -r [-g]`; `all` = every running crew device; result per device with package name (read with the T22 `apk` parser) and `Success`/the adb failure code (`INSTALL_FAILED_*` passed through verbatim, exit 1). `crewdroid launch <serial> <pkg> [--activity .Main] [--restart] [-- <am start extras>] [--json]`: activity resolved with `cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER <pkg>` when not given; `am start -W`; `--restart` = force-stop, wait 2 s, start (never `-S`, ADR 0005); returns component, TotalTime, and `crashed: true` + the crash summary (T22 triage) when the process is gone 2 s after start. `crewdroid logs <serial> <pkg> [--since 60s|<N>s|<N>m] [--level V|D|I|W|E] [--seconds N] [--json]`: only that app's lines (`logcat --pid` with `pidof`; if the app is not running, falls back to lines tagged with its last pid from `logcat -b all` and says so), `--seconds N` follows for N s then exits; output keeps logcat's time, level, tag, message (JSON: array of objects). MCP tools `install`, `launch`, `logs` (logs capped at 500 lines, newest last). `scripts/check-install.mjs`: 1 device; `install` probe APK -> Success + package `dev.crewdroid.probe`; `install` a non-APK file -> exit 1 with adb's failure text; `launch` without `--activity` -> resolves `.ProbeActivity`, TotalTime > 0; `launch --restart -- --es check crash` -> `crashed: true` with the exception name; `logs --since 2m --level I` contains a `CrewProbe` line and no line from another pid; `logs` for a package that is not installed exits 1; `down`.
-  verify: `npm test && node scripts/check-install.mjs`
 
 - [ ] T38 [KO] `shot` · `tap` · `type` · `swipe` · `key` (FR-29)
   area: src/input.ts (new), src/shot.ts (new; reuses `unblack` from src/screen.ts), src/mcp.ts (tool results may be image content), src/cli.ts, probe-app/ (`check=form`: EditText id `name`, Button text `Send`, a 3-screen-tall ScrollView with a bottom TextView `END`; logs `CrewProbe FORM <text>` on Send and `CrewProbe SCROLL END` when END becomes visible), scripts/check-input.mjs, test/input.test.ts
