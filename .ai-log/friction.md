@@ -77,3 +77,5 @@
 2026-10-26 | 워커 임시 폴더(crewbench-*, t48, t45, t49) 삭제가 권한 거부로 남음 | env broken: 임시 폴더 삭제 권한
 2026-10-26 | T45 진단+수정 66분, T48 67분, T49 41분: 워커 1회가 한 shift 의 대부분 | tool limit
 2026-10-26 | check-scenario 가 한 번에 약 12분이라 foreground 대기가 10분 제한에 두 번 걸림 | tool limit
+2026-10-27 | check-layout 첫 판이 화면 밖 노드를 덤프에서 못 잡아 필수 버튼 도달 검사를 추가함 | Todo unclear
+2026-10-27 | 워커 중 check-layout 한 번 멈춰 프로세스 수동 종료(원인 모름) | tool limit
