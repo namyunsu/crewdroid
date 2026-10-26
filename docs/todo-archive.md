@@ -250,3 +250,29 @@ T19: fold/unfold — ea4dd35
   verify: `grep -q "perf" scripts/check-surface.mjs && node scripts/check-surface.mjs && node scripts/check-triage.mjs`
 
 T30: fd972e0 · T31: c1f27a5 (shift 9)
+
+- [x] T29 BLOCKED:샘플 앱 화면이 정지라 녹화에 움직임이 없음 — probe-app 에 주기 갱신 UI 추가(영역에 probe-app 포함)할지 결정 필요. 시도 1 코드는 git stash "T29-1 attempt" [KO] 공개용 데모 GIF: 샘플 앱 혼합 3대 + 판정 결과 (FR-23)
+  area: scripts/demo-gif.mjs, src/record.ts (shared recorder from T16), docs/demo/demo.gif, scripts/check-demo-gif.mjs (`--max-mb --max-seconds`), docs/measurements/demo.json
+  model: sonnet
+  review: required
+  accept: After T16 is DONE (recorder). `node scripts/demo-gif.mjs`: `up --count 3` with s24ultra@API34, fold5-main@API34, flip7-main@API36, start the sample server with `BUGGY=1` on a free port, record the 3 screens side by side while `crewdroid run scenarios/photo-upload.json --seed 1 --server-port <port>` runs (same recorder as mvp-private-app, timestamp overlay cropped), then append a 3 s tail that shows the judge summary text (ffmpeg drawtext, e.g. `VIOLATION duplicate: 2 rows`), write `docs/demo/demo.gif` (<= 3 MB, 480 px high, <= 20 s, 8 fps) and `docs/measurements/demo.json` (`gif.panels` like mvp.json + the judge result). Nothing from private-app appears. `check-demo-gif.mjs` keeps T13's rules (3 live panels with pairwise different ratios) and gains `--max-mb 3 --max-seconds 20`.
+  verify: `node scripts/demo-gif.mjs && node scripts/check-demo-gif.mjs --mvp docs/measurements/demo.json --gif docs/demo/demo.gif --max-mb 3 --max-seconds 20`
+  done: T29 (commit 5fe7909, merged on ai/work)
+
+- [x] T32 [AUTO] Sample app shows live outbox state + public demo GIF (FR-23, unblocks T29)
+  origin: auto-plan (T29 BLOCKED reason; FR-23)
+  area: probe-app/app/src/main/kotlin/dev/crewdroid/probe/ProbeActivity.kt (default screen only), scripts/demo-gif.mjs, scripts/check-demo-gif.mjs, src/scenario.ts (only what stash@{0} needed), docs/demo/demo.gif, docs/measurements/demo.json
+  model: sonnet
+  review: required
+  accept: Same accept as T29 above, plus: the default screen (ProbeActivity.kt:77) refreshes once a second with outbox pending / synced / conflict counts and the last sync result, so recorded panels change while the scenario runs. No new user-facing feature, no change to broadcasts, logcat lines (`CrewProbe ...`), `check` intents or the anr/jank/surface screens. Start from `git stash show -p stash@{0}` (T29-1 attempt); drop the stash when done. When done set T29 to `DONE (via T32)` in `.ai-log/status.md` and mark it `[x]` in this file.
+  verify: `node scripts/demo-gif.mjs && node scripts/check-demo-gif.mjs --mvp docs/measurements/demo.json --gif docs/demo/demo.gif --max-mb 3 --max-seconds 20 && node scripts/check-offline.mjs && npm test`
+  done: T32 (commit 5fe7909, merged on ai/work)
+
+- [x] T34 [AUTO] features.md keeps one row per Todo (FR-16 deliverable table)
+  origin: auto-plan (REPORT.md: features.md auto row label "T22" repeated)
+  area: scripts/check-triage.mjs, scripts/check-env.mjs, docs/measurements/features.md
+  model: haiku
+  review: skip
+  accept: check-triage.mjs and check-env.mjs replace their own row on rerun the way check-app.mjs:162-165 does (filter the label, then write) instead of appendFileSync; update their header comments (line 3) and say() texts ("row appended") to match. features.md keeps only the latest T22 row (2026-10-25, 3610 -> 2452) plus the T20 and T21 rows; header unchanged.
+  verify: `node -e "const t=require('fs').readFileSync('docs/measurements/features.md','utf8').split(/\r?\n/).filter(l=>/^\| \d{4}-/.test(l)).map(l=>l.split('|')[2].trim().split(' ')[0]);const d=t.filter((x,i)=>t.indexOf(x)!==i);if(d.length)throw new Error('duplicate rows: '+d);console.log('one row per Todo')" && node -e "const fs=require('fs');for(const f of ['scripts/check-triage.mjs','scripts/check-env.mjs']){const s=fs.readFileSync(f,'utf8');if(/appendFileSync\(f/.test(s))throw new Error(f+' still appends')}console.log('rows replaced')"`
+  done: T34 (commit 708d55e, merged on ai/work)

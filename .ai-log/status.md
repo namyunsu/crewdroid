@@ -30,9 +30,10 @@ T28 DONE
 - 2026-10-24 04:07 shift 182: 점유 지속, 보류
 - 2026-10-24 04:08 shift 183: 점유 지속(mvp-private-app PID 32404), 보류
 - 2026-10-24 04:09 shift 185: 점유 지속, 보류
-T29 BLOCKED:샘플 앱 화면이 정지라 데모 녹화가 안 움직임(probe-app 영역 밖 수정 필요)
+T29 DONE (via T32)
 T30 DONE
 T31 DONE
-T32 TODO
+T32 DONE
 T33 TODO
-T34 TODO
+T34 DONE
+T17 TODO
