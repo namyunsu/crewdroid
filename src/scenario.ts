@@ -12,7 +12,7 @@ export interface Scenario {
   network: { states: NetState[]; badMs: [number, number]; onlineMs: [number, number] };
   drainTimeoutS: number; rules: string;
 }
-export interface RunOptions { count?: number; basePort?: number; seed?: number; serverPort?: number }
+export interface RunOptions { count?: number; basePort?: number; seed?: number; serverPort?: number; profiles?: string[]; onReady?: (serials: string[]) => void; beforeDown?: () => Promise<void> }
 
 const bc = (serial: string, action: string, ...extras: string[]) =>
   adb(serial, ["shell", "am", "broadcast", "--include-stopped-packages", "-n", `${PKG}/.SampleReceiver`, "-a", `dev.crewdroid.sample.${action}`, ...extras]);
@@ -37,7 +37,7 @@ function hostPeak() {
   return () => { clearInterval(timer); return { peakCpuPercent: Math.round(cpu), peakRamMB: Math.round(ram / 1048576), totalRamMB: Math.round(totalmem() / 1048576), cores: cpus().length }; };
 }
 
-export async function runScenario(file: string, { count = 3, basePort = 5580, seed = 1, serverPort = 5599 }: RunOptions = {}) {
+export async function runScenario(file: string, { count = 3, basePort = 5580, seed = 1, serverPort = 5599, profiles, onReady, beforeDown }: RunOptions = {}) {
   const sc = JSON.parse(readFileSync(file, "utf8")) as Scenario;
   const rules = resolve(dirname(resolve(file)), sc.rules);
   const server = `http://10.0.2.2:${serverPort}`;
@@ -45,7 +45,7 @@ export async function runScenario(file: string, { count = 3, basePort = 5580, se
   const stopPeak = hostPeak();
   let serials: string[] = [];
   try {
-    const r = await up(count, basePort);
+    const r = await up(count, basePort, profiles);
     serials = r.devices.map((d) => d.serial);
     for (const s of serials) {
       await setNet(s, "online");
@@ -58,6 +58,7 @@ export async function runScenario(file: string, { count = 3, basePort = 5580, se
       for (let i = 0; !(await probeLog(s)).some((l) => /^OUTBOX \d+$/.test(l)); i++) { if (i > 60) throw new Error(`${s}: sample app did not start`); await sleep(1000); }
     }
 
+    onReady?.(serials); // T29: the demo recorder starts here, once every sample app is up
     const f0 = Date.now();
     const at = () => Math.round((Date.now() - f0) / 100) / 10;
     const between = (rnd: () => number, [lo, hi]: [number, number]) => lo + Math.floor(rnd() * (hi - lo));
@@ -124,6 +125,7 @@ export async function runScenario(file: string, { count = 3, basePort = 5580, se
   } finally {
     stopPeak();
     for (const s of serials) stopFlaky(s);
+    await beforeDown?.(); // T29: the recorder must pull its mp4 before down() kills the clones
     await down();
   }
 }
