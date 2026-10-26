@@ -1,8 +1,22 @@
-// usage: node scripts/check-up.mjs <up.json>
+// usage: node scripts/check-up.mjs [<up.json>]   (no file: boots `up --count 3` itself)
 // Exit 0 only if: every device has an emulator serial, booted, got its profile's wm size/density and distinct ids;
 // no profile+API pair repeats while count <= profile count; with 2+ devices, at least 2 profiles and 2 APIs are mixed.
-import { readFileSync } from "node:fs";
-const d = JSON.parse(readFileSync(process.argv[2], "utf8"));
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+// no argument: boot `up --count 3` itself, check it, then down
+let file = process.argv[2];
+if (!file) {
+  const run = (...a) => spawnSync("npx", ["tsx", "src/cli.ts", ...a, "--json"], { cwd: join(import.meta.dirname, ".."), encoding: "utf8", shell: true, env: { ...process.env, CREWDROID_OWNER: String(process.pid) } });
+  try {
+    const r = run("up", "--count", "3");
+    if (r.status !== 0) { console.error(`FAIL: up --count 3 exited ${r.status}\n${r.stderr}`); process.exit(1); }
+    file = join(mkdtempSync(join(tmpdir(), "check-up-")), "up.json");
+    writeFileSync(file, r.stdout);
+  } finally { run("down"); }
+}
+const d = JSON.parse(readFileSync(file, "utf8"));
 const nProfiles = JSON.parse(readFileSync(new URL("../profiles/galaxy.json", import.meta.url), "utf8")).profiles.length;
 const devs = d.devices ?? [];
 const errs = [];

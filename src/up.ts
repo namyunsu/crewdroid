@@ -40,15 +40,35 @@ export function claimEmulators() {
 const skinFor = (p: { width: number; height: number }) =>
   p.width > 2 * 1080 || p.height > 2 * 2340 ? ["-skin", `${Math.ceil(p.width / 2)}x${Math.ceil(p.height / 2)}`, "-no-snapshot-load"] : [];
 
-export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string } = {}) {
+// T36: no count -> one device (s24ultra on the highest installed API <= 36); an explicit count keeps the mixed behaviour.
+export function upDefaults(a: { count?: number; profiles?: string[]; api?: number; screens?: string[]; profilesFile?: string }) {
+  const single = a.count === undefined;
+  return {
+    count: a.count ?? 1,
+    names: a.profiles ?? (single && !a.screens?.length && !a.profilesFile ? ["s24ultra"] : undefined),
+    api: a.api ?? (single ? ("latest" as const) : undefined),
+  };
+}
+
+function pickImages(api?: number | "latest") {
+  const all = atdImages();
+  if (api === undefined) return all;
+  const have = all.map((x) => x.api).join(",") || "none";
+  const hit = api === "latest" ? all.filter((x) => x.api <= 36).slice(-1) : all.filter((x) => x.api === api);
+  if (!hit.length) throw new Error(`no google_atd image for API ${api} (installed: ${have})`);
+  return hit;
+}
+
+export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest" } = {}) {
   // Validate every input before taking the lock or launching anything.
   const screens = (custom.screens ?? []).map(parseScreen);
   const all = [...loadProfiles(), ...(custom.profilesFile ? loadProfilesFile(custom.profilesFile) : [])];
   const named = names ? names.map((n) => all.find((p) => p.name === n) ?? (() => { throw new Error(`unknown profile '${n}' (have: ${all.map((p) => p.name).join(",")})`); })()) : undefined;
   // --screen alone -> only those screens; with --profiles -> named profiles then screens; --profiles-file alone -> its profiles.
   const profiles = [...(named ?? (screens.length ? [] : custom.profilesFile ? loadProfilesFile(custom.profilesFile) : all)), ...screens];
+  const images = pickImages(custom.api);
   claimEmulators();
-  const slots = assign(count, profiles, atdImages());
+  const slots = assign(count, profiles, images);
   const ports = slots.map((_, i) => basePort + 2 * i);
   for (const p of ports) {
     if (await adb(`emulator-${p}`, ["get-state"], 5000, false).then(() => true, () => false)) throw new Error(`emulator-${p} already running (crewdroid down?)`);

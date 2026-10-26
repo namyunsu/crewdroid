@@ -15,7 +15,8 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 ## Commands
 | Command | What it does | Status |
 |---|---|---|
-| `up` | boot N emulators (`--count`, mixed profiles from `profiles/galaxy.json`) | implemented |
+| `up` | no flags = 1 device (s24ultra, newest API <= 36); `--count N` mixed profiles from `profiles/galaxy.json`; `--api 31\|34\|36` pins the image; `--profile` = `--profiles` | implemented |
+| `devices` | list running crew emulators: serial, api, profile, screen, booted | implemented |
 | `down` | kill every `crew-*` emulator | implemented |
 | `net` | per-device network state: airplane / nodata / slow / flaky / online | implemented |
 | `env` | location, battery, rotation, dark mode, font, locale, network, SMS/call (`env <serial> <what> [args]`) | implemented |
