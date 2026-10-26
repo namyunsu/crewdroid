@@ -16,6 +16,7 @@ import { apk } from "./apk.ts";
 import { fold } from "./fold.ts";
 import { envSet } from "./env.ts";
 import { appRun } from "./app.ts";
+import { install, launch, logs } from "./appctl.ts";
 
 // AI NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
 const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
@@ -32,10 +33,11 @@ const { positionals, values } = parseArgs({
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
     app: { type: "string" }, pkg: { type: "boolean", default: false }, heap: { type: "string" }, png: { type: "string" }, activity: { type: "string" },
+    grant: { type: "boolean", default: false }, restart: { type: "boolean", default: false }, since: { type: "string" }, level: { type: "string" }, seconds: { type: "string" },
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, mcp";
+const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, install, launch, logs, mcp";
 
 async function main() {
   const [cmd] = positionals;
@@ -177,6 +179,29 @@ async function main() {
     if (!serial || !pkg || !what) throw new Error("usage: app <serial> <pkg> perm|open|links|clear|backup|restore|pressure|fill-storage [args] [--pkg]");
     const r = await appRun(serial, pkg, what, rest, { pkg: values.pkg });
     console.log(values.json ? JSON.stringify(r, null, 2) : `${serial} ${Object.entries(r).filter(([k]) => k !== "serial").map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`).join(" ")}`);
+    return;
+  }
+  if (cmd === "install") {
+    const [, target, file] = positionals;
+    if (!target || !file) throw new Error("usage: install <serial|all> <apk> [--grant]");
+    const r = await install(target, file, values.grant);
+    console.log(values.json ? JSON.stringify(r, null, 2) : r.results.map((x) => `${x.serial} ${x.package ?? "?"} ${x.result}`).join("\n"));
+    if (!r.ok) process.exitCode = 1;
+    return;
+  }
+  if (cmd === "launch") {
+    const [, serial, pkg, ...extras] = positionals; // extras after `--` go to am start, e.g. `-- --es check crash`
+    if (!serial || !pkg) throw new Error("usage: launch <serial> <pkg> [--activity .Main] [--restart] [-- <am start extras>]");
+    const r = await launch(serial, pkg, { activity: values.activity, restart: values.restart, extras });
+    console.log(values.json ? JSON.stringify(r, null, 2) : `${r.component} ${r.launchState} TotalTime=${r.totalTime}ms${r.crashed ? ` CRASHED: ${r.crash?.exception ?? "process gone, no crash record"}` : ""}`);
+    return;
+  }
+  if (cmd === "logs") {
+    const [, serial, pkg] = positionals;
+    if (!serial || !pkg) throw new Error("usage: logs <serial> <pkg> [--since 60s|2m] [--level V|D|I|W|E] [--seconds N]");
+    const r = await logs(serial, pkg, { since: values.since, level: values.level, seconds: values.seconds ? Number(values.seconds) : undefined });
+    if (values.json) console.log(JSON.stringify(r, null, 2));
+    else { if (r.note) console.error(r.note); for (const l of r.lines) console.log(`${l.time} ${l.level} ${l.tag}: ${l.message}`); }
     return;
   }
   if (cmd === "mcp") return (await import("./mcp.ts")).serve(); // stdio MCP server; stays up until stdin closes
