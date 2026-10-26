@@ -6,7 +6,7 @@ import { prepare } from "./snapshot.ts";
 import { identity } from "./identity.ts";
 import { hammer } from "./hammer.ts";
 import { flakyLoop, setNet, type NetState } from "./net.ts";
-import { claimEmulators, down, measureUp, up } from "./up.ts";
+import { claimEmulators, down, measureUp, up, upDefaults } from "./up.ts";
 import { runScenario } from "./scenario.ts";
 import { slim } from "./slim.ts";
 import { triage } from "./triage.ts";
@@ -27,7 +27,7 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" },
-    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string", default: "3" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
+    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string" }, api: { type: "string" }, profile: { type: "string" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false },
@@ -35,11 +35,11 @@ const { positionals, values } = parseArgs({
   },
 });
 
-const COMMANDS = "up, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, mcp";
+const COMMANDS = "up, devices, down, slim, measure, judge, prepare, identity, hammer, net, run, triage, screen, perf, apk, fold, unfold, env, app, mcp";
 
 async function main() {
   const [cmd] = positionals;
-  if (values.help || cmd === "help") return console.log(`usage: crewdroid <command> [options]\ncommands: ${COMMANDS}\nexample: crewdroid up --count 3`);
+  if (values.help || cmd === "help") return console.log(`usage: crewdroid <command> [options]\ncommands: ${COMMANDS}\nexample: crewdroid up (one device) | crewdroid up --count 3 | crewdroid up --api 31`);
   if (cmd === "measure") {
     if (!values.avd && !values.up) throw new Error("--avd a,b,c or --up N required");
     const r = values.up
@@ -65,15 +65,24 @@ async function main() {
     if (!values.image) throw new Error("--image android-34/google_atd required");
     const port = Number(values["base-port"]);
     claimEmulators();
-    const r = cmd === "prepare" ? await prepare(values.image, port) : await identity(values.image, Number(values.count), port, !values["no-distinct"]);
+    const r = cmd === "prepare" ? await prepare(values.image, port) : await identity(values.image, Number(values.count ?? 3), port, !values["no-distinct"]);
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
     console.log(values.json || cmd === "prepare" ? text : `collisions: ${(r as any).collisions.join(",") || "none"}; still same after: ${(r as any).stillSame.join(",") || "none"}`);
     return;
   }
   if (cmd === "up") {
-    const r = await up(Number(values.count), Number(values["base-port"]), values.profiles?.split(","), values.window, { screens: values.screen?.flatMap((x) => x.split(",")), profilesFile: values["profiles-file"] });
+    const screens = values.screen?.flatMap((x) => x.split(","));
+    const api = values.api === undefined ? undefined : Number(values.api);
+    if (api !== undefined && !Number.isInteger(api)) throw new Error(`--api must be a number like 31|34|36, got '${values.api}'`);
+    const d = upDefaults({ count: values.count === undefined ? undefined : Number(values.count), profiles: (values.profiles ?? values.profile)?.split(","), api, screens, profilesFile: values["profiles-file"] });
+    const r = await up(d.count, Number(values["base-port"]), d.names, values.window, { screens, profilesFile: values["profiles-file"], api: d.api });
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density}`).join("\n"));
+    return;
+  }
+  if (cmd === "devices") {
+    const r = await (await import("./mcp.ts")).devices();
+    console.log(values.json ? JSON.stringify(r, null, 2) : r.map((d) => `${d.serial} API ${d.api} ${d.profile} ${d.screen} ${d.booted ? "booted" : "booting"}`).join("\n") || "no crewdroid emulators running");
     return;
   }
   if (cmd === "slim") {
@@ -111,7 +120,7 @@ async function main() {
   if (cmd === "run") {
     const [, file] = positionals;
     if (!file) throw new Error("usage: run <scenario.json> [--seed N] [--count 3] [--server-port 5599] [--out file]");
-    const r = await runScenario(file, { count: Number(values.count), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]), profiles: values.profiles?.split(",") });
+    const r = await runScenario(file, { count: Number(values.count ?? 3), basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]), profiles: values.profiles?.split(",") });
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
     if (values.json) console.log(text);
