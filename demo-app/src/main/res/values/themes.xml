@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FieldNotes" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/on_accent</item>
+        <item name="colorPrimaryContainer">@color/accent</item>
+        <item name="colorOnPrimaryContainer">@color/on_accent</item>
+        <item name="colorSecondaryContainer">@color/ok_bg</item>
+        <item name="colorOnSecondaryContainer">@color/ok_ink</item>
+        <item name="android:colorBackground">@color/bg</item>
+        <item name="colorSurface">@color/bg</item>
+        <item name="colorOnSurface">@color/ink</item>
+        <item name="colorOnSurfaceVariant">@color/ink2</item>
+        <item name="colorSurfaceContainerLow">@color/surface</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:windowLightStatusBar">@bool/light_bars</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.FieldNotes.Sheet</item>
+    </style>
+    <style name="ThemeOverlay.FieldNotes.Sheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="colorSurfaceContainerLow">@color/surface</item>
+    </style>
+    <bool name="light_bars">true</bool>
+</resources>
