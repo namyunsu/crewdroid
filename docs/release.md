@@ -75,3 +75,22 @@ node -e 'console.log("cursor://anysphere.cursor-deeplink/mcp/install?name=crewdr
 ```
 
 현재 값 `config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImNyZXdkcm9pZCIsIm1jcCJdfQ==` 이 위 설정과 같다.
+
+## 8. 0.2.0 배포 (0.1.0 이 이미 나간 뒤)
+
+`package.json` 과 `server.json` 은 이미 0.2.0 이고 `CHANGELOG.md` 에 0.2.0 항목이 있다. 시작 전에 `node scripts/check-public.mjs` 가 `OK: public-release checks passed` 를 내는지 확인한다.
+
+회사 PC (npm 배포; 브라우저 승인이 필요하다):
+
+```bash
+git pull
+npm publish --access public   # 브라우저가 열리면 승인
+npx -y crewdroid@0.2.0 --help
+```
+
+아무 PC (npm 에 0.2.0 이 올라간 뒤에만 통과한다):
+
+```bash
+mcp-publisher login github
+mcp-publisher publish
+```

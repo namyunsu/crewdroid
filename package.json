@@ -1,6 +1,6 @@
 {
   "name": "crewdroid",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Lightweight multi-user Android field lab: N headless emulators, per-device network states, concurrency judging, driven by an AI agent.",
   "type": "module",
   "bin": { "crewdroid": "bin/crewdroid.mjs" },
