@@ -26,7 +26,7 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `logs` | one app's logcat lines (`logs <serial> <pkg> [--since 60s] [--level I] [--seconds N]`) | implemented |
 | `shot` | screenshot PNG (`shot <serial> [file.png]`; MCP returns image content) | implemented |
 | `tap` | tap a point or an element (`tap <serial> <x> <y>` \| `--text T` \| `--id ID` `[--index N]`) | implemented |
-| `type` | type ASCII text (`type <serial> <text> [--into <text\|id>]`; non-ASCII exits 1 with the reason) | implemented |
+| `type` | type any text into the focused field via the on-device helper (`type <serial> <text> [--into <text\|id>]`; without the helper ASCII only) | implemented |
 | `swipe` | `swipe <serial> up\|down\|left\|right [--times N]` or `x1 y1 x2 y2 [ms]` | implemented |
 | `key` | `key <serial> back\|home\|enter\|delete\|tab\|menu\|KEYCODE_*` | implemented |
 | `fold` | fold a fold/flip profile to its cover screen (`fold <serial>`) | implemented |

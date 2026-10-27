@@ -21,33 +21,34 @@ export interface Tool { name: string; description: string; input: ZodRawShape; l
 
 // Running crew emulators. AI NOTE: same process query as down() in up.ts (crew-* AVD on the command line); profile is
 // recovered by matching the device's current wm size/density against profiles/galaxy.json (up() does not record it).
-export async function devices(): Promise<{ serial: string; avd: string; api: number | null; profile: string; size: string; density: string; screen: string; booted: boolean }[]> {
-  const byPort = new Map<number, string>();
+export async function devices(): Promise<{ serial: string; avd: string; api: number | null; profile: string; size: string; density: string; screen: string; cores: number | null; ramMB: number | null; booted: boolean }[]> {
+  const byPort = new Map<number, { avd: string; cores: number | null; ramMB: number | null }>();
   for (const { cmd } of await listProcesses(CREW_RE)) {
     const port = Number(cmd.match(/-port\s+(\d+)/)?.[1]);
     const avd = cmd.match(/(?:^|[ @"])(crew-[^ "]+)/)?.[1];
-    if (port > 0 && avd) byPort.set(port, avd);
+    const n = (re: RegExp) => Number(cmd.match(re)?.[1]) || null; // guest spec as launched (T64)
+    if (port > 0 && avd) byPort.set(port, { avd, cores: n(/-cores\s+(\d+)/), ramMB: n(/-memory\s+(\d+)/) });
   }
   const profiles = loadProfiles();
   const wm = async (serial: string, what: string) => {
     const out = await adb(serial, ["shell", "wm", what], 5000, false).catch(() => "");
     return (out.match(/Override \w+: (\S+)/) ?? out.match(/Physical \w+: (\S+)/))?.[1] ?? "";
   };
-  return Promise.all([...byPort].sort(([a], [b]) => a - b).map(async ([port, avd]) => {
+  return Promise.all([...byPort].sort(([a], [b]) => a - b).map(async ([port, { avd, cores, ramMB }]) => {
     const serial = `emulator-${port}`;
     const [size, density] = [await wm(serial, "size"), await wm(serial, "density")];
     const match = profiles.filter((p) => `${p.width}x${p.height}` === size && String(p.density) === density).map((p) => p.name);
     const booted = (await adb(serial, ["shell", "getprop", "sys.boot_completed"], 5000, false).catch(() => "")).trim() === "1";
-    return { serial, avd, api: Number(avd.match(/android-(\d+)/)?.[1]) || null, profile: match.join(",") || "unknown", size, density, screen: `${size}@${density}`, booted };
+    return { serial, avd, api: Number(avd.match(/android-(\d+)/)?.[1]) || null, profile: match.join(",") || "unknown", size, density, screen: `${size}@${density}`, cores, ramMB, booted };
   }));
 }
 
 const core: Tool[] = [
-  { name: "devices", description: "Use to find the emulator-<port> serial every other tool needs, or to check what is already running. Returns [{serial, avd, api, profile, screen, booted}]; empty = call up.", input: {}, run: () => devices() },
+  { name: "devices", description: "Use to find the emulator-<port> serial every other tool needs, or to check what is already running. Returns [{serial, avd, api, profile, screen, cores, ramMB, booted}]; empty = call up.", input: {}, run: () => devices() },
   {
     name: "up", long: true, description: "Start of the loop: boot headless emulators (1-3 min). No args = ONE device (s24ultra, newest API <= 36), the right choice for building/checking an app; count > 1 mixes Galaxy profiles and Android versions. Returns {devices:[{serial, api, profile, wmSize}]}; pass serial to every other tool.",
-    input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), basePort: z.number().int().default(5580) },
-    run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api }); },
+    input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), cores: z.number().int().optional().describe("guest CPUs, e.g. 1|2|4|6|8 (default 2; <= host CPUs)"), ram: z.number().int().optional().describe("guest RAM MB, 896..8192 (default 896, API 31 768)"), basePort: z.number().int().default(5580) },
+    run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api, cores: a.cores, ramMB: a.ram }); },
   },
   { name: "down", description: "End of the loop: kill every crewdroid (crew-*) emulator. Always call it when finished. Returns {killed: pids, ports}.", input: {}, run: () => down() },
   {

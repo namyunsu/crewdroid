@@ -1,6 +1,6 @@
 # crewdroid
 
-[![npm](https://img.shields.io/npm/v/crewdroid)](https://www.npmjs.com/package/crewdroid) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.namyunsu%2Fcrewdroid-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=crewdroid) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![ci](https://github.com/namyunsu/crewdroid/actions/workflows/ci.yml/badge.svg)](https://github.com/namyunsu/crewdroid/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/crewdroid)](https://www.npmjs.com/package/crewdroid) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.namyunsu%2Fcrewdroid-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=crewdroid) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 **Maestro and mobile-mcp drive your Android app. crewdroid makes the conditions and judges the result.**
 
@@ -76,7 +76,7 @@ FAIL: 5 violations            # exit code 1
 
 Same scenario, server fixed → `OK: 3 rules, 0 violations`, exit 0. The judge rules are a JSON file, so the same check runs against your own API's export.
 
-Ask what is on screen without a screenshot:
+Read the screen as text (what to tap, by name):
 
 ```bash
 $ crewdroid screen emulator-5580 --json
@@ -84,7 +84,10 @@ $ crewdroid screen emulator-5580 --json
   "tree": [ { "cls": "TextView", "text": "outbox: 1 pending", "bounds": [32,180,620,230], "clickable": false, "depth": 3 }, ... ] }
 ```
 
-## Built for agents
+## Agent interface
+
+What an agent gets is a contract, not speed claims: JSON in, JSON out, an exit code, and the state read back after every change.
+
 
 - **Every command is machine-readable**: `--json`, non-zero exit on failure, read-back after every setter, clear error before any adb call on bad input.
 - **MCP server**: `crewdroid mcp` exposes `devices`, `up`, `down`, `net`, `env`, `app`, `fold`, `triage`, `screen`, `perf`, `apk`, `judge`, `hammer`, `run` over stdio — the same functions the CLI calls, no second implementation.
@@ -120,6 +123,7 @@ The bundled sample app (Kotlin, offline outbox, `probe-app/`) and sample server 
 - Node >= 22
 - Windows 10/11 x64, macOS on Apple Silicon, or Linux x64/arm64
 - Hardware acceleration: WHPX (Windows), Hypervisor.framework (macOS) or KVM (Linux, `/dev/kvm`); `setup` reports `emulator -accel-check`
+- Image limits (`google_atd`, chosen for lightness): no Play Store / Google Play services, so FCM push, Maps and Play-based sign-in cannot be verified; no Chrome, camera app, gallery, launcher, Messages or Dialer (SMS and calls change telephony state only); no GPU (frame numbers compare runs, not phones). Supported despite the image: any Unicode text input incl. Korean (on-device helper), and the API 31 black-screen-after-relaunch is detected and recovered (`blackRelaunch`)
 - macOS/Linux: `slim` skips the NTFS sparse/compress steps (snapshot zero-fill and stale-overlay cleanup still run); RAM figures are process RSS (shared pages not split)
 
 ## Commands
@@ -129,6 +133,7 @@ Every command takes `--json` and exits non-zero on failure.
 | Command | What it does |
 |---|---|
 | `crewdroid up --count N [--profiles a,b] [--screen WxH[@dpi],...] [--profiles-file f.json]` | boot N emulators with Galaxy profiles or your own screens (any size, e.g. `--screen 3840x2160@320`) |
+| `crewdroid up [--cores 1\|2\|4\|6\|8] [--ram 896..8192]` | pick the guest CPU count and RAM like a real device spec (also `cores`/`ramMB` in a profile, e.g. `a16-lowend`); default 2 cores / 896 MB; a new spec builds its own base snapshot on first use (`docs/measurements/spec.md`) |
 | `crewdroid down` | kill every `crew-*` emulator |
 | `crewdroid net <serial> airplane\|nodata\|slow\|flaky\|online` | set one device's network state |
 | `crewdroid fold <serial>` / `unfold <serial>` | cover <-> main screen on a Fold/Flip profile |
@@ -149,11 +154,11 @@ Every command takes `--json` and exits non-zero on failure.
 |---|---|
 | `crewdroid shot <serial> [file.png]` | `exec-out screencap -p` to `file.png` (default `./crewdroid-<serial>-<yyyymmdd-HHMMSS>.png`); prints path, width x height and `blackRelaunch` (API 31 black screen recovered first, as in `screen`). The MCP tool returns the PNG as image content plus one text line. |
 | `crewdroid tap <serial> <x> <y>` \| `--text <T>` \| `--id <resource-id>` `[--index N]` | `input tap` at a point or at the centre of the element from the `screen` tree whose text / content-desc or resource-id (full or the part after `:id/`) matches: exact first, then case-insensitive contains. No match, or several without `--index` (0-based), exits 1 with the candidates (text, id, bounds). |
-| `crewdroid type <serial> <text> [--into <text\|id>]` | `input text` (spaces, quotes, `&`, `%` are escaped); `--into` taps the field first. ASCII only, see below. |
+| `crewdroid type <serial> <text> [--into <text\|id>]` | appends the text to the focused field through the on-device helper (any Unicode, e.g. Korean); `--into` taps the field first. Without the helper: `input text`, ASCII only, see below. |
 | `crewdroid swipe <serial> up\|down\|left\|right [--times N]` \| `swipe <serial> x1 y1 x2 y2 [ms]` | finger direction over the middle 50 % of the current screen (`up` scrolls the content down). |
 | `crewdroid key <serial> back\|home\|enter\|delete\|tab\|menu\|KEYCODE_*` | `input keyevent`; prints the focused window afterwards. |
 
-Points outside the screen exit 1 before anything is sent. Non-ASCII text (e.g. Korean) is not typed: `type` exits 1 with the reason. `input text` only types characters in the device key map, ATD has no shell command that sets the clipboard for a paste (`cmd clipboard` has no implementation), and crewdroid does not install a keyboard app; pass such text through your app (intent extra, test hook) or install an IME such as ADBKeyboard yourself. The probe app has a form for these: `--es check form` (field id `name`, button `Send` -> `CrewProbe FORM <text>`, a 3-screen scroll whose bottom `END` logs `CrewProbe SCROLL END`). `node scripts/check-input.mjs` runs all of it on an API 34 and an API 36 device.
+`screen`, `tap`, `type`, `swipe` and `key` go through a small on-device helper that `up` starts on every device (instrumentation APK `dev.crewdroid.agent`, reached over `adb forward` on 127.0.0.1; `docs/adr/0007-agent-helper.md`): a tree read takes tens of milliseconds instead of a `uiautomator dump`. Each result says `via: "helper"` or `via: "fallback"` (helper not answering: the old `uiautomator` / `input` path, then the helper is restarted). Points outside the screen exit 1 before anything is sent. Without the helper, non-ASCII text (e.g. Korean) is not typed: `type` exits 1 with the reason. `input text` only types characters in the device key map, ATD has no shell command that sets the clipboard for a paste (`cmd clipboard` has no implementation), and crewdroid does not install a keyboard app; pass such text through your app (intent extra, test hook) or install an IME such as ADBKeyboard yourself. The probe app has a form for these: `--es check form` (field id `name`, button `Send` -> `CrewProbe FORM <text>`, a 3-screen scroll whose bottom `END` logs `CrewProbe SCROLL END`). `node scripts/check-input.mjs` runs all of it on an API 34 and an API 36 device.
 
 ## Diagnostics
 
@@ -162,7 +167,7 @@ Read-only commands (nothing stays running on the device). Each takes `--json`; t
 | Command | Output |
 |---|---|
 | `crewdroid triage <serial> [--app <pkg>] [--heap out.hprof]` | `crashes` (logcat crash buffer: pkg, exception, top frame in the app, time), `anrs` (ActivityManager log + `dumpsys activity exit-info`), `anrTraces` (`/data/anr` headers, or `"unreadable"` without root), `exits` (exit reasons), `recentLog` (the app's last 200 lines), `summary`. `--heap` runs `am dumpheap` and pulls the hprof. |
-| `crewdroid screen <serial> [--png file]` | focused window (`dumpsys window`) and a compact `uiautomator` tree `[{cls, text, desc, id, bounds, clickable, depth}]`. Compose `testTag` shows as `id` only under `testTagsAsResourceId = true`. On API 31 a fully black screen left by an app relaunch (Android 12 emulator bug, any tool's `am start -S`) is recovered first (HOME + resume) and reported as `blackRelaunch`, so it is never mistaken for an app bug. |
+| `crewdroid screen <serial> [--png file]` | focused window (`dumpsys window`) and a compact accessibility tree from the on-device helper (`uiautomator` as fallback) `[{cls, text, desc, id, bounds, clickable, depth, editable?, scrollable?, checked?}]`. Compose `testTag` shows as `id` only under `testTagsAsResourceId = true`. On API 31 a fully black screen left by an app relaunch (Android 12 emulator bug, any tool's `am start -S`) is recovered first (HOME + resume) and reported as `blackRelaunch`, so it is never mistaken for an app bug. |
 | `crewdroid perf <serial> <pkg> [--activity .Main] [-- <am start extras>]` | cold start (`am force-stop`, 2 s, `am start -W`; TotalTime ms), frames / jank % / p50-p90-p99 from `dumpsys gfxinfo`, PSS total / Java / native KB from `dumpsys meminfo`. ATD images have no GPU: compare frame numbers between runs, not with a phone. |
 | `crewdroid apk <file.apk>` | host only (`aapt2` from the newest `build-tools`): package, version, min/target SDK, permissions, exported activities, deep-link filters. |
 

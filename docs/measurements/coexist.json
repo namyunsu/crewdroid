@@ -1,0 +1,37 @@
+{
+  "cases": [
+    {
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 5667
+    },
+    {
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 5895
+    },
+    {
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 5575
+    },
+    {
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 27979
+    },
+    {
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 23494
+    },
+    {
+      "name": "f crewdroid screen during maestro flow",
+      "ok": true,
+      "ms": 14488,
+      "maestroOk": false
+    }
+  ],
+  "helperIdleMs": 3000,
+  "date": "2026-10-27T03:34:00.451Z"
+}

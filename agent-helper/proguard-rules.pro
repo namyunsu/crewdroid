@@ -1,0 +1,1 @@
+-keep class dev.crewdroid.agent.Runner { <init>(); }

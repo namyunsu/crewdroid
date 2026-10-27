@@ -42,6 +42,7 @@ npx crewdroid run scenarios/photo-upload.json --seed 1   # 다자 흐름 + 네�
 - Node >= 22, 안드로이드 SDK + 에뮬레이터 >= 36.4 (없으면 `npx crewdroid setup --yes`)
 - Windows 10/11 x64, Apple Silicon macOS, Linux x64/arm64. 이미지는 호스트 CPU 에 맞춰 x86_64 또는 arm64-v8a
 - 하드웨어 가속: WHPX(Windows), Hypervisor.framework(macOS), KVM(Linux, `/dev/kvm`)
+- 이미지 제약(`google_atd`, 가벼움 때문에 선택): Play 스토어·Google Play 서비스가 없어 FCM 푸시·지도·Play 기반 로그인은 검증할 수 없다. 크롬·카메라 앱·갤러리·런처·문자·전화 앱 없음(SMS·통화는 통신 상태만 바뀜). GPU 없음(프레임 수치는 실행끼리 비교용). 그래도 되는 것: 한글 등 모든 문자 입력(기기 상주 도우미), API 31 재실행 후 검은 화면은 감지해 자동 복구(`blackRelaunch`)
 - macOS/Linux 의 `slim` 은 NTFS 희소·압축 단계를 건너뛰고, RAM 수치는 프로세스 RSS(공유 페이지 나누지 않음)
 
 명령 표·진단·환경·앱 제어·프로필 추가·안전 규칙은 영문 [README.md](README.md) 에 있다. 측정 원본은 [`docs/measurements/`](docs/measurements/), 요구사항은 [`docs/prd.md`](docs/prd.md).

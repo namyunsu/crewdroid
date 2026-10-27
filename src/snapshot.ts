@@ -2,7 +2,7 @@ import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
-import { KNOBS, avdHome, avdName, createAvd, imageDir, imageInstalled, installImage, ramMB } from "./avd.ts";
+import { KNOBS, type Spec, avdHome, coresOf, createAvd, imageDir, imageInstalled, installImage, ramMB } from "./avd.ts";
 import { launchEmulator } from "./emulator.ts";
 import { waitBoot } from "./measure.ts";
 import { killMatching } from "./platform.ts";
@@ -15,7 +15,7 @@ export const SNAPSHOT = "default_boot"; // quickboot snapshot name; -read-only i
 
 // AI NOTE: no -no-snapshot here (avd.ts launchArgs has it): snapshots must stay enabled to save/load default_boot.
 export function start(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false) {
-  const args = ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", KNOBS.gpu, "-camera-back", "emulated", "-cores", "2", "-memory", String(ramMB(name)),
+  const args = ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", KNOBS.gpu, "-camera-back", "emulated", "-cores", String(coresOf(name)), "-memory", String(ramMB(name)),
     "-feature", `${KNOBS.fileBacked ? "" : "-"}QuickbootFileBacked,${KNOBS.vulkan ? "" : "-"}Vulkan`, ...(KNOBS.lowRam ? ["-lowram"] : []),
     ...(readOnly ? ["-read-only", ...(KNOBS.coldBoot ? ["-no-snapshot-load"] : [])] : ["-no-snapshot-save"]), ...extra];
   return launchEmulator(args, join(tmpdir(), `crewdroid-${name}-${port}.log`), window);
@@ -29,10 +29,10 @@ export async function killAll(name: string, serials: string[]) {
 
 // Boots the base AVD once (writable), installs the probe app, saves a clean snapshot, shuts down, then slims it (T15):
 // image sparse + compressed first, old snapshots dropped, AVD files compressed after the save.
-export async function prepare(image: string, port = 5580, tries = 3): Promise<{ avd: string; snapshot: string; bootSeconds: number }> {
+export async function prepare(image: string, port = 5580, tries = 3, spec: Spec = {}): Promise<{ avd: string; snapshot: string; bootSeconds: number }> {
   if (!imageInstalled(image)) await installImage(image);
   await slimImage(imageDir(image));
-  const name = await createAvd(image);
+  const name = await createAvd(image, spec);
   const dir = join(avdHome(), `${name}.avd`);
   const serial = `emulator-${port}`;
   if (!existsSync(probeApk())) throw new Error(`probe apk missing: ${probeApk()} (run gradlew assembleDebug in probe-app/)`);
@@ -72,7 +72,7 @@ export async function prepare(image: string, port = 5580, tries = 3): Promise<{ 
     rmSync(join(dir, MARK), { force: true });
     if (tries <= 1) throw new Error(`${name}: clones of the saved snapshot stay adb offline`);
     console.error(`${name}: clone of the new snapshot stayed offline; preparing again`);
-    return prepare(image, port, tries - 1);
+    return prepare(image, port, tries - 1, spec);
   }
   return { avd: name, snapshot: SNAPSHOT, bootSeconds };
 }

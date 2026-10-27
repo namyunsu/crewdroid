@@ -7,6 +7,7 @@ export interface Profile {
   name: string; model: string; width: number; height: number; density: number;
   minAndroid: string; minApi: number; densitySource: "blisk" | "yesviz" | "chrome" | "unverified"; note?: string;
   fold?: Record<"cover" | "main", Screen>; // foldables: both screens, switched by `crewdroid fold|unfold` (ADR 0006)
+  cores?: number; ramMB?: number; // guest spec (T64); unset = the image default; `up --cores/--ram` override it
 }
 export interface Screen { width: number; height: number; density: number }
 

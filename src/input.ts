@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { adb, assertSerial } from "./adb.ts";
+import { call, HelperError, orFallback } from "./helper.ts";
 import type { Tool } from "./mcp.ts";
 import { focusOf, screen, type UiNode } from "./screen.ts";
 
@@ -47,26 +48,37 @@ const centre = (n: UiNode) => ({ x: Math.round((n.bounds[0] + n.bounds[2]) / 2),
 
 export type TapTarget = { x: number; y: number } | { text: string } | { id: string } | { any: string };
 
+type Size = { width: number; height: number };
+
 export async function tap(serial: string, t: TapTarget, index?: number) {
   assertSerial(serial);
-  let p: { x: number; y: number }, node: UiNode | undefined;
-  if ("x" in t) p = { x: t.x, y: t.y };
-  else {
+  const aim = (all: UiNode[] = []): { p: { x: number; y: number }; node?: UiNode } => {
+    if ("x" in t) return { p: { x: t.x, y: t.y } };
     const [by, query] = Object.entries(t)[0] as ["text" | "id" | "any", string];
-    const all = (await screen(serial)).nodes;
-    node = pickNode(findNodes(all, query, by), all, `${by === "any" ? "text|id" : by} '${query}'`, index);
-    p = centre(node);
-  }
-  checkPoint(p.x, p.y, await screenSize(serial));
-  await sh(serial, `input tap ${p.x} ${p.y}`);
-  return { serial, ...p, node: node ? { text: node.text, desc: node.desc, id: node.id, bounds: node.bounds, cls: node.cls } : undefined };
+    const node = pickNode(findNodes(all, query, by), all, `${by === "any" ? "text|id" : by} '${query}'`, index);
+    return { p: centre(node), node };
+  };
+  const { p, node, via } = await orFallback(serial, async () => {
+    const tree = await call<{ nodes?: UiNode[] } & Size>(serial, "GET", "x" in t ? "/size" : "/tree");
+    if (!tree) return undefined;
+    const a = aim(tree.nodes);
+    checkPoint(a.p.x, a.p.y, tree);
+    return (await call(serial, "POST", "/tap", a.p)) ? a : undefined;
+  }, async () => {
+    const a = aim("x" in t ? undefined : (await screen(serial)).nodes);
+    checkPoint(a.p.x, a.p.y, await screenSize(serial));
+    await sh(serial, `input tap ${a.p.x} ${a.p.y}`);
+    return a;
+  });
+  return { serial, ...p, via, node: node ? { text: node.text, desc: node.desc, id: node.id, bounds: node.bounds, cls: node.cls } : undefined };
 }
 
 // AI NOTE: `input text` only types characters the device key map has (ASCII); anything else throws a NullPointerException
 // inside InputShellCommand. The other routes need what ATD lacks: there is no shell command that sets the clipboard
 // (`cmd clipboard` has no implementation, IClipboard parcels differ per API), the emulator's gRPC clipboard needs a launch
-// flag we may not add, and an IME that takes text from a broadcast is an app install. So non-ASCII exits 1 (T38).
-export const NON_ASCII = "non-ASCII text cannot be typed: `input text` only types characters in the device key map (ASCII), ATD has no shell command to set the clipboard for a paste, and crewdroid does not install a keyboard app. Pass such text to your app another way (intent extra, test hook) or install an IME such as ADBKeyboard yourself.";
+// flag we may not add, and an IME that takes text from a broadcast is an app install. So without the on-device helper
+// (ACTION_SET_TEXT, T52) non-ASCII exits 1 (T38).
+export const NON_ASCII = "non-ASCII text cannot be typed without the on-device helper (not answering on this device): `input text` only types characters in the device key map (ASCII), ATD has no shell command to set the clipboard for a paste, and crewdroid does not install a keyboard app. Pass such text to your app another way (intent extra, test hook) or install an IME such as ADBKeyboard yourself.";
 
 // `input text` turns "%s" into a space, so a "%" followed by "s" is sent in two calls
 export const textChunks = (text: string) => text.split(/(?<=%)(?=s)/);
@@ -74,11 +86,24 @@ export const textChunks = (text: string) => text.split(/(?<=%)(?=s)/);
 export async function type(serial: string, text: string, into?: string) {
   assertSerial(serial);
   if (!text) throw new Error("nothing to type");
-  if (/[^\x20-\x7e]/.test(text)) throw new Error(/[^\x00-\x7f]/.test(text) ? NON_ASCII : "control characters (newline, tab) cannot be typed; use `key enter` / `key tab`");
+  if (/[\x00-\x1f\x7f]/.test(text)) throw new Error("control characters (newline, tab) cannot be typed; use `key enter` / `key tab`");
   const field = into ? await tap(serial, { any: into }) : undefined;
   if (field) await sleep(500);
-  for (const chunk of textChunks(text)) await sh(serial, `input text ${q(chunk)}`);
-  return { serial, text, into: field?.node };
+  const keys = async () => {
+    if (/[^\x20-\x7e]/.test(text)) throw new Error(NON_ASCII);
+    for (const chunk of textChunks(text)) await sh(serial, `input text ${q(chunk)}`);
+    return {};
+  };
+  let via: "helper" | "fallback";
+  try {
+    via = (await orFallback(serial, () => call(serial, "POST", "/text", { text }), keys)).via;
+  } catch (e) {
+    // 409: no field with input focus in the accessibility tree (e.g. inside a WebView); `input text` types into whatever has it
+    if (!(e instanceof HelperError && e.status === 409) || /[^\x20-\x7e]/.test(text)) throw e;
+    await keys();
+    via = "fallback";
+  }
+  return { serial, text, into: field?.node, via };
 }
 
 export const DIRECTIONS = ["up", "down", "left", "right"] as const;
@@ -95,15 +120,31 @@ export async function swipe(serial: string, o: { dir?: string; line?: number[]; 
   const ms = o.ms ?? 300, times = o.times ?? 1;
   if (!Number.isInteger(ms) || ms < 1 || !Number.isInteger(times) || times < 1) throw new Error("ms and --times must be positive integers");
   if (!o.line && !DIRECTIONS.includes(o.dir as any)) throw new Error(`swipe direction must be ${DIRECTIONS.join("|")} or x1 y1 x2 y2 [ms], got '${o.dir}'`);
-  const s = await screenSize(serial);
-  const line = o.line ?? swipeLine(o.dir as (typeof DIRECTIONS)[number], s);
-  if (line.length !== 4) throw new Error("swipe needs x1 y1 x2 y2");
-  checkPoint(line[0], line[1], s); checkPoint(line[2], line[3], s);
-  for (let i = 0; i < times; i++) {
-    if (i) await sleep(400);
-    await sh(serial, `input swipe ${line.join(" ")} ${ms}`);
-  }
-  return { serial, from: line.slice(0, 2), to: line.slice(2), ms, times };
+  if (o.line && o.line.length !== 4) throw new Error("swipe needs x1 y1 x2 y2");
+  const lineFor = (s: Size) => {
+    const line = o.line ?? swipeLine(o.dir as (typeof DIRECTIONS)[number], s);
+    checkPoint(line[0], line[1], s); checkPoint(line[2], line[3], s);
+    return line;
+  };
+  const { line, via } = await orFallback(serial, async () => {
+    const s = await call<Size>(serial, "GET", "/size");
+    if (!s) return undefined;
+    const line = lineFor(s);
+    for (let i = 0; i < times; i++) {
+      if (i) await sleep(400);
+      // ponytail: a helper that dies between swipes makes the fallback redo the whole series; rare, so not handled
+      if (!(await call(serial, "POST", "/swipe", { x1: line[0], y1: line[1], x2: line[2], y2: line[3], ms }, 15000 + ms))) return undefined;
+    }
+    return { line };
+  }, async () => {
+    const line = lineFor(await screenSize(serial));
+    for (let i = 0; i < times; i++) {
+      if (i) await sleep(400);
+      await sh(serial, `input swipe ${line.join(" ")} ${ms}`);
+    }
+    return { line };
+  });
+  return { serial, from: line.slice(0, 2), to: line.slice(2), ms, times, via };
 }
 
 const KEYS: Record<string, string> = { back: "KEYCODE_BACK", home: "KEYCODE_HOME", enter: "KEYCODE_ENTER", delete: "KEYCODE_DEL", tab: "KEYCODE_TAB", menu: "KEYCODE_MENU" };
@@ -116,9 +157,9 @@ export function keyCode(k: string): string {
 export async function key(serial: string, k: string) {
   assertSerial(serial);
   const code = keyCode(k);
-  await sh(serial, `input keyevent ${code}`);
+  const { via } = await orFallback(serial, () => call(serial, "POST", "/key", { code }), async () => { await sh(serial, `input keyevent ${code}`); return {}; });
   await sleep(700);
-  return { serial, key: code, focus: focusOf(await sh(serial, "dumpsys window | grep mCurrentFocus; true")) };
+  return { serial, key: code, via, focus: focusOf(await sh(serial, "dumpsys window | grep mCurrentFocus; true")) };
 }
 
 const serial = z.string().describe("emulator-<port>");
@@ -129,7 +170,7 @@ export const mcpTools: Tool[] = [
     run: (a) => tap(a.serial, a.text !== undefined ? { text: a.text } : a.id !== undefined ? { id: a.id } : a.x !== undefined && a.y !== undefined ? { x: a.x, y: a.y } : (() => { throw new Error("give x+y, text or id"); })(), a.index),
   },
   {
-    name: "type", description: "Use to fill a text field: types ASCII text with `input text` (spaces, quotes, & and % are safe); into = text or resource-id of the field to tap first. Returns the field typed into. Non-ASCII (e.g. Korean) fails with the reason: ATD offers no way to type it without installing a keyboard app.",
+    name: "type", description: "Use to fill a text field: appends any text (Korean, emoji included) to the focused field through the on-device helper; into = text or resource-id of the field to tap first. Returns the field typed into. Without the helper it falls back to `input text`, where non-ASCII fails with the reason.",
     input: { serial, text: z.string(), into: z.string().optional() },
     run: (a) => type(a.serial, a.text, a.into),
   },

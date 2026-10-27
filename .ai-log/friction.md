@@ -79,3 +79,11 @@
 2026-10-26 | check-scenario 가 한 번에 약 12분이라 foreground 대기가 10분 제한에 두 번 걸림 | tool limit
 2026-10-27 | check-layout 첫 판이 화면 밖 노드를 덤프에서 못 잡아 필수 버튼 도달 검사를 추가함 | Todo unclear
 2026-10-27 | 워커 중 check-layout 한 번 멈춰 프로세스 수동 종료(원인 모름) | tool limit
+2026-10-27 | 열린 Todo 전부 BLOCKED, 이번 shift 는 WRAP-UP 만 | Todo unclear: 사용자 결정 대기
+2026-10-27 12:18 | cause: T58 gradlew 100644 -> Linux 실행 불가 (Windows verify 로 못 잡음) | Todo unclear / verify 한계
+2026-10-27 12:18 | cause: helper 첫 설계(호스트 설치 후 health 대기)가 up 을 5~15s 늘림, 기기 내 분리 셸로 재설계 | Todo unclear
+2026-10-27 12:18 | cause: 리뷰어가 락(죽은 PID)을 살아있다고 판정해 check-helper 재실행 못 함 | env broken (stale lock)
+2026-10-27 | 공존 측정 3회 필요(첫 2회 결과가 갈림), 스크립트가 수기 문단을 덮어씀 | tool limit
+2026-10-27 | 새 Todo ID 가 아카이브와 충돌(T61) | Todo unclear (/brief 가 ID 이어받기 안 함)
+2026-10-27 | check-spec 직후 check-single 1회차가 cold 로드 40초로 실패, 재실행 통과 | env (디스크 캐시)
+2026-10-27 | 워커 check-spec 실행이 보고 전달 중 끊겨 마스터가 전체 재검증(약 20분) | tool limit

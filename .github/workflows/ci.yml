@@ -1,0 +1,72 @@
+# T58 (FR-37): runs only in the public repo, only on main pushes and pull requests. Checked statically by scripts/check-ci.mjs.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md', '.ai-log/**']
+  pull_request:
+    paths-ignore: ['docs/**', '**/*.md', '.ai-log/**']
+
+jobs:
+  test:
+    if: github.repository == 'namyunsu/crewdroid'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        node: [22, 24]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+
+  emulator-smoke:
+    if: github.repository == 'namyunsu/crewdroid'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CRESDK: ${{ github.workspace }}/.crewdroid-sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - run: npm ci
+      - name: Build probe and helper APKs (runner SDK)
+        run: |
+          (cd probe-app && ./gradlew assembleDebug --console=plain -q)
+          node --import tsx -e "import('./src/helper.ts').then((m) => m.buildHelper())"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.CRESDK }}
+          key: crewdroid-sdk-${{ runner.os }}-${{ hashFiles('src/setup.ts') }}
+      - name: Smoke (setup, up, shot, screen, install, launch, logs, down)
+        env:
+          ANDROID_SDK_ROOT: ${{ env.CRESDK }}
+          ANDROID_HOME: ${{ env.CRESDK }}
+          CI_SMOKE_PNG: ${{ github.workspace }}/smoke.png
+        run: node --import tsx scripts/ci-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-screenshot
+          path: smoke.png
+          if-no-files-found: ignore

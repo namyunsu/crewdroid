@@ -15,7 +15,7 @@ export interface Exit { pkg: string; pid: number; reason: string; description: s
 
 // `logcat -b crash` -> one entry per "FATAL EXCEPTION". topFrame = first frame in the app's own package, else the first frame.
 export function parseCrashes(log: string): Crash[] {
-  const out: Crash[] = [];
+  const out: (Crash & { frames: string[] })[] = [];
   let cur: (Crash & { frames: string[] }) | null = null;
   for (const l of log.split(/\r?\n/)) {
     const m = l.match(LINE);

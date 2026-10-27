@@ -130,3 +130,40 @@ UI·웹 서비스가 없어서 XSS·새로고침 연타 같은 웹 케이스는 
 - GitHub 라이트·다크에서 보고 15초 안에 무슨 도구인지 알겠는지 `[manual]` T44
 - 데모 앱 클립 5개(기동·AI 조작·오프라인·접기·다크)가 실제로 움직이고 잘림·대비 문제 없음 `[verify]` T48
 - 소개 영상 v2: 15초 중 11초 이상 실제 녹화, 장면 안에서도 움직임, 터미널 명령이 클립과 일치 `[verify]` T50; 사용자가 보고 OK `[manual]` T50
+
+## FR-35 AI 조작 효율
+- 상주 도우미: 트리 p50 ≤ 0.3초, MCP 탭 ≤ 0.5초, 한글 입력, 도우미 죽어도 대체 경로, 대기 RAM +5 % 이내 `[verify]` T52
+- screen 기본 출력 ≤ 2400자(카드 제목·Synced·New note 포함), 행동 후 새 화면 반환, logs ≤ 40줄, tsc 깨끗 `[verify]` T53
+- 재측정: crewdroid 방식 토큰·시간 < 스크린샷 방식, FAB 가림 없음 `[verify]` T54
+
+## FR-36 run 일반화
+- 스키마 오류는 기기 부팅 전 1, Field Notes 를 UI 단계만으로 3대: 버그 서버 seed 3개 중 2개 이상 위반, 정상 3/3 통과, 로그에 샘플 앱 패키지 없음 `[verify]` T55
+- 사장님 실제 앱으로 guide-your-app.md 따라 시나리오 하나 작성 `[manual]` T55
+
+## 기기 준비·CPU
+- 3대 ready ≤ 20초, 1대 ≤ 10초, 기기 고유값 여전히 서로 다름 `[verify]` T56
+- 대기 CPU 1대 ≤ 100 %, 3대 ≤ 300 %, RAM 기준 유지 `[verify]` T57
+
+## FR-37 CI
+- 워크플로가 공개 저장소에서만, main push·PR 에만 돈다(정적 검사), 스모크 스크립트가 로컬에서도 통과 `[verify]` T58
+- 첫 공개 push 뒤 Actions 전 작업 초록(Linux 에뮬 포함) `[manual]` T58
+
+## FR-38 공개 미러
+- 내보낸 트리에 .ai-log·계획 문서 없음, 공개 CLAUDE.md = @AGENTS.md, 버전 0.1.0, npm pack 동작 `[verify]` T59
+- 0.2.0 버전·CHANGELOG, 내보내기 성공(push 안 함) `[verify]` T60; 사람이 push·npm publish·mcp-publisher `[manual]` T60
+
+## FR-41 사양
+- `--cores 4 --ram 2048` → 게스트 nproc 4·메모리 ±10 %, 범위 밖 값은 기동 전 1, 기본값 그대로 `[verify]` T64
+
+## FR-42 부하
+- low→mid→high 로 남은 메모리 감소·시험 앱 기동 시간 증가, off 로 원상복구 `[verify]` T62
+
+## FR-43 Wi-Fi
+- wifi/cellular 전환 시 앱이 보는 종류가 바뀜, metered, 업로드 중 핸드오버 후 서버에 정확히 1건 `[verify]` T63 (ATD 에 Wi-Fi 가 없으면 근거와 함께 BLOCKED)
+
+## FR-44 저장소 꾸미기
+- 기여 안내·양식·예제 파일, 예제 judge 가 버그 export 에 1·정상에 0, 소셜 이미지 1280x640 `[verify]` T65
+- GitHub 설정에서 소셜 미리보기 업로드 `[manual]` T65
+
+## 공존 (포지셔닝)
+- mobile-mcp·Maestro 와 crewdroid 를 같은 기기에서 섞어 써도 6개 사례 각 10/10 통과 `[verify]` T66

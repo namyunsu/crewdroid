@@ -7,7 +7,16 @@ import { sdkRoot } from "./sdk.ts";
 export const avdHome = () => process.env.ANDROID_AVD_HOME || join(process.env.USERPROFILE || process.env.HOME || "", ".android", "avd");
 
 // image "android-34/google_atd" -> AVD "crew-android-34-google_atd", sdk package "system-images;android-34;google_atd;<host abi>"
-export const avdName = (image: string) => `crew-${image.replace("/", "-")}`;
+// AI NOTE: a quickboot snapshot saved with one -memory/-cores does not load with another ("starting from scratch. Reason:
+// different AVD configuration", docs/measurements/spec.md), so a non-default spec gets its own base AVD + snapshot:
+// "crew-android-34-google_atd-r2048-c4". The default spec keeps the old name (T64).
+export interface Spec { ramMB?: number; cores?: number }
+export const CORES = 2; // default guest CPUs
+export const avdName = (image: string, spec: Spec = {}) => {
+  const base = `crew-${image.replace("/", "-")}`, r = spec.ramMB ?? ramMB(image), c = spec.cores ?? CORES;
+  return r === ramMB(image) && c === CORES ? base : `${base}-r${r}-c${c}`;
+};
+export const coresOf = (avd: string) => Number(avd.match(/-r\d+-c(\d+)$/)?.[1]) || CORES;
 export const imagePackage = (image: string) => `system-images;${image.replace("/", ";")};${hostAbi()}`;
 export const imageDir = (image: string) => join(sdkRoot(), "system-images", ...image.split("/"), hostAbi());
 
@@ -43,7 +52,20 @@ export const KNOBS: { ramMB: number; ramMBByApi: Record<string, number>; lowRam:
   ...JSON.parse(process.env.CREWDROID_KNOBS || "{}"),
 };
 // guest RAM (hw.ramSize and -memory) for an image or AVD name; the quickboot RAM image scales with it (T15)
-export const ramMB = (imageOrAvd: string) => KNOBS.ramMBByApi[imageOrAvd.match(/android-(\d+)/)?.[1] ?? ""] ?? KNOBS.ramMB;
+export const ramMB = (imageOrAvd: string) => Number(imageOrAvd.match(/-r(\d+)-c\d+$/)?.[1]) || (KNOBS.ramMBByApi[imageOrAvd.match(/android-(\d+)/)?.[1] ?? ""] ?? KNOBS.ramMB);
+export const MAX_RAM_MB = 8192;
+
+// --ram / --cores (or profile ramMB / cores) limits, checked before anything launches. The minimum RAM is the image's
+// default (T16: API 34/36 need >= 896 MB with -lowram, API 31 runs at 768).
+export function checkSpec(image: string, spec: Spec, host: { cpus: number; freeMB: number }) {
+  const { ramMB: r, cores: c } = spec, min = ramMB(image);
+  if (r !== undefined) {
+    if (!Number.isInteger(r) || r < min) throw new Error(`--ram ${r}: ${image} needs at least ${min} MB (integer MB)`);
+    if (r > MAX_RAM_MB) throw new Error(`--ram ${r}: at most ${MAX_RAM_MB} MB`);
+    if (r > host.freeMB) throw new Error(`--ram ${r}: above free host RAM (${Math.floor(host.freeMB)} MB)`);
+  }
+  if (c !== undefined && (!Number.isInteger(c) || c < 1 || c > host.cpus)) throw new Error(`--cores ${c}: must be 1..${host.cpus} (host logical CPUs)`);
+}
 export const DATA_PARTITION = "2G"; // userdata size; was 10G. AI NOTE: emulator 37.1 rewrites it to 6G at boot (T15, slim.md)
 
 const SENSORS = ["hw.accelerometer_uncalibrated", "hw.gyroscope", "hw.sensors.gyroscope_uncalibrated", "hw.sensors.humidity", "hw.sensors.light",
@@ -58,15 +80,15 @@ export const CONFIG: Record<string, string> = {
 };
 
 // Creates the crewdroid AVD (idempotent) and returns its name. -cores/-memory are also passed at launch (see launchArgs).
-export async function createAvd(image: string): Promise<string> {
-  const name = avdName(image);
+export async function createAvd(image: string, spec: Spec = {}): Promise<string> {
+  const name = avdName(image, spec);
   const dir = join(avdHome(), `${name}.avd`);
   if (!existsSync(dir)) {
     await exec(`"${bat("avdmanager")}"`, ["create", "avd", "-n", name, "-k", `"${imagePackage(image)}"`, "--force"], "no\n");
   }
   const ini = join(dir, "config.ini");
   let text = readFileSync(ini, "utf8");
-  for (const [k, v] of Object.entries({ ...CONFIG, "hw.ramSize": String(ramMB(image)) })) {
+  for (const [k, v] of Object.entries({ ...CONFIG, "hw.ramSize": String(ramMB(name)), "hw.cpu.ncore": String(coresOf(name)) })) {
     const re = new RegExp(String.raw`^${k.replace(/\./g, "\\.")}\s*=.*$`, "m");
     text = re.test(text) ? text.replace(re, `${k}=${v}`) : `${text.trimEnd()}\n${k}=${v}\n`;
   }
@@ -75,4 +97,4 @@ export async function createAvd(image: string): Promise<string> {
 }
 
 export const launchArgs = (name: string, port: number) =>
-  ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-no-snapshot", "-gpu", "host", "-camera-back", "emulated", "-cores", "2", "-memory", String(ramMB(name))];
+  ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-no-snapshot", "-gpu", "host", "-camera-back", "emulated", "-cores", String(coresOf(name)), "-memory", String(ramMB(name))];

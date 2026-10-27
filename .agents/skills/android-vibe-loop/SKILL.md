@@ -51,7 +51,8 @@ crewdroid logs $SERIAL $PKG --since 1m --json | grep -q 'FORM skill loop'
 - `tap` by text: exact match wins, else case-insensitive contains. `N matches for text 'X'; pass --index N` lists the
   candidates: retry with `index` (0-based) or a unique `id`. `no match for text 'X'; on screen:` lists what is there:
   the screen is not the one you expected (check `screen` focus) or the label differs.
-- `tap` x,y outside the screen and `type` with non-ASCII text (e.g. Korean) fail with the reason; ATD has no keyboard app.
+- `tap` x,y outside the screen fails with the reason. `type` sets any text (Korean too) through the on-device helper
+  (`via: "helper"`); `via: "fallback"` = helper not answering, then non-ASCII fails with the reason.
 - `logs` shows only this app's lines (its pid). `note: ... not running` = the app is gone; lines come from its last pid.
 - `install` -> `ok:false` with `INSTALL_FAILED_*`: see android-apk.
 - Compose apps: ids appear in `screen` only with `testTagsAsResourceId = true`; otherwise tap by text.
@@ -69,5 +70,5 @@ crewdroid logs $SERIAL $PKG --since 1m --json | grep -q 'FORM skill loop'
 
 ## What this cannot tell you
 
-No Play services, Chrome, camera or launcher on ATD images; no real GPU (frame numbers are relative); non-ASCII typing is
-not possible. Check those on a real phone.
+No Play services, Chrome, camera or launcher on ATD images; no real GPU (frame numbers are relative); typed text is set
+on the field (no keyboard app, no per-key events). Check those on a real phone.

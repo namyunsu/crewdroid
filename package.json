@@ -4,7 +4,7 @@
   "description": "Lightweight multi-user Android field lab: N headless emulators, per-device network states, concurrency judging, driven by an AI agent.",
   "type": "module",
   "bin": { "crewdroid": "bin/crewdroid.mjs" },
-  "files": ["bin", "src", "profiles", "judge", "scenarios", "sample/server", "LICENSE", "README.md", "README.ko.md", "server.json"],
+  "files": ["bin", "src", "profiles", "judge", "scenarios", "sample/server", "agent-helper/build/outputs/apk/release/crewdroid-agent-release.apk", "LICENSE", "README.md", "README.ko.md", "server.json"],
   "keywords": ["android", "emulator", "mcp", "mcp-server", "claude-code", "agent-skills", "mobile-testing", "concurrency"],
   "repository": { "type": "git", "url": "git+https://github.com/namyunsu/crewdroid.git" },
   "license": "MIT",
@@ -12,7 +12,8 @@
   "mcpName": "io.github.namyunsu/crewdroid",
   "engines": { "node": ">=22" },
   "scripts": {
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepack": "node --import tsx -e \"import('./src/helper.ts').then((m) => m.buildHelper())\""
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

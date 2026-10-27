@@ -58,3 +58,34 @@ T33 DONE
 T44 DONE (MANUAL: 사용자가 hero.gif 를 보고 판정 — 사용자는 이미 구리다고 함, T50 이 대체)
 T51 TODO
 T51 DONE
+T52 TODO
+T53 TODO
+T54 TODO
+T50 TODO
+T40 TODO
+T55 TODO
+T56 TODO
+T57 TODO
+T58 TODO
+T59 TODO
+T60 TODO
+T53 BLOCKED:보류 — 방향 2026-10-27: Phase 2 벤치에서 필요할 때 개선 수단으로 씀
+T54 BLOCKED:폐기 — 방향 2026-10-27: 트리 vs 스크린샷 토큰 비교 대신 sweep 판정 정확도 벤치
+T55 BLOCKED:사람 세션 — Phase 1(Maestro flow 기반 run/sweep)은 사람 리뷰하며 진행
+T56 BLOCKED:보류 — 방향 2026-10-27 (1대 7초면 충분)
+T57 BLOCKED:보류 — 방향 2026-10-27 (효과 대비 비용 큼)
+T50 BLOCKED:보류 — 방향 2026-10-27 (벤치 결과 표가 더 강한 데모)
+T59 BLOCKED:폐기 — 방향 2026-10-27: 공개 저장소에서 직접 개발
+T60 BLOCKED:사람 세션 — Phase 0 에서 0.2.0 바로 배포
+T40 BLOCKED:사람 세션 — Phase 0 README 정리는 세션에서, 첫 화면 재구성은 Phase 3
+T52 DONE
+T58 DONE (MANUAL: 공개 저장소 첫 push 뒤 Actions 탭 확인)
+T61 TODO
+T61 DONE
+T64 TODO
+T62 TODO
+T63 TODO
+T64 TODO
+T65 TODO
+T66 TODO
+T64 DONE (reviewer APPROVE)

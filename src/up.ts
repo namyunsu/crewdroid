@@ -1,10 +1,11 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { cpus, release, tmpdir, totalmem } from "node:os";
+import { cpus, freemem, release, tmpdir, totalmem } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
-import { avdHome, avdName } from "./avd.ts";
+import { avdHome, avdName, checkSpec, coresOf, ramMB } from "./avd.ts";
+import { startHelper } from "./helper.ts";
 import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
 import { CREW_RE, killTree, listProcesses, ramMethod } from "./platform.ts";
@@ -17,9 +18,10 @@ const run = promisify(execFile);
 
 export interface UpDevice {
   serial: string; port: number; avd: string; image: string; api: number; belowMinApi: boolean;
-  profile: string; model: string; width: number; height: number; density: number; densitySource: string;
+  profile: string; model: string; cores: number; ramMB: number; width: number; height: number; density: number; densitySource: string;
   wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[]; relaunchBlack: boolean;
   phases: Record<string, number>; // seconds since launch at the end of each step (T42)
+  helper: Awaited<ReturnType<typeof startHelper>>;
 }
 
 // One crewdroid run drives the emulators at a time. down() kills every crew-* instance, so a second run started meanwhile
@@ -68,7 +70,7 @@ function pickImages(api?: number | "latest") {
   return hit;
 }
 
-export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest" } = {}) {
+export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest"; cores?: number; ramMB?: number } = {}) {
   // Validate every input before taking the lock or launching anything.
   const screens = (custom.screens ?? []).map(parseScreen);
   const all = [...loadProfiles(), ...(custom.profilesFile ? loadProfilesFile(custom.profilesFile) : [])];
@@ -76,25 +78,29 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   // --screen alone -> only those screens; with --profiles -> named profiles then screens; --profiles-file alone -> its profiles.
   const profiles = [...(named ?? (screens.length ? [] : custom.profilesFile ? loadProfilesFile(custom.profilesFile) : all)), ...screens];
   const images = pickImages(custom.api);
+  const slots = assign(count, profiles, images).map((s) => {
+    const spec = { ramMB: custom.ramMB ?? s.profile.ramMB, cores: custom.cores ?? s.profile.cores };
+    checkSpec(s.image, spec, { cpus: cpus().length, freeMB: freemem() / 2 ** 20 });
+    return { ...s, spec, avd: avdName(s.image, spec) };
+  });
   claimEmulators();
-  const slots = assign(count, profiles, images);
   const ports = slots.map((_, i) => basePort + 2 * i);
   for (const p of ports) {
     if (await adb(`emulator-${p}`, ["get-state"], 5000, false).then(() => true, () => false)) throw new Error(`emulator-${p} already running (crewdroid down?)`);
   }
-  // Each image needs a base AVD with a quickboot snapshot saved with the current knobs (avd.ts KNOBS); prepare() makes it
+  // Each (image, spec) needs a base AVD with a quickboot snapshot saved with the current knobs (avd.ts KNOBS); prepare() makes it
   // (boots writable on basePort) on first use and after a knob change.
-  for (const image of new Set(slots.map((s) => s.image))) {
-    if (!avdSlim(join(avdHome(), `${avdName(image)}.avd`))) {
-      console.error(`preparing ${image} (first use or changed settings)`);
-      await prepare(image, basePort);
+  for (const s of new Map(slots.map((s) => [s.avd, s])).values()) {
+    if (!avdSlim(join(avdHome(), `${s.avd}.avd`))) {
+      console.error(`preparing ${s.avd} (first use or changed settings)`);
+      await prepare(s.image, basePort, 3, s.spec);
     }
   }
   const serials = ports.map((p) => `emulator-${p}`);
   try {
     const t0s: number[] = [];
     for (const [i, s] of slots.entries()) {
-      await start(avdName(s.image), ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window);
+      await start(s.avd, ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window);
       t0s.push(Date.now());
       if (i < slots.length - 1) await sleep(3000); // stagger launches; nothing to stagger after the last
     }
@@ -122,16 +128,19 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
       // reinstall, ~27 s) only matters when two clones run side by side. A single device keeps the snapshot's identity.
       const distinctNotes = slots.length > 1 ? await makeDistinct(serial, i + 1) : [];
       mark("identity");
+      const helper = startHelper(serial); // T52: on-device helper for screen/tap/type, alongside the wm steps
       await adb(serial, ["shell", "wm", "size", `${s.profile.width}x${s.profile.height}`]);
       await adb(serial, ["shell", "wm", "density", String(s.profile.density)]);
       mark("wm");
+      const helperStart = await helper;
+      mark("helper");
       return {
-        serial, port: ports[i], avd: avdName(s.image), image: s.image, api: s.api, belowMinApi: s.belowMinApi,
-        profile: s.profile.name, model: s.profile.model, width: s.profile.width, height: s.profile.height,
+        serial, port: ports[i], avd: s.avd, image: s.image, api: s.api, belowMinApi: s.belowMinApi,
+        profile: s.profile.name, model: s.profile.model, cores: coresOf(s.avd), ramMB: ramMB(s.avd), width: s.profile.width, height: s.profile.height,
         density: s.profile.density, densitySource: s.profile.densitySource,
         wmSize: await adb(serial, ["shell", "wm", "size"]), wmDensity: await adb(serial, ["shell", "wm", "density"]),
         bootSeconds: Math.round(bootSeconds * 10) / 10, readySeconds: Math.round((Date.now() - t0s[i]) / 100) / 10, distinctNotes,
-        relaunchBlack: relaunchBlackApis().includes(s.api), phases,
+        relaunchBlack: relaunchBlackApis().includes(s.api), phases, helper: helperStart,
       };
     }));
     for (const d of devices.filter((x) => x.relaunchBlack)) {

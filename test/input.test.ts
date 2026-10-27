@@ -47,8 +47,8 @@ test("keyCode names and KEYCODE_*; textChunks splits only %s", () => {
   assert.deepEqual(textChunks("5%sale %d"), ["5%", "sale %d"]);
 });
 
-test("type: non-ASCII and control characters fail before any adb call", async () => {
-  await assert.rejects(type("emulator-5580", "안녕"), /non-ASCII text cannot be typed/);
+// T52: non-ASCII is typed through the on-device helper now, so only the helper-less fallback rejects it (check-helper.mjs)
+test("type: control characters fail before any adb call", async () => {
   await assert.rejects(type("emulator-5580", "a\nb"), /control characters/);
   await assert.rejects(type("phone-1234", "hi"), /emulator-<port>/);
 });

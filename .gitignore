@@ -10,6 +10,9 @@ probe-app/local.properties
 demo-app/.gradle/
 demo-app/build/
 demo-app/local.properties
+agent-helper/.gradle/
+agent-helper/build/
+agent-helper/local.properties
 sample/server/data/
 .ai-log/*
 !.ai-log/status.md

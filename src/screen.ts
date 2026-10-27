@@ -3,13 +3,15 @@ import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
 import { adb, assertSerial } from "./adb.ts";
+import { call, orFallback } from "./helper.ts";
 import type { Tool } from "./mcp.ts";
 import { relaunchBlackApis } from "./profiles.ts";
 import { adbPath } from "./sdk.ts";
 
 const run = promisify(execFile);
 
-export interface UiNode { cls: string; text: string; desc: string; id: string; bounds: [number, number, number, number]; clickable: boolean; depth: number }
+// cls = class short name; editable/scrollable/checked only come from the on-device helper (true only, checked when checkable)
+export interface UiNode { cls: string; text: string; desc: string; id: string; bounds: [number, number, number, number]; clickable: boolean; depth: number; editable?: boolean; scrollable?: boolean; checked?: boolean }
 
 const unxml = (s: string) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#10;/g, "\n").replace(/&amp;/g, "&");
 
@@ -24,7 +26,7 @@ export function parseUiDump(xml: string): UiNode[] {
     const a: Record<string, string> = {};
     for (const x of m[1].matchAll(/([\w-]+)="([^"]*)"/g)) a[x[1]] = unxml(x[2]);
     const b = (a.bounds?.match(/-?\d+/g) ?? [0, 0, 0, 0]).map(Number) as UiNode["bounds"];
-    const n = { cls: a.class ?? "", text: a.text ?? "", desc: a["content-desc"] ?? "", id: a["resource-id"] ?? "", bounds: b, clickable: a.clickable === "true", depth };
+    const n = { cls: (a.class ?? "").split(".").at(-1)!, text: a.text ?? "", desc: a["content-desc"] ?? "", id: a["resource-id"] ?? "", bounds: b, clickable: a.clickable === "true", depth };
     if (n.text || n.desc || n.id || n.clickable) out.push(n);
     if (m[2] === "/") depth--;
   }
@@ -70,13 +72,20 @@ export async function unblack(serial: string): Promise<{ black: boolean; recover
   return { black: true, recovered: false, tries: 2 };
 }
 
-export async function screen(serial: string, png?: string) {
-  assertSerial(serial);
-  const blackRelaunch = await unblack(serial);
-  const focus = focusOf(await adb(serial, ["shell", "dumpsys window | grep mCurrentFocus; true"]));
+async function dumpNodes(serial: string): Promise<UiNode[]> {
   const remote = "/data/local/tmp/crewdroid-ui.xml";
   const dump = await adb(serial, ["shell", `uiautomator dump ${remote} >/dev/null && cat ${remote}`], 60000);
   if (!dump.includes("<hierarchy")) throw new Error(`uiautomator dump failed on ${serial}: ${dump.slice(0, 300)}`);
+  return parseUiDump(dump);
+}
+
+export async function screen(serial: string, png?: string) {
+  assertSerial(serial);
+  const blackRelaunch = await unblack(serial);
+  const [focus, { nodes, via }] = await Promise.all([
+    adb(serial, ["shell", "dumpsys window | grep mCurrentFocus; true"]).then(focusOf),
+    orFallback(serial, () => call<{ nodes: UiNode[] }>(serial, "GET", "/tree"), async () => ({ nodes: await dumpNodes(serial) })),
+  ]);
   let pngOut: string | undefined;
   if (png) {
     await adb(serial, ["shell", "screencap -p /data/local/tmp/crewdroid-screen.png"]);
@@ -84,13 +93,13 @@ export async function screen(serial: string, png?: string) {
     pngOut = resolve(png);
   }
   return {
-    serial, focus, nodes: parseUiDump(dump), png: pngOut, blackRelaunch,
-    note: "Compose: Modifier.testTag shows as id only under Modifier.semantics { testTagsAsResourceId = true }; otherwise only text/desc. blackRelaunch: API 31 emulator black-after-relaunch was detected/recovered (ADR 0005), not an app bug",
+    serial, focus, nodes, via, png: pngOut, blackRelaunch,
+    note: "via: helper = on-device agent helper, fallback = uiautomator dump. Compose: Modifier.testTag shows as id only under Modifier.semantics { testTagsAsResourceId = true }; otherwise only text/desc. blackRelaunch: API 31 emulator black-after-relaunch was detected/recovered (ADR 0005), not an app bug",
   };
 }
 
 export const mcpTools: Tool[] = [{
-  name: "screen", description: "Use to READ the screen before tap/type (tree, not pixels): focused window and a compact accessibility tree from uiautomator, nodes {cls,text,desc,id,bounds,clickable,depth}; optional PNG path. For how it looks, use shot. On API 31 a fully black screen after an app relaunch (emulator bug, ADR 0005) is recovered first and reported in blackRelaunch (not an app bug).",
+  name: "screen", description: "Use to READ the screen before tap/type (tree, not pixels): focused window and a compact accessibility tree (on-device helper, uiautomator as fallback), nodes {cls,text,desc,id,bounds,clickable,depth,editable?,scrollable?,checked?}; optional PNG path. For how it looks, use shot. On API 31 a fully black screen after an app relaunch (emulator bug, ADR 0005) is recovered first and reported in blackRelaunch (not an app bug).",
   input: { serial: z.string().describe("emulator-<port>"), png: z.string().optional().describe("host path for a screenshot") },
   run: (a) => screen(a.serial, a.png),
 }];
