@@ -90,6 +90,9 @@ export async function createAvd(image: string, spec: Spec = {}): Promise<string>
     // -p: the AVD folder lands where avdHome() reads it (on the CI runner avdmanager picked another home: config.ini ENOENT)
     const out = await exec(q(bat("avdmanager")), ["create", "avd", "-n", name, "-k", q(imagePackage(image)), "-p", q(dir), "--force"], "no\n");
     if (!existsSync(join(dir, "config.ini"))) throw new Error(`avdmanager did not create ${dir}: ${out.slice(-500)}`);
+    // the emulator finds an AVD by <name>.ini in ANDROID_AVD_HOME; avdmanager on the Linux CI runner wrote it elsewhere
+    const pointer = join(avdHome(), `${name}.ini`);
+    if (!existsSync(pointer)) writeFileSync(pointer, `avd.ini.encoding=UTF-8\npath=${dir}\npath.rel=avd/${name}.avd\ntarget=${image.split("/")[0]}\n`);
   }
   const ini = join(dir, "config.ini");
   let text = readFileSync(ini, "utf8");
