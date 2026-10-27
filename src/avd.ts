@@ -50,8 +50,13 @@ export async function installImage(image: string) {
 // AI NOTE: without -lowram the emulator raises hw.ramSize to 2048 (API 31) / 2560 MB (API 34/36). 768 MB failed the private-app
 // call and 832 MB broke makeDistinct's framework restart on API 36; API 31 is not in the private-app call and runs at 768.
 // Disabling the host Vulkan feature saved ~170 MiB per emulator (T16).
+// "host" everywhere we measured; a Linux host without /dev/dri (CI runner, headless server) cannot start the host renderer
+// ("Could not start renderer"), so it falls back to software. CREWDROID_GPU overrides.
+function hostGpu(): string {
+  return process.env.CREWDROID_GPU || (process.platform === "linux" && !existsSync("/dev/dri") ? "swiftshader_indirect" : "host");
+}
 export const KNOBS: { ramMB: number; ramMBByApi: Record<string, number>; lowRam: boolean; heapMB: number; audio: boolean; sensors: boolean; gpu: string; fileBacked: boolean; vulkan: boolean; coldBoot: boolean } = {
-  ramMB: 896, ramMBByApi: { "31": 768 }, lowRam: true, heapMB: 0, audio: true, sensors: true, gpu: "host", fileBacked: false, vulkan: false, coldBoot: false,
+  ramMB: 896, ramMBByApi: { "31": 768 }, lowRam: true, heapMB: 0, audio: true, sensors: true, gpu: hostGpu(), fileBacked: false, vulkan: false, coldBoot: false,
   ...JSON.parse(process.env.CREWDROID_KNOBS || "{}"),
 };
 // guest RAM (hw.ramSize and -memory) for an image or AVD name; the quickboot RAM image scales with it (T15)
@@ -105,4 +110,4 @@ export async function createAvd(image: string, spec: Spec = {}): Promise<string>
 }
 
 export const launchArgs = (name: string, port: number) =>
-  ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-no-snapshot", "-gpu", "host", "-camera-back", "emulated", "-cores", String(coresOf(name)), "-memory", String(ramMB(name))];
+  ["-avd", name, "-port", String(port), "-no-window", "-no-audio", "-no-snapshot", "-gpu", KNOBS.gpu, "-camera-back", "emulated", "-cores", String(coresOf(name)), "-memory", String(ramMB(name))];
