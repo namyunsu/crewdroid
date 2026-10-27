@@ -20,6 +20,7 @@ export const coresOf = (avd: string) => Number(avd.match(/-r\d+-c(\d+)$/)?.[1]) 
 export const imagePackage = (image: string) => `system-images;${image.replace("/", ";")};${hostAbi()}`;
 export const imageDir = (image: string) => join(sdkRoot(), "system-images", ...image.split("/"), hostAbi());
 
+const q = (s: string) => (process.platform === "win32" ? `"${s}"` : s); // quotes only for the Windows shell; spawn without a shell takes them literally
 const bat = (n: string) => join(sdkRoot(), "cmdline-tools", "latest", "bin", process.platform === "win32" ? `${n}.bat` : n);
 
 function exec(cmd: string, args: string[], stdin?: string): Promise<string> {
@@ -29,6 +30,7 @@ function exec(cmd: string, args: string[], stdin?: string): Promise<string> {
     let out = "";
     p.stdout.on("data", (d) => (out += d));
     p.stderr.on("data", (d) => (out += d));
+    p.on("error", rej);
     p.on("close", (c) => (c === 0 ? res(out) : rej(new Error(`${cmd} exit ${c}: ${out.slice(-500)}`))));
     p.stdin.end(stdin ?? "");
   });
@@ -39,7 +41,7 @@ export function imageInstalled(image: string): boolean {
 }
 
 export async function installImage(image: string) {
-  await exec(`"${bat("sdkmanager")}"`, [`"${imagePackage(image)}"`], "y\n".repeat(10));
+  await exec(q(bat("sdkmanager")), [q(imagePackage(image))], "y\n".repeat(10));
 }
 
 // RAM knobs (T16, docs/measurements/ram.md). CREWDROID_KNOBS (JSON) overrides them for the sweep in scripts/check-ram.mjs.
@@ -84,7 +86,7 @@ export async function createAvd(image: string, spec: Spec = {}): Promise<string>
   const name = avdName(image, spec);
   const dir = join(avdHome(), `${name}.avd`);
   if (!existsSync(dir)) {
-    await exec(`"${bat("avdmanager")}"`, ["create", "avd", "-n", name, "-k", `"${imagePackage(image)}"`, "--force"], "no\n");
+    await exec(q(bat("avdmanager")), ["create", "avd", "-n", name, "-k", q(imagePackage(image)), "--force"], "no\n");
   }
   const ini = join(dir, "config.ini");
   let text = readFileSync(ini, "utf8");
