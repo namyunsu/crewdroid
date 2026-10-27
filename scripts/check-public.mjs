@@ -29,11 +29,10 @@ check(existsSync(join(root, "LICENSE")) && /^MIT License/.test(read("LICENSE")) 
 const readme = read("README.md");
 check(readme.includes("npx crewdroid up --count 3"), "README: install line `npx crewdroid up --count 3`");
 check(/"mcpServers"[\s\S]*"crewdroid"[\s\S]*"-y", "crewdroid", "mcp"/.test(readme), "README: mcpServers block with npx -y crewdroid mcp");
-check(/\| Disk \|[^\n]*24\.7 GiB[^\n]*6\.99 GiB/.test(readme) && /\| Boot \|[^\n]*31\.6 s[^\n]*6\.7 s/.test(readme), "README: numbers table (disk, boot)");
-const gif = readme.match(/!\[[^\]]*\]\((docs\/demo\/demo\.gif)\)/);
-check(!!gif, "README: link to docs/demo/demo.gif"); // AI NOTE: the file itself may not exist yet (T29 writes it); only this path is exempt from an existence check.
+check(/\| Disk \|[^\n]*24\.7 GiB[^\n]*6\.99 GiB/.test(readme), "README: numbers table (disk)"); // boot row dropped 2026-10-27: snapshot boot != ready, misleading
+check(/!\[[^\]]*\]\(docs\/demo\/hero\.gif\)/.test(readme), "README: hero image docs/demo/hero.gif");
 for (const m of readme.matchAll(/\]\((?!https?:|cursor:|#)([^)]+)\)/g)) {
-  if (m[1] !== "docs/demo/demo.gif" && m[1] !== "AGENTS.md") check(existsSync(join(root, m[1])), `README: link target exists: ${m[1]}`); // AGENTS.md is T25's
+  if (m[1] !== "AGENTS.md") check(existsSync(join(root, m[1])), `README: link target exists: ${m[1]}`); // AGENTS.md is T25's
 }
 
 // (4) tarball works with npx

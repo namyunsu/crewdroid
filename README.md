@@ -2,14 +2,25 @@
 
 [![npm](https://img.shields.io/npm/v/crewdroid)](https://www.npmjs.com/package/crewdroid) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.namyunsu%2Fcrewdroid-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=crewdroid) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Headless Android device lab for AI agents.** Boot a fleet of mixed Galaxy emulators in one command, break each one's network on its own schedule, replay the same user flow at different timings, then judge the server data for concurrency bugs — duplicate, missing or overwritten records. No window, no clicking: every step is a CLI command with `--json` and an exit code, and the same commands are MCP tools and agent skills.
+**Maestro and mobile-mcp drive your Android app. crewdroid makes the conditions and judges the result.**
+
+[![15 s demo: crewdroid boots S24, Fold5 and Flip7 emulators on Android 14 and 16, cuts one phone's network while a note waits offline and syncs back, judges the server data (FAIL: 7 violations), then folds a device and turns on dark mode](docs/demo/hero.gif)](docs/demo/hero.mp4)
+
+Your AI agent can already tap through an app. What it cannot see is what happened behind the screen: the upload that went through twice when the network dropped, the record that vanished in airplane mode, the edit another user silently overwrote. crewdroid gives the agent the devices and the conditions that cause those bugs, and a verdict it can act on.
+
+## What only crewdroid does
+
+1. **Judges the server, not the screen.** After a run, `crewdroid judge` reads your API's data and checks rules: `unique` (no duplicates), `count` (nothing missing), `noLostUpdate` (no silent overwrite). A bug comes back as `VIOLATION` lines and exit code 1, not as a screenshot to interpret.
+2. **Breaks one device at a time, mid-flow.** Network `airplane` / `nodata` / `slow` / `flaky` per device on its own schedule, fold / unfold during an upload, Doze, trim-memory, full storage, a low-end CPU / RAM spec. Every setter reads the state back.
+3. **Runs a mixed fleet from one command.** Android 12 / 14 / 16 and S24 · Fold · Flip or any `WxH@dpi`, headless, all clones of one base image: 3 devices in 3.93 GB of host RAM and 6.99 GiB of disk.
+
+Also in the box: crash / ANR triage, cold start and jank, APK inspection. Every command has `--json` and an exit code, and every command is an MCP tool.
 
 ```bash
-npx crewdroid up --count 3        # 3 devices: s24ultra/API 34, fold5/API 34, flip7/API 36 — booted in ~7 s each
-npx crewdroid run scenarios/photo-upload.json --seed 1   # multi-user flow + network chaos + judge, exit 1 on a bug
+npx crewdroid setup --yes        # Android SDK + emulator images, if you have none
+npx crewdroid up --count 3       # S24 Ultra / API 34, Fold5 / API 34, Flip7 / API 36
+npx crewdroid run scenarios/photo-upload.json --seed 1   # multi-user flow + network faults + judge, exit 1 on a bug
 ```
-
-![3 emulated Galaxy devices (different screens and Android versions) running the same offline-first flow side by side](docs/demo/demo.gif)
 
 ## Why not just the Android Emulator?
 
@@ -17,14 +28,13 @@ The stock emulator is one phone with a window, driven by hand. crewdroid is a *f
 
 | | Android Emulator / AVD Manager | crewdroid |
 |---|---|---|
+| Multi-user bugs | not a feature | `run` repeats a flow on every device at different timings, then `judge` checks the server: `unique`, `count`, `noLostUpdate` |
+| Network | one toggle in Extended Controls | per-device `airplane`, `nodata`, `slow`, `flaky` on a randomised schedule, mid-upload |
 | Devices | one AVD = one window, one disk image each | N read-only clones of one base image, mixed screens (S/Fold/Flip/any `WxH@dpi`) and API levels, one command |
-| Interaction | click in a window, read a screenshot | `--json` output + exit code on every command; `screen` returns the accessibility tree instead of pixels |
-| Boot | 31.6 s cold | 6.7 s from a slim snapshot |
 | Disk | 24.7 GiB (3 AVDs) | 6.99 GiB (3 clones, 3 API levels) |
 | Host RAM | 8.45 GB | 3.93 GB |
 | Idle CPU (100 % = 1 core) | 1000 % | ~600 % |
-| Network | one toggle in Extended Controls | per-device `airplane`, `nodata`, `slow`, `flaky` on a randomised schedule, mid-upload |
-| Multi-user bugs | not a feature | `run` repeats a flow on every device at different timings, then `judge` checks the server: `unique`, `count`, `noLostUpdate` |
+| Interaction | click in a window | `--json` output + exit code on every command |
 | Device state | GUI panels | `env` (GPS, battery, rotation, dark mode, font, locale, GSM, SMS, calls) and `app` (permissions, deep links, Doze, trim, full storage) — each setter reads its state back |
 | Fold / Flip | needs a foldable AVD | `fold` / `unfold` on any clone: the app gets a real configuration change |
 | For an AI agent | nothing to call | MCP server, `AGENTS.md`, 7 skills triggered by symptoms ("app crashed", "deep link does not open", "sync duplicated a row") |

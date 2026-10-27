@@ -1,0 +1,11 @@
+# Real output captured 2026-10-27 for the hero video: sample server BUGGY=1 on :5597,
+# `crewdroid hammer --users 6 --repeat 4 --retry-rate 0.4 --seed 2`, then:
+# crewdroid judge --rules judge/sample.rules.json --source http://127.0.0.1:5597/export
+VIOLATION uploads count(acks): missing 14 of 24 expected key values (table has 10 rows)
+VIOLATION writes noLostUpdate(id,baseVersion): lost update: 4 writes to id="rec0" all based on baseVersion=0; all but one were overwritten
+VIOLATION writes noLostUpdate(id,baseVersion): lost update: 4 writes to id="rec1" all based on baseVersion=0; all but one were overwritten
+VIOLATION writes noLostUpdate(id,baseVersion): lost update: 2 writes to id="rec2" all based on baseVersion=1; all but one were overwritten
+VIOLATION writes noLostUpdate(id,baseVersion): lost update: 3 writes to id="rec3" all based on baseVersion=0; all but one were overwritten
+VIOLATION writes noLostUpdate(id,baseVersion): lost update: 5 writes to id="rec4" all based on baseVersion=0; all but one were overwritten
+VIOLATION writes noLostUpdate(id,baseVersion): lost update: 2 writes to id="rec1" all based on baseVersion=2; all but one were overwritten
+FAIL: 7 violations
