@@ -2,7 +2,7 @@
 // setup --yes --images 34 -> up -> install + launch the probe -> shot (PNG not flat) -> screen (has nodes) -> logs has a CrewProbe line -> down.
 // Prints the ready time. Always downs the emulator it started. Env: CI_SMOKE_PNG=<file> keeps the screenshot there (CI artifact).
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, copyFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, copyFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
@@ -76,6 +76,8 @@ try {
   claim(probe.length > 0, `logs: ${probe.length} CrewProbe lines, e.g. ${JSON.stringify(probe[0]?.message)}`);
 } catch (e) {
   claim(false, `error: ${e.message}`);
+  // the emulator's own log is the only evidence when a device never shows up in adb
+  for (const f of readdirSync(tmpdir()).filter((f) => /^crewdroid-.*\.log$/.test(f))) console.log(`--- ${f} (last 60 lines)\n${readFileSync(join(tmpdir(), f), "utf8").split("\n").slice(-60).join("\n")}`);
 } finally {
   if (upped) {
     try { cli("down"); claim(true, "down"); } catch (e) { claim(false, `down failed: ${e.message}`); }
