@@ -5,6 +5,7 @@ import { hostAbi } from "./platform.ts";
 import { sdkRoot } from "./sdk.ts";
 
 export const avdHome = () => process.env.ANDROID_AVD_HOME || join(process.env.USERPROFILE || process.env.HOME || "", ".android", "avd");
+process.env.ANDROID_AVD_HOME = avdHome(); // avdmanager and emulator (children) then use the same folder crewdroid reads; newer avdmanager may pick another home otherwise
 
 // image "android-34/google_atd" -> AVD "crew-android-34-google_atd", sdk package "system-images;android-34;google_atd;<host abi>"
 // AI NOTE: a quickboot snapshot saved with one -memory/-cores does not load with another ("starting from scratch. Reason:
@@ -86,7 +87,9 @@ export async function createAvd(image: string, spec: Spec = {}): Promise<string>
   const name = avdName(image, spec);
   const dir = join(avdHome(), `${name}.avd`);
   if (!existsSync(dir)) {
-    await exec(q(bat("avdmanager")), ["create", "avd", "-n", name, "-k", q(imagePackage(image)), "--force"], "no\n");
+    // -p: the AVD folder lands where avdHome() reads it (on the CI runner avdmanager picked another home: config.ini ENOENT)
+    const out = await exec(q(bat("avdmanager")), ["create", "avd", "-n", name, "-k", q(imagePackage(image)), "-p", q(dir), "--force"], "no\n");
+    if (!existsSync(join(dir, "config.ini"))) throw new Error(`avdmanager did not create ${dir}: ${out.slice(-500)}`);
   }
   const ini = join(dir, "config.ini");
   let text = readFileSync(ini, "utf8");
