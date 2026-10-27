@@ -14,10 +14,6 @@ agent-helper/.gradle/
 agent-helper/build/
 agent-helper/local.properties
 sample/server/data/
+# public repo: autopilot state stays local (2026-10-27)
 .ai-log/*
-!.ai-log/status.md
-!.ai-log/handoff.md
-!.ai-log/friction.md
-!.ai-log/REPORT.md
-!.ai-log/heartbeat-*.md
 *.tgz
