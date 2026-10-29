@@ -121,7 +121,7 @@ export async function appRun(serial: string, pkg: string, what: string, args: st
       const uri = uriArg(args[0]);
       const nothing = new Error(`${serial}: No Activity found to handle ${uri}${opt.pkg ? ` in ${pkg}` : ""} (ATD has no Chrome)`);
       const out = await sh(serial, `am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d '${uri}'${opt.pkg ? ` -p ${pkg}` : ""} 2>&1`).catch((e) => { throw /unable to resolve/.test(e.message) ? nothing : e; }); // 2>&1: Error/Warning lines go to stderr
-      // AI NOTE: am start exits 0 (API 34) or 255 (API 36) when nothing can handle the intent; the answer is in its text.
+      // NOTE: am start exits 0 (API 34) or 255 (API 36) when nothing can handle the intent; the answer is in its text.
       if (/^Error: Activity not started, unable to resolve/m.test(out)) throw nothing;
       must(!/^Error/m.test(out), `${serial}: ${out.split(/\r?\n/).find((l) => l.startsWith("Error"))}`);
       const warn = out.split(/\r?\n/).find((l) => l.startsWith("Warning"));
@@ -216,7 +216,7 @@ async function pressure(serial: string, pkg: string, args: string[], bad: (m: st
     case "trim": {
       const level = (arg ?? "").toUpperCase();
       if (!(TRIM_LEVELS as readonly string[]).includes(level)) throw bad(`trim level must be ${TRIM_LEVELS.join("|")}, got '${arg ?? ""}'`);
-      // AI NOTE: no read-back exists on the device; am raises on an unknown level, a process that is not running, or a background
+      // NOTE: no read-back exists on the device; am raises on an unknown level, a process that is not running, or a background
       // level sent to a foreground process. The probe app logs "CrewProbe TRIM <level>" when its callback runs.
       await sh(serial, `am send-trim-memory ${pkg} ${level}`);
       return { serial, what, kind, pkg, level, verified: "am ack only" };

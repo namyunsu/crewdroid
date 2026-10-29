@@ -17,7 +17,7 @@ const REPO_XML = "https://dl.google.com/android/repository/repository2-3.xml";
 const IMG_XML = "https://dl.google.com/android/repository/sys-img/google_atd/sys-img2-3.xml";
 // Used only when repository2-3.xml cannot be read.
 const PINNED_CMDLINE_BUILD = "11076708";
-// AI NOTE: without this Google serves gzip and Content-Length is the compressed size, which never matches the unpacked bytes.
+// NOTE: without this Google serves gzip and Content-Length is the compressed size, which never matches the unpacked bytes.
 const IDENTITY = { "accept-encoding": "identity" };
 
 // --- pure mapping (test/setup.test.ts) ---
@@ -104,7 +104,7 @@ async function download(url: string, dest: string) {
 
 function extract(file: string, dest: string) {
   mkdirSync(dest, { recursive: true });
-  // AI NOTE: Windows bsdtar (System32) reads zip; GNU tar from Git for Windows does not, so call it by full path.
+  // NOTE: Windows bsdtar (System32) reads zip; GNU tar from Git for Windows does not, so call it by full path.
   const [cmd, args] = file.endsWith(".zip")
     ? win(process.platform) ? [join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe"), ["-xf", file, "-C", dest]] : ["unzip", ["-q", "-o", file, "-d", dest]]
     : ["tar", ["-xzf", file, "-C", dest]];
@@ -115,7 +115,7 @@ function extract(file: string, dest: string) {
 function sdkmanager(sdk: string, javaHome: string | undefined, pkgs: string[]): Promise<void> {
   const bin = join(sdk, "cmdline-tools", "latest", "bin", win(process.platform) ? "sdkmanager.bat" : "sdkmanager");
   return new Promise((res, rej) => {
-    // AI NOTE: .bat files need a shell on Windows (node refuses to spawn them directly since CVE-2024-27980)
+    // NOTE: .bat files need a shell on Windows (node refuses to spawn them directly since CVE-2024-27980)
     const p = spawn(q(bin), [`--sdk_root=${q(sdk)}`, ...pkgs.map(q)], { shell: win(process.platform), windowsHide: true, env: javaHome ? { ...process.env, JAVA_HOME: javaHome } : process.env });
     let out = "";
     p.stdout.on("data", (d) => (out += d));

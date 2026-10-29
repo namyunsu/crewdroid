@@ -21,7 +21,7 @@ const SLOW = { speed: "1024", delay: "300" };
 const sh = (serial: string, cmd: string) => adb(serial, ["shell", cmd]).catch(() => "");
 const wifi = (serial: string, on: boolean) => sh(serial, `svc wifi ${on ? "enable" : "disable"}`);
 const data = (serial: string, on: boolean) => sh(serial, `svc data ${on ? "enable" : "disable"}`);
-// AI NOTE: `cmd connectivity airplane-mode` exists on API 30+; older images only honour the setting + broadcast.
+// NOTE: `cmd connectivity airplane-mode` exists on API 30+; older images only honour the setting + broadcast.
 async function airplane(serial: string, on: boolean) {
   const out = await adb(serial, ["shell", `cmd connectivity airplane-mode ${on ? "enable" : "disable"}`]).catch((e) => String(e));
   if (/error|exception|unknown/i.test(out)) {
@@ -29,7 +29,7 @@ async function airplane(serial: string, on: boolean) {
     await sh(serial, `am broadcast -a android.intent.action.AIRPLANE_MODE --ez state ${on}`);
   }
 }
-// AI NOTE: emulator 37.1.11 accepts `network speed/delay` (status shows it) but does not slow guest traffic (measured: 1MB upload
+// NOTE: emulator 37.1.11 accepts `network speed/delay` (status shows it) but does not slow guest traffic (measured: 1MB upload
 // 130 ms at "gsm"), so the console values are set for the modem and a guest `tc` qdisc on eth0 (needs adb root, done in `up`) does the real work.
 // T63: the same qdisc on wlan0 shapes the Wi-Fi link (VirtWifi ignores the console values too).
 async function shape(serial: string, slow: boolean, ifaces = ["eth0"]) {
@@ -63,7 +63,7 @@ const REACHED: Record<Exclude<NetState, "flaky"> | LinkState, (l: Links) => bool
   cellular: (l) => l.transport === "cellular" && only(l, "MOBILE"),
   both: (l) => l.transport === "wifi" && l.nets.includes("MOBILE"), // Android prefers validated Wi-Fi as the default
 };
-// AI NOTE (T45): svc/airplane switches are asynchronous, and after `up` (makeDistinct restarts the framework) the API 31
+// NOTE (T45): svc/airplane switches are asynchronous, and after `up` (makeDistinct restarts the framework) the API 31
 // cellular link appears 20-80 s late and flaps; returning before the guest shows the state let uploads run in the wrong one.
 // Waits until the state holds for 3 s in a row.
 async function settle(serial: string, state: keyof typeof REACHED, timeoutS: number, reached = REACHED[state]) {
@@ -76,7 +76,7 @@ async function settle(serial: string, state: keyof typeof REACHED, timeoutS: num
     else if (Date.now() - since >= 3000) return Math.round((Date.now() - t0) / 100) / 10;
     await sleep(500);
   }
-  // AI NOTE (T63): read-only clones of one snapshot share the virtio-wifi MAC on the emulator's shared Wi-Fi medium, so
+  // NOTE (T63): read-only clones of one snapshot share the virtio-wifi MAC on the emulator's shared Wi-Fi medium, so
   // with 2+ devices only one gets a Wi-Fi address (ADR 0009).
   const hint = /wifi|both/.test(state) || (state === "slow" && l.nets.includes("WIFI")) ? "; Wi-Fi gets an address on one crewdroid device at a time (ADR 0009)" : "";
   throw new Error(`net ${state}: ${serial} not in that state after ${timeoutS} s (default network ${l.transport}, connected: ${l.nets.join(",") || "none"})${hint}`);
@@ -147,12 +147,12 @@ export async function setNet(serial: string, state: NetCommand, seed = 1, opt: N
 async function setState(serial: string, state: NetState, seed: number) {
   const link = state === "slow" || state === "flaky" ? await chosen(serial) : "";
   const onWifi = link === "wifi", onCell = link === "cellular";
-  // AI NOTE (T45): take the network away first and put the rest back only after it is gone. Going through "online"
+  // NOTE (T45): take the network away first and put the rest back only after it is gone. Going through "online"
   // first un-shaped the link while `svc data disable` was still pending, so slow -> nodata let a buffered upload finish.
   if (state === "airplane") await airplane(serial, true);
   else if (state === "nodata") { await wifi(serial, false); await data(serial, false); }
   else if (state === "slow" && onWifi) await shape(serial, true, ["wlan0"]);
-  // AI NOTE: console `network speed/delay` only shapes the emulated cellular modem, not VirtWifi, so wifi must be off for slow to bite.
+  // NOTE: console `network speed/delay` only shapes the emulated cellular modem, not VirtWifi, so wifi must be off for slow to bite.
   else if (state === "slow") { await shape(serial, true); await wifi(serial, false); }
   let seconds = state === "airplane" || state === "nodata" ? await settle(serial, state, 60) : 0;
   if (state !== "airplane") await airplane(serial, false);

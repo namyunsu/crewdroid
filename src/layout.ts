@@ -153,7 +153,7 @@ const sh = (serial: string, cmd: string) => adb(serial, ["shell", cmd]);
 const override = (out: string) => out.match(/Override \w+: (\S+)/)?.[1] ?? ""; // "" = none set: restored with `wm ... reset`
 type Tree = { width: number; height: number; nodes: LNode[] };
 
-// AI NOTE: after a Maestro flow its driver still holds UiAutomation for a moment; the helper answers 503 (busy) and exits.
+// NOTE: after a Maestro flow its driver still holds UiAutomation for a moment; the helper answers 503 (busy) and exits.
 // So: wait, restart the helper (call() then waits for it to come up), try again, for up to 60 s.
 async function layoutTree(serial: string): Promise<Tree> {
   for (const t0 = Date.now(); ;) {
@@ -190,7 +190,7 @@ export async function layout(serial: string, pkg: string, o: LayoutOptions = {})
         else {
           if (o.flow) {
             await runAction(serial, { maestro: resolve(o.flow) }, { serial, device: 0, iter: 0 }, process.cwd());
-            // AI NOTE: `maestro test --no-reinstall-driver` leaves its driver (dev.mobile.maestro) running and holding UiAutomation
+            // NOTE: `maestro test --no-reinstall-driver` leaves its driver (dev.mobile.maestro) running and holding UiAutomation
             // after the flow (measured: still busy 60 s later), so the helper cannot read the tree. This sweep started that
             // flow and it has ended, so its driver is stopped; the next `maestro test` starts it again.
             await sh(serial, "am force-stop dev.mobile.maestro");

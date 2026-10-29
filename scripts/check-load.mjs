@@ -72,7 +72,7 @@ try {
     const og = await guestState(d.serial, 10);
     rows.push({ api, label: "off", g: og, load: off });
     const baseKb = base.g.memAvailableKb;
-    // AI NOTE: off may end ABOVE the baseline: under the ballast kswapd moved idle system pages to zram and they stay there
+    // NOTE: off may end ABOVE the baseline: under the ballast kswapd moved idle system pages to zram and they stay there
     // until touched (API 36 run 1: 1065 vs 858 MB, swap 263 MB). Nothing of the load is held then, so only "not more than
     // 10 % below the baseline" is checked; the difference is written to load.md.
     want(og.memAvailableKb >= baseKb * 0.9, `API ${api}: off MemAvailable ${og.memAvailableMB} MB more than 10 % below baseline ${Math.round(baseKb / 1024)} MB`);

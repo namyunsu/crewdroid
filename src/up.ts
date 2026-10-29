@@ -29,7 +29,7 @@ export interface UpDevice {
 }
 
 // One crewdroid run drives the emulators at a time. down() kills every crew-* instance, so a second run started meanwhile
-// (two autopilot shifts on one checkout, 2026-10-24) killed the first run's clones mid-setup -> "device offline" (T15).
+// (two runs on one checkout, 2026-10-24) killed the first run's clones mid-setup -> "device offline" (T15).
 // The owner is the first process that calls up()/down(); child processes inherit CREWDROID_OWNER and share it.
 // A dead owner PID frees the lock (e.g. after `crewdroid up` exits with its emulators left running).
 export const LOCK = () => process.env.CREWDROID_LOCK || join(tmpdir(), "crewdroid-emulators.lock");
@@ -49,7 +49,7 @@ async function waitAdb(serial: string, t0: number, timeoutMs = 540000) {
   }
 }
 
-// AI NOTE: Android's wm size only accepts up to 2x the display's physical size per side (base AVD: 1080x2340), so
+// NOTE: Android's wm size only accepts up to 2x the display's physical size per side (base AVD: 1080x2340), so
 // 3840x2160 came out as 2160x2160 (T18). Only a profile past that limit gets `-skin` (half its size, rounded up; the saved snapshot no longer matches, so cold boot) so the
 // physical display is big enough; every other profile keeps the unchanged launch args.
 const skinFor = (p: { width: number; height: number }) =>
@@ -117,11 +117,11 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
       mark("adbDevice");
       const bootSeconds = await waitBoot(serial, t0s[i]);
       mark("bootCompleted");
-      // AI NOTE: ATD's /system/build.prop sets debug.hwui.drawing_enabled=0, so apps never post a frame (screencap black,
+      // NOTE: ATD's /system/build.prop sets debug.hwui.drawing_enabled=0, so apps never post a frame (screencap black,
       // window stuck on the boot logo). Not persist.*: set on every boot; apps started after this draw (ADR 0003).
       await adb(serial, ["shell", "setprop", "debug.hwui.drawing_enabled", "1"]);
       mark("hwui");
-      // AI NOTE: prepare() saves the snapshot with adbd already root, so clones come up as root and the old fixed
+      // NOTE: prepare() saves the snapshot with adbd already root, so clones come up as root and the old fixed
       // 5 s + 3 s around `adb root` were pure wait (T42). Root is still needed by makeDistinct, net (tc) and triage (/data/anr).
       if ((await adb(serial, ["shell", "id", "-u"])) !== "0") {
         await sleep(5000);
@@ -172,7 +172,7 @@ export async function measureUp(count: number, basePort = 5580, idleSec = 60, na
     await sleep(idleSec * 1000);
     const after = await Promise.all(r.devices.map((d) => procs(re(d.port))));
     const wall = (Date.now() - w0) / 1000;
-    // AI NOTE: clones of one AVD share its dir and system image, so each dir is counted once (on the first device using it).
+    // NOTE: clones of one AVD share its dir and system image, so each dir is counted once (on the first device using it).
     const seen = new Set<string>();
     const once = (dir: string) => (seen.has(dir) ? 0 : (seen.add(dir), dirBytes(dir)));
     const devices = r.devices.map((d, i) => {

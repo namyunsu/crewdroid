@@ -4,7 +4,7 @@ description: Offline sync made duplicate records, lost an update, or dropped an 
 license: MIT
 ---
 <!-- Commands fenced as `bash verify` are run on a crew device (API 34) by scripts/check-skills.mjs with $SERIAL/$PKG/$SERVER_PORT substituted
-     and a clean sample server listening on $SERVER_PORT. Requirements: docs/prd.md FR-09 (offline) and FR-10 (multi-user field run). -->
+     and a clean sample server listening on $SERVER_PORT. -->
 # android-offline-concurrency: duplicates, lost updates, offline sync
 
 Placeholders: `$SERIAL` = `emulator-<port>` (never a USB phone serial), `$PKG` = the app package, `$SERVER_PORT` = host port of your API.

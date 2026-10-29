@@ -11,9 +11,9 @@
         android:background="@color/bg"
         android:paddingTop="24dp"
         app:liftOnScroll="true">
-        <!-- AI NOTE: ATD draws no status bar; the 24 dp stands in for it and keeps screenrecord's timestamp line off the title. -->
+        <!-- NOTE: ATD draws no status bar; the 24 dp stands in for it and keeps screenrecord's timestamp line off the title. -->
 
-        <!-- AI NOTE: not a MaterialToolbar (T51): a toolbar title/subtitle is one line and ellipsizes next to the sync chip at large font on a 360 dp screen; here both wrap. -->
+        <!-- NOTE: not a MaterialToolbar (T51): a toolbar title/subtitle is one line and ellipsizes next to the sync chip at large font on a 360 dp screen; here both wrap. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

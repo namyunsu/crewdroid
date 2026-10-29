@@ -15,7 +15,7 @@ export function foldPair(wmSize: string, profiles: Profile[]): { profile: Profil
   return { profile, from };
 }
 
-// AI NOTE: ATD has no working fold: on the crew base AVD `adb emu fold` says "KO: Device is not foldable", and even a
+// NOTE: ATD has no working fold: on the crew base AVD `adb emu fold` says "KO: Device is not foldable", and even a
 // pixel_fold AVD (hw.sensor.hinge*) only flips the device state while the app stays on the inner display (ADR 0006).
 // So fold/unfold swap wm size + density: the app gets a real configuration change, but no hinge, posture or half-open.
 export async function fold(serial: string, to: Side) {

@@ -13,7 +13,7 @@ export const parseGfx = (t: string) => ({ frames: num(t, /Total frames rendered:
 export const parseMem = (t: string) => ({ pssTotalKB: num(t, /TOTAL PSS:\s+(\d+)/) ?? num(t, /^\s*TOTAL\s+(\d+)/m), javaHeapKB: num(t, /Java Heap:\s+(\d+)/), nativeHeapKB: num(t, /Native Heap:\s+(\d+)/) });
 
 // Cold start (force-stop, 2 s, start: `am start -S` leaves API 31 black, ADR 0005), then frames and memory after `holdSec` of running. `extras` go to am start as-is
-// (e.g. ["--es", "check", "jank"]). AI NOTE: ATD renders without GPU acceleration -> frame times are for relative comparison only.
+// (e.g. ["--es", "check", "jank"]). NOTE: ATD renders without GPU acceleration -> frame times are for relative comparison only.
 export async function perf(serial: string, pkg: string, activity?: string, extras: string[] = [], holdSec = 3) {
   assertSerial(serial);
   if (!/^[\w.]+$/.test(pkg)) throw new Error(`bad package name '${pkg}'`);

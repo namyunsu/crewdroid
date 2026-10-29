@@ -113,7 +113,7 @@ export function checkLog(log: LogEntry[], rule: Rule, now = Date.now()): Violati
   if (name === "lostWrite") {
     const n = Number(args[0]);
     if (!(n > 0)) throw new Error("lostWrite needs (<seconds>)");
-    // AI NOTE: a failure younger than N s at judge time is not judged yet (the app may still retry); 4xx is a definite answer, not a failure.
+    // NOTE: a failure younger than N s at judge time is not judged yet (the app may still retry); 4xx is a definite answer, not a failure.
     const failed = writes.filter((e) => e.status === 0 || e.status >= 500 || e.cut);
     const lost = failed.filter((e) => now - ms(e) >= n * 1000 && !writes.some((f) => f !== e && same(f) === same(e) && ms(f) >= ms(e) && ms(f) - ms(e) <= n * 1000));
     return lost.map((e) => v(`${e.device} ${e.method} ${e.path} ${e.status ? `http ${e.status}` : e.error ?? "no answer"}${e.cut ? " (answer cut)" : ""} was not sent again within ${n} s`, [e]));

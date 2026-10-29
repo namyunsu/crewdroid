@@ -55,7 +55,7 @@ async function measure(api) {
   const intents = {};
   const comps = (out) => out.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^[\w.]+\/[\w.$]+$/.test(l));
   for (const [k, a] of Object.entries(INTENTS)) {
-    // AI NOTE: --brief prints a "priority=..." line then the component; several handlers resolve to the system chooser
+    // NOTE: --brief prints a "priority=..." line then the component; several handlers resolve to the system chooser
     // (android/com.android.internal.app.ResolverActivity), so query-activities lists who would be offered.
     const resolves = comps(await sh("cmd", "package", "resolve-activity", "--brief", ...a))[0] ?? "none";
     intents[k] = { resolves, handlers: comps(await sh("cmd", "package", "query-activities", "--brief", ...a)) };

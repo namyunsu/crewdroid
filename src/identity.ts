@@ -42,7 +42,7 @@ export async function withClones<T>(image: string, count: number, basePort: numb
     for (const [i, s] of serials.entries()) { start(name, basePort + 2 * i, true); await sleep(3000); }
     await Promise.all(serials.map((s) => waitBoot(s, t0)));
     await sleep(5000);
-    // AI NOTE: shell cannot read wlan0's MAC (netlink permission denied); the ATD image allows adb root, so every clone runs adbd as root.
+    // NOTE: shell cannot read wlan0's MAC (netlink permission denied); the ATD image allows adb root, so every clone runs adbd as root.
     for (const s of serials) await adb(s, ["root"], 20000);
     await sleep(3000);
     return await fn(serials);
@@ -64,7 +64,7 @@ export async function makeDistinct(serial: string, idx: number): Promise<string[
   else {
     writeFileSync(tmp, Buffer.from(buf.replaceAll(key, `${hex(idx)}`.repeat(32).toUpperCase()), "latin1"));
     await adb(serial, ["push", tmp, ssaid]);
-    await adb(serial, ["shell", `chown system:system ${ssaid}; restorecon ${ssaid}; setprop sys.boot_completed 0; stop; start || true`]); // AI NOTE: API 31 ATD fails to start 'zygote_secondary' (64-bit only) but the framework comes back; waitBoot below is the real check
+    await adb(serial, ["shell", `chown system:system ${ssaid}; restorecon ${ssaid}; setprop sys.boot_completed 0; stop; start || true`]); // NOTE: API 31 ATD fails to start 'zygote_secondary' (64-bit only) but the framework comes back; waitBoot below is the real check
     await sleep(5000);
     await waitBoot(serial, Date.now(), 120000);
     await sleep(5000);

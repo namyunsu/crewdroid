@@ -7,7 +7,7 @@ export const GSM_DATA = ["home", "roaming", "searching", "denied", "off", "on"] 
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const sh = (s: string, cmd: string) => adb(s, ["shell", cmd]);
-// AI NOTE: `adb emu` exits 0 even when the console says "KO: ...", so the output is checked.
+// NOTE: `adb emu` exits 0 even when the console says "KO: ...", so the output is checked.
 const emu = async (s: string, ...a: string[]) => {
   const out = await adb(s, ["emu", ...a]);
   if (/^KO/m.test(out)) throw new Error(`emu ${a.join(" ")}: ${out.split(/\r?\n/).find((l) => l.startsWith("KO"))}`);
@@ -54,7 +54,7 @@ const callState = async (s: string) => {
 };
 const lastSms = async (s: string) => (await sh(s, "dumpsys isms | grep EVENT_NEW_SMS").catch(() => "")).trim().split(/\r?\n/).at(-1) ?? "";
 const appLocales = async (s: string, pkg: string) => (await sh(s, `cmd locale get-app-locales ${pkg}`)).match(/\[(.*)\]/)?.[1] ?? "";
-// AI NOTE: the emulator GNSS only pushes a `geo fix` to an app that is requesting location; without one dumpsys keeps the previous
+// NOTE: the emulator GNSS only pushes a `geo fix` to an app that is requesting location; without one dumpsys keeps the previous
 // "last location" (or null). So this is the last fix Android saw, not proof the newest fix arrived. The probe's check=env asks for a fix.
 const geoSeen = async (s: string) => {
   const d = await sh(s, "dumpsys location");
@@ -97,7 +97,7 @@ export async function envSet(serial: string, what: string, args: string[], opt: 
     }
     case "rotate": {
       const n = num(args[0], "rotation", 0, 3, true);
-      // AI NOTE: root cause of "user_rotation rewritten to the old value at the next app launch" (API 36, T20-2): WindowManager's
+      // NOTE: root cause of "user_rotation rewritten to the old value at the next app launch" (API 36, T20-2): WindowManager's
       // DisplayRotationReversionController restores the previous rotation (RotationLockHistory: "revertOverride") when an app that ran at the old
       // rotation has finished. `wm fixed-to-user-rotation enabled` makes the display always follow the user rotation, so nothing is reverted
       // (measured: 3 of 3 lock changes held across launches, 0 of 4 without it). Setting user_rotation by `settings put` is not enough.
@@ -154,7 +154,7 @@ export async function envSet(serial: string, what: string, args: string[], opt: 
       if (args[0] === "signal") {
         const rssi = num(args[1], "signal", 0, 31, true);
         const hold = opt.hold === undefined ? 0 : num(String(opt.hold), "--hold seconds", 1, 3600, true);
-        // AI NOTE: the console applies the value for 15 s only, so --hold re-sends every 10 s. No read-back exists: the guest
+        // NOTE: the console applies the value for 15 s only, so --hold re-sends every 10 s. No read-back exists: the guest
         // SignalStrength did not follow the value in 4 tries (T20), so the only check is the console "OK".
         const t0 = Date.now();
         do {

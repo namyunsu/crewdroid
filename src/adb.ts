@@ -4,14 +4,14 @@ import { adbPath } from "./sdk.ts";
 
 const run = promisify(execFile);
 
-// AI NOTE: a USB phone is plugged in. Every adb call must pass this guard so only emulators are ever targeted.
+// NOTE: a USB phone is plugged in. Every adb call must pass this guard so only emulators are ever targeted.
 export function assertSerial(serial: string): string {
   if (!/^emulator-\d+$/.test(serial)) throw new Error(`adb target must be emulator-<port>: '${serial}'`);
   return serial;
 }
 
 // adb's own transport errors: the command never reached the device's service, so running it again is safe.
-// AI NOTE: seen once in 4 scenario runs (T15-2, `am broadcast` -> "error: closed", no other run on the host, emulator alive);
+// NOTE: seen once in 4 scenario runs (T15-2, `am broadcast` -> "error: closed", no other run on the host, emulator alive);
 // cause [모름]. Pollers that expect "offline" during boot pass retry=false so boot times are not stretched.
 const TRANSPORT = /error: closed|device offline/;
 

@@ -43,7 +43,7 @@ class Runner : Instrumentation() {
         start() // onStart() on the instrumentation thread; the main looper stays free for UiAutomation's callbacks
     }
 
-    // AI NOTE: no UiAutomation at start (T66): `up` starts the helper in the background, and a connection taken then blocked
+    // NOTE: no UiAutomation at start (T66): `up` starts the helper in the background, and a connection taken then blocked
     // mobile-mcp's `uiautomator dump` right after `up`. With idleMs 0 it is released after every request.
     override fun onStart() {
         ServerSocket(port, 8, InetAddress.getByName("127.0.0.1")).use { server ->
@@ -59,7 +59,7 @@ class Runner : Instrumentation() {
         }
     }
 
-    // AI NOTE: Android allows ONE UiAutomation client system-wide; while it is held, `uiautomator dump` (crewdroid's fallback,
+    // NOTE: Android allows ONE UiAutomation client system-wide; while it is held, `uiautomator dump` (crewdroid's fallback,
     // mobile-mcp) and Maestro's driver die with "UiAutomationService ... already registered" (ADR 0007). So it is taken per
     // request and released right after; while another tool holds it (a Maestro flow holds it for the whole flow) the request
     // gets 503 and the host uses its shell fallback. destroy() is hidden API, hence `am instrument --no-hidden-api-checks`.
@@ -84,7 +84,7 @@ class Runner : Instrumentation() {
         throw Busy("UiAutomation is held by another automation client (a Maestro flow, uiautomator dump, mobile-mcp): ${last?.message}")
     }
 
-    // AI NOTE: a failed connect leaves Instrumentation with a half-connected UiAutomation that getUiAutomation() hands out
+    // NOTE: a failed connect leaves Instrumentation with a half-connected UiAutomation that getUiAutomation() hands out
     // again (never connected); drop it so the next try builds a fresh one.
     private fun forget() {
         runCatching {
@@ -168,7 +168,7 @@ class Runner : Instrumentation() {
 
     private fun after(a: JSONObject, o: JSONObject) = if (a.optBoolean("settle")) o.put("tree", settled()) else o
 
-    // AI NOTE (T54): the screen after an action, read inside the same request (one UiAutomation connection; host-side polling
+    // NOTE (T54): the screen after an action, read inside the same request (one UiAutomation connection; host-side polling
     // cost ~175 ms per read: adb forward, connect, the forced idle wait). Settled = no accessibility event for 150 ms, then the
     // same tree again 50 ms later. An empty tree (old window gone, new one not attached yet: Field Notes' editor sheet) never
     // counts. Cap: 1 s after the first non-empty read, 3 s overall (an endless animation returns its latest frame).

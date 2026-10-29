@@ -77,7 +77,7 @@ export async function measure(avds: string[], basePort: number, idleSec = 60) {
       // same flags as the launcher script it replaced, plus -read-only so the AVD files are never modified
       await launchEmulator(["-avd", avd, "-port", String(port), "-no-window", "-no-audio", "-read-only", "-gpu", "host", "-camera-back", "emulated"], join(tmpdir(), `crewdroid-${avd}.log`));
       started.push({ avd, serial, t0: Date.now() });
-      await sleep(3000); // AI NOTE: launching 3 emulators in the same instant intermittently hung one at startup (log stops after GPU init); a 3 s stagger avoids it
+      await sleep(3000); // NOTE: launching 3 emulators in the same instant intermittently hung one at startup (log stops after GPU init); a 3 s stagger avoids it
     }
     const boots = await Promise.all(started.map((s) => waitBoot(s.serial, s.t0)));
     const before = await Promise.all(started.map((s) => procs(avdRe(s.avd))));

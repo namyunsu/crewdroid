@@ -74,7 +74,7 @@ export async function triage(serial: string, app?: string, heap?: string) {
   for (const e of exits) if (/ANR/.test(e.reason) && !anrs.some((a) => a.pid === e.pid)) anrs.push({ pkg: e.pkg, pid: e.pid, reason: e.description, time: e.time, source: "exit-info" });
 
   // /data/anr needs root (crewdroid `up` runs `adb root`); one shell call reads the header of every trace file.
-  // AI NOTE: adb shell passes the remote exit code through, so a grep with no match / ls without permission would throw: `; true`.
+  // NOTE: adb shell passes the remote exit code through, so a grep with no match / ls without permission would throw: `; true`.
   const ls = await sh(serial, "ls /data/anr 2>&1; true");
   let anrTraces: { file: string; pkg: string; pid: number; subject: string }[] | "unreadable" = "unreadable";
   if (!/denied|No such/i.test(ls)) {

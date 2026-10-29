@@ -16,7 +16,7 @@ const servers = JSON.parse(readFileSync(new URL("../.mcp.json", import.meta.url)
 // Minimal MCP stdio client: newline-delimited JSON-RPC, enough for initialize + tools/call.
 async function connect(name) {
   const s = servers[name];
-  // AI NOTE: shell:true so npx.cmd / the scoop maestro shim resolve on Windows; args are our own fixed strings.
+  // NOTE: shell:true so npx.cmd / the scoop maestro shim resolve on Windows; args are our own fixed strings.
   const p = spawn([s.command, ...s.args].join(" "), { shell: true, stdio: ["pipe", "pipe", "ignore"], env: { ...process.env, ...s.env }, windowsHide: true });
   let buf = ""; let id = 0; const waiting = new Map();
   p.stdout.on("data", (d) => {

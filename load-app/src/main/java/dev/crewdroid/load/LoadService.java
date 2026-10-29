@@ -55,11 +55,11 @@ public class LoadService extends Service {
             t.start();
         }
         new Thread(() -> {
-            // AI NOTE: the Procs$Pn processes take memory of their own; wait for them before topping up to the target.
+            // NOTE: the Procs$Pn processes take memory of their own; wait for them before topping up to the target.
             SystemClock.sleep(procs > 0 ? 6000 : 500);
             long seed = 0x9E3779B97F4A7C15L, t0 = SystemClock.uptimeMillis(), inBand = 0;
             boolean ready = false, failed = false;
-            // AI NOTE: kswapd answers the ballast by moving other apps' pages to zram, so MemAvailable climbs back up after
+            // NOTE: kswapd answers the ballast by moving other apps' pages to zram, so MemAvailable climbs back up after
             // each allocation. The loop keeps topping up for as long as the service runs; READY once it has held the target
             // for 5 s in a row (or after 120 s / when memory cannot be mapped any more, with what it got).
             while (!stop) {
@@ -70,7 +70,7 @@ public class LoadService extends Service {
                         SharedMemory sm = SharedMemory.create("crew-ballast", CHUNK_MB << 20);
                         ByteBuffer b = sm.mapReadWrite();
                         LongBuffer lb = b.asLongBuffer();
-                        // AI NOTE: pseudo-random words so zram cannot compress the ballast away
+                        // NOTE: pseudo-random words so zram cannot compress the ballast away
                         while (lb.hasRemaining()) { seed ^= seed << 13; seed ^= seed >>> 7; seed ^= seed << 17; lb.put(seed); }
                         regions.add(sm);
                         maps.add(b);

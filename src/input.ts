@@ -93,7 +93,7 @@ export async function tap(serial: string, t: TapTarget, index?: number, settle =
   return { serial, ...p, via, node: node ? { text: node.text, desc: node.desc, id: node.id, bounds: node.bounds, cls: node.cls } : undefined, ...(after ? { tree: after } : {}) };
 }
 
-// AI NOTE: `input text` only types characters the device key map has (ASCII); anything else throws a NullPointerException
+// NOTE: `input text` only types characters the device key map has (ASCII); anything else throws a NullPointerException
 // inside InputShellCommand. The other routes need what ATD lacks: there is no shell command that sets the clipboard
 // (`cmd clipboard` has no implementation, IClipboard parcels differ per API), the emulator's gRPC clipboard needs a launch
 // flag we may not add, and an IME that takes text from a broadcast is an app install. So without the on-device helper
@@ -187,7 +187,7 @@ export async function key(serial: string, k: string, settle = false) {
 
 // ---- the screen after an action (T53) ----
 // Tree read until it is unchanged for 150 ms, 1 s at most (a uiautomator dump alone takes longer: then the first read counts).
-// AI NOTE: a tap that opens a dialog / bottom sheet first reads an empty tree for ~0.5 s (old window gone, new one not
+// NOTE: a tap that opens a dialog / bottom sheet first reads an empty tree for ~0.5 s (old window gone, new one not
 // attached yet; Field Notes "New note"); empty reads do not start the 1 s and never count as settled (3 s cap, then returned).
 export async function settled(serial: string): Promise<Look> {
   const t0 = Date.now();

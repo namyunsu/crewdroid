@@ -74,7 +74,7 @@ export async function runScenario(src: string | ({ kind: "app" } & AppScenario),
       }
     } else {
       // Setup (log in, point the app at the server) once per device, all devices at once; a failed setup makes the run meaningless.
-      // AI NOTE: one retry per setup action: three Maestro drivers starting at once on 896 MB clones lost one adb connection
+      // NOTE: one retry per setup action: three Maestro drivers starting at once on 896 MB clones lost one adb connection
       // ("device offline") in the first T55 trial; the flow itself was fine.
       const once = (s: string, k: number, a: (typeof app.actions)[number]) => runAction(s, a, { serial: s, device: k, iter: -1 }, app.dir);
       await Promise.all(serials.map(async (s, k) => {
@@ -122,7 +122,7 @@ export async function runScenario(src: string | ({ kind: "app" } & AppScenario),
       if (!net) return;
       const rnd = mulberry32(seed * 104729 + k * 15485863);
       const n = net.states.length;
-      // AI NOTE: one failed state switch must not end a 7-minute run: in a T55 check all three devices got adb "error: closed"
+      // NOTE: one failed state switch must not end a 7-minute run: in a T55 check all three devices got adb "error: closed"
       // at the same moment and the third retry of `dumpsys connectivity` still failed. Retry once after 3 s, else note it.
       const apply = (state: NetState, ...a: [number?]) => setNet(s, state, ...a).catch(() => sleep(3000).then(() => setNet(s, state, ...a)))
         .catch((e) => { timelines[k].at(-1)!.error = (e as Error).message.split("\n")[0].slice(0, 200); });

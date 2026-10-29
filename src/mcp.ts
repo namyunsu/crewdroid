@@ -21,7 +21,7 @@ import { down, up, upDefaults } from "./up.ts";
 export type ContentItem = { type: "text"; text: string } | { type: "image"; mimeType: string; data: string };
 export interface Tool { name: string; description: string; input: ZodRawShape; long?: boolean; run(args: any): Promise<unknown>; content?(result: any): ContentItem[] }
 
-// Running crew emulators. AI NOTE: same process query as down() in up.ts (crew-* AVD on the command line); profile is
+// Running crew emulators. NOTE: same process query as down() in up.ts (crew-* AVD on the command line); profile is
 // recovered by matching the device's current wm size/density against profiles/galaxy.json (up() does not record it).
 export async function devices(): Promise<{ serial: string; avd: string; api: number | null; profile: string; size: string; density: string; screen: string; cores: number | null; ramMB: number | null; booted: boolean }[]> {
   const byPort = new Map<number, { avd: string; cores: number | null; ramMB: number | null }>();
@@ -103,7 +103,7 @@ const text = (s: string, isError = false) => ({ content: [{ type: "text" as cons
 
 export async function serve() {
   const server = new McpServer({ name: "crewdroid", version: "0.0.1" }, { capabilities: { logging: {} } });
-  // AI NOTE: stdout is the JSON-RPC channel. Library progress lines go to stderr and, as logging notifications, to the client.
+  // NOTE: stdout is the JSON-RPC channel. Library progress lines go to stderr and, as logging notifications, to the client.
   const err = console.error.bind(console);
   console.log = console.error = (...a: unknown[]) => {
     err(...a);

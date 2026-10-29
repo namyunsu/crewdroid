@@ -1,6 +1,6 @@
 # Runtime features: idle cost
 
-One row per Todo that adds a runtime command (docs/todo.md lightness rule: no launch flag / AVD config / KNOBS change; idle RAM over +5 % -> opt-in). RAM = emulator+qemu working set, CPU = % of one host core over the idle window, probe app stopped.
+One row per Todo that adds a runtime command (lightness rule: no launch flag / AVD config / KNOBS change; idle RAM over +5 % -> opt-in). RAM = emulator+qemu working set, CPU = % of one host core over the idle window, probe app stopped.
 
 | date | Todo | devices | idle s | RAM before -> after (MB) | RAM delta | CPU before -> after (%) | note |
 |---|---|---|---|---|---|---|---|

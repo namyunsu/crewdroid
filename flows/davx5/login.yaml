@@ -36,7 +36,7 @@ appId: at.bitfire.davdroid
 - tapOn:
     text: "CardDAV"
     index: 0
-# AI NOTE: in one T55 check (lost-acks run, emulator-5582) the CardDAV tab stayed empty for 60 s although the device had
+# NOTE: in one T55 check (lost-acks run, emulator-5582) the CardDAV tab stayed empty for 60 s although the device had
 # sent the same discovery PROPFINDs as the others and got 207; "Refresh list" re-reads the collections.
 - repeat:
     while:

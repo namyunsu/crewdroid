@@ -28,7 +28,7 @@ const MARK = "<!-- generated above by scripts/check-coexist.mjs; text below is k
 // Minimal MCP stdio client (same as check-mcp.mjs): newline-delimited JSON-RPC, initialize + tools/call.
 async function connect(name) {
   const s = mcpServers[name];
-  // AI NOTE: shell:true so npx.cmd resolves on Windows; args are our own fixed strings.
+  // NOTE: shell:true so npx.cmd resolves on Windows; args are our own fixed strings.
   const p = spawn([s.command, ...s.args].join(" "), { shell: true, stdio: ["pipe", "pipe", "ignore"], env: { ...process.env, ...s.env }, windowsHide: true });
   let buf = ""; let id = 0; const waiting = new Map();
   p.stdout.on("data", (d) => {

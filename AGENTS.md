@@ -67,7 +67,5 @@ Verified end to end over MCP by `node scripts/check-vibe-loop.mjs` (prints each 
 
 ## Where things live
 - `docs/measurements/` measurement JSON and tables (disk, RAM, CPU, boot time).
-- `docs/architecture.md` components and which file each agent reads.
-- `docs/prd.md` requirements (Korean). `docs/todo.md` task list.
 - `.agents/skills/` agent skills (`crewdroid` umbrella skill first). `.mcp.json` MCP servers.
 - Emulator host address seen from the device: `10.0.2.2`.

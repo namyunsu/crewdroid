@@ -43,7 +43,7 @@ async function request(serial: string, port: number, method: string, path: strin
 }
 
 // existing forward to the helper port, or a new one on a free host port (adb binds it to 127.0.0.1)
-// AI NOTE (T66): a fixed host port per emulator below the OS ephemeral range (Windows 49152+, Linux 32768+), any free one only
+// NOTE (T66): a fixed host port per emulator below the OS ephemeral range (Windows 49152+, Linux 32768+), any free one only
 // if that is taken. Maestro takes its driver port from the ephemeral range (ServerSocket(0)); with our forward there too, its
 // driver polls reached the helper once (logcat "Broken pipe" every second while Maestro waited for its driver) [inferred].
 export const hostPort = (serial: string) => DEVICE_PORT + 10 + Number(assertSerial(serial).slice(9)) - 5554;
@@ -95,7 +95,7 @@ export async function call<T = any>(serial: string, method: "GET" | "POST", path
       missed.delete(serial);
       return r;
     } catch (e: any) {
-      // AI NOTE: a timed-out POST may have been carried out; running the fallback too could tap twice
+      // NOTE: a timed-out POST may have been carried out; running the fallback too could tap twice
       if (!unreachable(e) || (e.name === "TimeoutError" && method === "POST")) throw e;
       if (e.status === 503) return note(serial, `busy: ${e.message}`); // the helper is fine; the port stays cached
       ports.delete(serial);
@@ -115,7 +115,7 @@ function note(serial: string, reason: string): undefined {
 // Push the APK, then on the device and detached from this process: install when the versionCode differs, (re)start.
 // Returns once started (2 adb calls); the first command waits for it (START_WINDOW_MS), waitMs > 0 waits here.
 // Never throws: a failed start leaves the fallback.
-// AI NOTE: installing and waiting from the host made `up` 6-15 s slower on a fresh boot (dexopt + first-boot jobs, T52).
+// NOTE: installing and waiting from the host made `up` 6-15 s slower on a fresh boot (dexopt + first-boot jobs, T52).
 export async function startHelper(serial: string, waitMs = 0): Promise<{ ok: boolean; port?: number; seconds: number; ready?: boolean; note?: string }> {
   const t0 = Date.now(), seconds = () => Math.round((Date.now() - t0) / 100) / 10;
   try {
@@ -139,7 +139,7 @@ export async function startHelper(serial: string, waitMs = 0): Promise<{ ok: boo
 }
 
 // Fast path through the helper; when it is not reachable the old path, then a restart so the next command is fast again.
-// AI NOTE: the restart comes after `slow`: a helper holding UiAutomation makes `uiautomator dump` fail. `slow` may itself
+// NOTE: the restart comes after `slow`: a helper holding UiAutomation makes `uiautomator dump` fail. `slow` may itself
 // have restarted it (tap's fallback runs screen()), hence the /health look first.
 export async function orFallback<T extends object>(serial: string, fast: () => Promise<T | undefined>, slow: () => Promise<T>): Promise<T & { via: "helper" | "fallback"; fallbackReason?: string }> {
   const r = await fast();

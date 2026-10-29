@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         // 2 columns once the window is tablet-wide (Fold main screen), 1 on phones and the cover screen.
         list.layoutManager = GridLayoutManager(this, if (resources.configuration.screenWidthDp >= 600) 2 else 1)
         list.adapter = adapter
-        // AI NOTE: `input text` key events take the window out of touch mode; the focused list then drew Android's grey default focus highlight over every card.
+        // NOTE: `input text` key events take the window out of touch mode; the focused list then drew Android's grey default focus highlight over every card.
         list.defaultFocusHighlightEnabled = false
         list.itemAnimator = DefaultItemAnimator().apply { addDuration = 300; supportsChangeAnimations = false } // the new card fades in after the others moved down
         if (b == null) list.layoutAnimation = AnimationUtils.loadLayoutAnimation(this, R.anim.list_in)
@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) logLayout()
     }
 
-    // AI NOTE: debug builds only, read by scripts/check-layout.mjs (T51). The accessibility tree keeps the full text of an ellipsized
+    // NOTE: debug builds only, read by scripts/check-layout.mjs (T51). The accessibility tree keeps the full text of an ellipsized
     // label, so the drawn truncation is logged here: dropped characters of the title/subtitle, and how many px the sync chip
     // is narrower than its own drawable wants (Chip draws its text itself, so it has no TextView layout to ask).
     private fun logLayout() {

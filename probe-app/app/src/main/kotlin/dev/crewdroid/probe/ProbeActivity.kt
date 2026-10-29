@@ -65,7 +65,7 @@ class ProbeActivity : Activity() {
             // "SURFACE <l>,<t>,<r>,<b>". Extras: see surface().
             "surface" -> surface()
             // env (T20): "ENV dark=<bool> font=<scale> rot=<n> battery=<pct> loc=<lat>,<lon>|none"; loc needs ACCESS_FINE_LOCATION (pm grant), else none.
-            "env" -> android.os.Handler(mainLooper).postDelayed({ env() }, 1000) // AI NOTE: the display rotation only follows user_rotation once an activity is on top, so read it after a beat; a rotation change recreates the activity and logs a second (correct) line
+            "env" -> android.os.Handler(mainLooper).postDelayed({ env() }, 1000) // NOTE: the display rotation only follows user_rotation once an activity is on top, so read it after a beat; a rotation change recreates the activity and logs a second (correct) line
             // form (T38): EditText id `name` + Button `Send` -> "FORM <text>"; below them a 3-screen-tall ScrollView whose bottom
             // TextView `END` logs "SCROLL END" once it is on screen.
             "form" -> form()
@@ -148,7 +148,7 @@ class ProbeActivity : Activity() {
             finish()
         }
         if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) return fin(null)
-        // AI NOTE: the emulator GNSS only reports a `geo fix` to an active requester (dumpsys location stays last location=null otherwise).
+        // NOTE: the emulator GNSS only reports a `geo fix` to an active requester (dumpsys location stays last location=null otherwise).
         // getCurrentLocation() answers from Android's cache for ~30 s, so a newer fix would be missed; a fresh updates request gets the current one.
         val l = android.location.LocationListener { fin(it) }.also { listener = it }
         lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 0L, 0f, l, mainLooper)
@@ -345,7 +345,7 @@ class ProbeActivity : Activity() {
         }
     }
 
-    // AI NOTE: ACTION_PICK_IMAGES needs the MediaProvider picker; some images ship only GET_CONTENT (DocumentsUI) or neither. We try both and report which resolved.
+    // NOTE: ACTION_PICK_IMAGES needs the MediaProvider picker; some images ship only GET_CONTENT (DocumentsUI) or neither. We try both and report which resolved.
     private fun picker() {
         val pick = Intent(MediaStore.ACTION_PICK_IMAGES)
         val get = Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE)

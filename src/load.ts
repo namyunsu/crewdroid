@@ -99,7 +99,7 @@ async function setFillers(serial: string, n: number) {
   if (add.length) {
     await sh(serial, `rm -rf ${REMOTE}; mkdir -p ${REMOTE}`);
     await adb(serial, ["push", ...add.map((p) => join(fillerDir(), `${p}.apk`)), REMOTE], 300000);
-    // AI NOTE: one device-side loop instead of one `adb install` per package (host round-trip + streaming per APK)
+    // NOTE: one device-side loop instead of one `adb install` per package (host round-trip + streaming per APK)
     await sh(serial, `for f in ${REMOTE}/*.apk; do pm install -r "$f" >/dev/null || echo "FAIL $f"; done; rm -rf ${REMOTE}`, 900000);
   }
   if (drop.length) await sh(serial, `for p in ${drop.join(" ")}; do pm uninstall $p >/dev/null; done`, 600000);

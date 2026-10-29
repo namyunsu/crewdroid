@@ -8,7 +8,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Starts `screenrecord` on each serial; the returned stop() ends them and resolves to dir/<serial>.mp4 per serial.
 export function record(serials: string[], dir: string) {
-  // AI NOTE: --bugreport draws a timestamp overlay, so frames keep coming; without it a static screen records 0 frames and fails.
+  // NOTE: --bugreport draws a timestamp overlay, so frames keep coming; without it a static screen records 0 frames and fails.
   const runs = serials.map((s) => adb(s, ["shell", "screenrecord", "--bugreport", "--bit-rate", "4000000", "--time-limit", "180", REC], 200000).catch(() => {}));
   return async () => {
     await Promise.all(serials.map((s) => adb(s, ["shell", "pkill", "-INT", "screenrecord"]).catch(() => {})));
@@ -19,7 +19,7 @@ export function record(serials: string[], dir: string) {
   };
 }
 
-// AI NOTE: T16-1 lost the GIF to one `adb pull` failing with empty stderr on emulator-5574 (-lowram, 896 MB) right after the
+// NOTE: T16-1 lost the GIF to one `adb pull` failing with empty stderr on emulator-5574 (-lowram, 896 MB) right after the
 // call; the old code pulled once, 60 s timeout, without checking screenrecord had exited. SIGINT only asks it to finish the
 // mp4 (moov atom), so wait until the process is gone and the size holds across 2 polls, then pull with retries + size check.
 async function settled(serial: string): Promise<number> {

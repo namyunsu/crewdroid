@@ -157,7 +157,7 @@ export async function drainDevice(serial: string, d: NonNullable<AppScenario["dr
   if ("logPattern" in d) await adb(serial, ["logcat", "-c"]);
   while (Date.now() < until) {
     if ("idleSeconds" in d) {
-      // AI NOTE: idle counts from max(last request, drain start): right after the network comes back the app may not have
+      // NOTE: idle counts from max(last request, drain start): right after the network comes back the app may not have
       // started its retry yet, so "no request so far" alone would end the drain too early.
       if (Date.now() - Math.max(lastRequest(proxyLog!, serial), t0) >= d.idleSeconds * 1000) return { drained: true, seconds: secs() };
     } else if ("logPattern" in d) {

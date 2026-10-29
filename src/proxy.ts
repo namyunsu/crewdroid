@@ -68,7 +68,7 @@ export async function startProxy({ target, port = 5590, devices = [], log, loseA
         r.on("data", (c) => chunks.push(c)).on("end", () => {
           const out = Buffer.concat(chunks);
           Object.assign(entry, { status: r.statusCode, ms: Math.round(performance.now() - t0), resHash: hash(out) });
-          // AI NOTE: --lose-acks = the server committed the write but the answer never reaches the phone (network died in
+          // NOTE: --lose-acks = the server committed the write but the answer never reaches the phone (network died in
           // between). Natural runs rarely hit that window (scenario.md: no duplicate in 6 BUGGY runs), so a check can
           // force it. Reads are never cut; the app sees a reset connection and retries like after any lost answer.
           if (res.destroyed || (!READS.has(req.method ?? "") && loseAcks > 0 && rnd() < loseAcks)) { entry.cut = true; write(entry); req.socket.destroy(); return; }
@@ -98,7 +98,7 @@ export async function startProxy({ target, port = 5590, devices = [], log, loseA
       peer.on("error", (e) => { write({ t: at, device, method: "CONNECT", path: req.url, bodyHash: null, status: 0, ms: 0, error: e.message }); sock.destroy(); });
       sock.on("error", () => peer.destroy()).on("close", () => peer.destroy());
     });
-    // AI NOTE: CONNECT tunnels (the OS keeps *.googleapis.com:443 open) are not HTTP connections, so closeAllConnections() leaves
+    // NOTE: CONNECT tunnels (the OS keeps *.googleapis.com:443 open) are not HTTP connections, so closeAllConnections() leaves
     // them and server.close() never called back: `run --proxy` stalled in its finally and skipped down(). close() destroys every socket.
     server.on("connection", (s) => { sockets.add(s); s.on("close", () => sockets.delete(s)); });
     return new Promise<Server>((ok, no) => server.once("error", no).listen(p, "127.0.0.1", () => ok(server)));

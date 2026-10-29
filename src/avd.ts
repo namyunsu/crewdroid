@@ -8,7 +8,7 @@ export const avdHome = () => process.env.ANDROID_AVD_HOME || join(process.env.US
 process.env.ANDROID_AVD_HOME = avdHome(); // avdmanager and emulator (children) then use the same folder crewdroid reads; newer avdmanager may pick another home otherwise
 
 // image "android-34/google_atd" -> AVD "crew-android-34-google_atd", sdk package "system-images;android-34;google_atd;<host abi>"
-// AI NOTE: a quickboot snapshot saved with one -memory/-cores does not load with another ("starting from scratch. Reason:
+// NOTE: a quickboot snapshot saved with one -memory/-cores does not load with another ("starting from scratch. Reason:
 // different AVD configuration", docs/measurements/spec.md), so a non-default spec gets its own base AVD + snapshot:
 // "crew-android-34-google_atd-r2048-c4". The default spec keeps the old name (T64).
 export interface Spec { ramMB?: number; cores?: number }
@@ -26,7 +26,7 @@ const bat = (n: string) => join(sdkRoot(), "cmdline-tools", "latest", "bin", pro
 
 function exec(cmd: string, args: string[], stdin?: string): Promise<string> {
   return new Promise((res, rej) => {
-    // AI NOTE: .bat files need a shell on Windows (node refuses to spawn them directly since CVE-2024-27980)
+    // NOTE: .bat files need a shell on Windows (node refuses to spawn them directly since CVE-2024-27980)
     const p = spawn(cmd, args, { shell: process.platform === "win32", windowsHide: true });
     let out = "";
     p.stdout.on("data", (d) => (out += d));
@@ -47,7 +47,7 @@ export async function installImage(image: string) {
 
 // RAM knobs (T16, docs/measurements/ram.md). CREWDROID_KNOBS (JSON) overrides them for the sweep in scripts/check-ram.mjs.
 // A changed knob changes slimSettings(), so up()/slim re-prepare the base snapshots.
-// AI NOTE: without -lowram the emulator raises hw.ramSize to 2048 (API 31) / 2560 MB (API 34/36). 768 MB failed a two-device video-call test
+// NOTE: without -lowram the emulator raises hw.ramSize to 2048 (API 31) / 2560 MB (API 34/36). 768 MB failed a two-device video-call test
 // and 832 MB broke makeDistinct's framework restart on API 36; API 31 is not in that call test and runs at 768.
 // Disabling the host Vulkan feature saved ~170 MiB per emulator (T16).
 // "host" everywhere we measured; a Linux host with no display server (CI runner, headless server; /dev/dri may still exist) cannot start the host renderer
@@ -74,7 +74,7 @@ export function checkSpec(image: string, spec: Spec, host: { cpus: number; freeM
   }
   if (c !== undefined && (!Number.isInteger(c) || c < 1 || c > host.cpus)) throw new Error(`--cores ${c}: must be 1..${host.cpus} (host logical CPUs)`);
 }
-export const DATA_PARTITION = "2G"; // userdata size; was 10G. AI NOTE: emulator 37.1 rewrites it to 6G at boot (T15, slim.md)
+export const DATA_PARTITION = "2G"; // userdata size; was 10G. NOTE: emulator 37.1 rewrites it to 6G at boot (T15, slim.md)
 
 const SENSORS = ["hw.accelerometer_uncalibrated", "hw.gyroscope", "hw.sensors.gyroscope_uncalibrated", "hw.sensors.humidity", "hw.sensors.light",
   "hw.sensors.magnetic_field", "hw.sensors.magnetic_field_uncalibrated", "hw.sensors.orientation", "hw.sensors.pressure", "hw.sensors.proximity", "hw.sensors.temperature", "hw.gps"];

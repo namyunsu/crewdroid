@@ -57,9 +57,9 @@ export function isBlackPng(png: Buffer): boolean {
   return true;
 }
 
-// AI NOTE (T66): this used the raw frame (`exec-out screencap`, 10 MB at 1080x2340). Pulled while Maestro starts, it took the
+// NOTE (T66): this used the raw frame (`exec-out screencap`, 10 MB at 1080x2340). Pulled while Maestro starts, it took the
 // emulator's adb transport offline ("device offline" / "not found"; Maestro: "device not connected"): 6 of 6 Maestro flows
-// failed with raw frames pulled in a loop (`.ai-log/evidence/T66-1-stress.txt`). The PNG is ~20x smaller. Advisory check: a frame
+// failed with raw frames pulled in a loop (stress run, T66). The PNG is ~20x smaller. Advisory check: a frame
 // that cannot be read means "not black" (no recovery), never a failed command.
 async function blackScreen(serial: string): Promise<boolean> {
   try {
@@ -83,7 +83,7 @@ export async function unblack(serial: string): Promise<{ black: boolean; recover
   if (!relaunchBlackApis().includes(api) || !(await blackScreen(serial))) return { black: false, recovered: false, tries: 0 };
   const comp = focusOf(await adb(serial, ["shell", "dumpsys window | grep mCurrentFocus; true"]));
   if (!comp.includes("/")) return { black: true, recovered: false, tries: 0 };
-  // AI NOTE (T66): the ATD home screen is black by design. Taking it for the bug pressed HOME and restarted the home activity
+  // NOTE (T66): the ATD home screen is black by design. Taking it for the bug pressed HOME and restarted the home activity
   // twice in the middle of a Maestro flow that was launching its app (the app's upload then never arrived).
   const home = await adb(serial, ["shell", "cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tail -n 1"]);
   if (home.trim().split("/")[0] === comp.split("/")[0]) return { black: false, recovered: false, tries: 0 };
@@ -99,7 +99,7 @@ export async function unblack(serial: string): Promise<{ black: boolean; recover
 
 async function dumpNodes(serial: string): Promise<UiNode[]> {
   const remote = "/data/local/tmp/crewdroid-ui.xml";
-  // AI NOTE (T66): a dump that loses UiAutomation to another client logs "already registered" to logcat only (its stdout
+  // NOTE (T66): a dump that loses UiAutomation to another client logs "already registered" to logcat only (its stdout
   // says nothing), so on failure that line is fetched from this dump's time on, for screen() to report `busy`.
   const dump = await adb(serial, ["shell", `t=$(date +%s); uiautomator dump ${remote} >/dev/null && cat ${remote} || logcat -d -v epoch -s AndroidRuntime:E | awk -v t=$t '$1 >= t' | grep -m1 'already registered'`], 60000);
   if (!dump.includes("<hierarchy")) throw new Error(`uiautomator dump failed on ${serial}: ${dump.slice(0, 300)}`);
@@ -119,7 +119,7 @@ export async function look(serial: string): Promise<Look> {
   const [win, { nodes, width, height, via, fallbackReason, busy }] = await Promise.all([
     focusWin(serial),
     orFallback<{ nodes: UiNode[]; busy?: string } & Partial<Size>>(serial, () => call(serial, "GET", "/tree"), async () => {
-      // AI NOTE (T66): a Maestro flow holds UiAutomation for its whole run and `uiautomator dump` needs it too; there is no
+      // NOTE (T66): a Maestro flow holds UiAutomation for its whole run and `uiautomator dump` needs it too; there is no
       // tree without it, so say so instead of failing (focus and png still work) and leave the other tool alone.
       const held = (why?: string) => ({ nodes: [], busy: `no tree now: another automation client (a Maestro flow, uiautomator dump, mobile-mcp) holds UiAutomation; focus and png still work, retry when it is done (${why})` });
       if (helperMiss(serial)?.startsWith("busy")) return held(helperMiss(serial));

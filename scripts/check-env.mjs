@@ -118,7 +118,7 @@ try {
   const after = await idle(ports, Number(v["idle-seconds"]));
   say(`idle after: ram=${after.ramMB}MB cpu=${after.cpuPercent}%`);
   const f = join(root, "docs", "measurements", "features.md");
-  if (!existsSync(f)) writeFileSync(f, "# Runtime features: idle cost\n\nOne row per Todo that adds a runtime command (docs/todo.md lightness rule: no launch flag / AVD config / KNOBS change; idle RAM over +5 % -> opt-in). RAM = emulator+qemu working set, CPU = % of one host core over the idle window, probe app stopped.\n\n| date | Todo | devices | idle s | RAM before -> after (MB) | RAM delta | CPU before -> after (%) | note |\n|---|---|---|---|---|---|---|---|\n");
+  if (!existsSync(f)) writeFileSync(f, "# Runtime features: idle cost\n\nOne row per Todo that adds a runtime command (lightness rule: no launch flag / AVD config / KNOBS change; idle RAM over +5 % -> opt-in). RAM = emulator+qemu working set, CPU = % of one host core over the idle window, probe app stopped.\n\n| date | Todo | devices | idle s | RAM before -> after (MB) | RAM delta | CPU before -> after (%) | note |\n|---|---|---|---|---|---|---|---|\n");
   const dRam = Math.round(((after.ramMB - before.ramMB) / before.ramMB) * 1000) / 10;
   const row = `| ${new Date().toISOString().slice(0, 10)} | T20 env | 2 (${mix}) | ${v["idle-seconds"]} | ${before.ramMB} -> ${after.ramMB} | ${dRam >= 0 ? "+" : ""}${dRam} % | ${before.cpuPercent} -> ${after.cpuPercent} | no daemon; after = after every env command ran (geo/battery/rotate/dark/font/locale/gsm/sms/call) |`;
   // one T20 row: a rerun replaces it

@@ -25,7 +25,7 @@ import { setLoad } from "./load.ts";
 import { proxyLog, proxyServe, proxyStart, proxyStop } from "./proxy.ts";
 import { layout, layoutText } from "./layout.ts";
 
-// AI NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
+// NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
 const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
 const { positionals, values } = parseArgs({
   args: envArgs ? ["env"] : undefined,

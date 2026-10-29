@@ -62,7 +62,7 @@ try {
   }
 
   // 2) fold during an upload: slow network, 1 MB photo (~9 s), fold 3 s after SAVED, then back online; exactly one row on the server.
-  // AI NOTE: left on slow, a 2 MB upload showed no SYNCED within 120 s (cause not checked, ADR 0006).
+  // NOTE: left on slow, a 2 MB upload showed no SYNCED within 120 s (cause not checked, ADR 0006).
   const a = r.devices[0].serial, id = `${a}-fold`;
   await crew("net", a, "slow"); await sleep(1000);
   await bc(a, "PHOTO", "--es", "id", id, "--ei", "size", String(1048576), "--es", "server", URL_);

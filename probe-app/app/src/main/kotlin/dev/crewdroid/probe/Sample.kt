@@ -128,7 +128,7 @@ object Outbox {
                 }
                 code in 400..499 -> Log.i(TAG, "DROPPED $id http=$code")
                 else -> {
-                    // AI NOTE: the key was fixed at save time and is resent unchanged on every retry, so a retry after a lost ack
+                    // NOTE: the key was fixed at save time and is resent unchanged on every retry, so a retry after a lost ack
                     // (server stored it, response never arrived) is deduped by the server instead of becoming a second row.
                     val n = (attempts[key] ?: 0) + 1
                     attempts[key] = n
@@ -176,7 +176,7 @@ fun http(method: String, url: String, headers: Map<String, String>, body: ByteAr
     val c = URL(url).openConnection() as HttpURLConnection
     c.requestMethod = method; c.connectTimeout = 10000; c.readTimeout = 20000 + maxOf(0, (body?.size ?: 0) - 1048576) / 12
     headers.forEach { (k, v) -> c.setRequestProperty(k, v) }
-    // AI NOTE: a stalled socket (net nodata mid-transfer) never errors by itself and HttpURLConnection has no write timeout,
+    // NOTE: a stalled socket (net nodata mid-transfer) never errors by itself and HttpURLConnection has no write timeout,
     // so a watchdog drops the connection when no write returned for 10 s + 1 s per 64 KB of body. write() returns once bytes fit the kernel
     // send buffer (~1.4 MB on API 36) and then wakes in bursts; at net slow the peer's small receive window gives ~230 kbit/s, so a 2 MB body
     // stalls ~25 s between wakes and a flat 10 s killed every attempt (ADR 0006).

@@ -108,7 +108,7 @@ async function runA() {
   await step("tap New note (+screen)", "tap", { serial, text: "New note" });
   await step("type into title (+screen)", "type", { serial, text: NOTE, into: "title" });
   let s = await step("tap Save (+screen)", "tap", { serial, text: "Save" });
-  // AI NOTE (T54): the app inserts the card after its async list diff; on a busy emulator the returned screen can settle
+  // NOTE (T54): the app inserts the card after its async list diff; on a busy emulator the returned screen can settle
   // (150 ms quiet) before that. An agent then looks once more: counted as an extra call, not hidden.
   if (!s.text.includes(JSON.stringify(NOTE))) s = await step("re-check (screen; Save's screen lacked the note)", "screen", { serial });
   const l = await step("confirm (logs)", "logs", { serial, pkg: PKG });
@@ -170,7 +170,7 @@ function summary(path, runs) {
 const avdmanager = () => join(sdkRoot(), "cmdline-tools", "latest", "bin", process.platform === "win32" ? "avdmanager.bat" : "avdmanager");
 function avdm(args, stdin = "") {
   return new Promise((ok, no) => {
-    // AI NOTE: .bat needs a shell on Windows (same as src/avd.ts)
+    // NOTE: .bat needs a shell on Windows (same as src/avd.ts)
     const p = spawn(`"${avdmanager()}"`, args, { shell: process.platform === "win32", windowsHide: true });
     let out = ""; p.stdout.on("data", (d) => (out += d)); p.stderr.on("data", (d) => (out += d));
     p.on("close", (c) => (c === 0 ? ok(out) : no(new Error(`avdmanager ${args[0]} exit ${c}: ${out.slice(-400)}`))));
@@ -196,7 +196,7 @@ async function stockBoot(label, extra) {
   }
   const seconds = r1((Date.now() - t0) / 1000);
   await killStock();
-  // AI NOTE: one quick boot (snapshot saved by the cold boot's exit) never reached boot_completed in 600 s, the run before took
+  // NOTE: one quick boot (snapshot saved by the cold boot's exit) never reached boot_completed in 600 s, the run before took
   // 5.8 s; cause unknown. A boot that does not finish is recorded as a failure (seconds null), not hidden.
   console.log(`stock ${label}: ${done ? `${seconds} s` : "did not complete in 600 s"}`);
   return { label, flags: args.join(" "), seconds: done ? seconds : null, ...(done ? {} : { error: "sys.boot_completed not 1 after 600 s" }) };

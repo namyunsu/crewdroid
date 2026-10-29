@@ -24,7 +24,7 @@ export const ramMethod = (p: string = process.platform) => (win(p) ? "WorkingSet
 
 // Emulator launch. Windows: Start-Process -WindowStyle Hidden (same as the old launcher script); Node's detached spawn left
 // the grandchild qemu-system-*-headless.exe with a visible console window (2026-10-23).
-// AI NOTE: powershell's stdout/stderr are ignored and the PID goes through a file. With execFile, the emulator
+// NOTE: powershell's stdout/stderr are ignored and the PID goes through a file. With execFile, the emulator
 // inherited the pipe and the promise never resolved (up hung after launch).
 // macOS/Linux: detached spawn with the log as stdout/stderr; headless comes from -no-window in the args.
 // Returns the launcher PID; callers match instances by their `crew-*` command line, not by this PID.
@@ -55,7 +55,7 @@ export async function launchDetached(exe: string, args: string[], log: string, w
 export interface PsRow { pid: number; ppid: number; rss: number; cpuSec: number; cmd: string }
 export const PS_ARGS = ["-axo", "pid=,ppid=,rss=,%cpu=,time=,command="];
 // `ps -axo pid=,ppid=,rss=,%cpu=,time=,command=` output; rss in bytes, cpuSec = cumulative CPU time (`time`:
-// [[dd-]hh:]mm:ss[.cc]). AI NOTE: %cpu is a decaying (macOS) or lifetime (Linux) average, so CPU% over an idle window
+// [[dd-]hh:]mm:ss[.cc]). NOTE: %cpu is a decaying (macOS) or lifetime (Linux) average, so CPU% over an idle window
 // is computed from `time` deltas, same as TotalProcessorTime on Windows.
 export function parsePs(out: string): PsRow[] {
   const rows: PsRow[] = [];
@@ -105,7 +105,7 @@ export async function procStats(re: string, platform: string = process.platform,
 
 export interface Mem { pid: number; name: string; privateBytes: number; ws: number; privateWs: number; sharedWs: number; sharedPss: number }
 // T16 memory split (Windows): Private Bytes, working set split into private and shared pages (QueryWorkingSet), shared part
-// divided by each page's share count (PSS). AI NOTE: ShareCount saturates at 7, so pages shared by more processes (system
+// divided by each page's share count (PSS). NOTE: ShareCount saturates at 7, so pages shared by more processes (system
 // DLLs) are slightly over-counted. macOS/Linux: RSS only, reported as private (shared pages not split).
 export async function memRows(re: string, platform: string = process.platform, exec: Exec = run): Promise<Mem[]> {
   if (!win(platform)) return (await psMatch(re, exec)).map((r) => ({ pid: r.pid, name: r.cmd.split(" -")[0].split("/").pop()!, privateBytes: r.rss, ws: r.rss, privateWs: r.rss, sharedWs: 0, sharedPss: 0 }));

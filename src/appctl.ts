@@ -11,7 +11,7 @@ const pkgOf = (p: string) => { if (!/^[\w.]+$/.test(p)) throw new Error(`bad pac
 const text = (e: any) => `${e.stdout ?? ""}\n${e.stderr ?? ""}\n${e.message ?? ""}`.trim();
 
 // ---- install ----
-// `all` = every running crew device. AI NOTE: devices() lives in mcp.ts (which loads this file), so import it on use.
+// `all` = every running crew device. NOTE: devices() lives in mcp.ts (which loads this file), so import it on use.
 export async function install(target: string, file: string, grant = false) {
   const serials = target === "all" ? (await (await import("./mcp.ts")).devices()).map((d) => d.serial) : [assertSerial(target)];
   if (!serials.length) throw new Error("no running crewdroid devices");

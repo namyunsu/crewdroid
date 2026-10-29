@@ -28,11 +28,11 @@ const run = (args) => new Promise((done) => {
 execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, "demo-app"), "assembleDebug", "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
 const apk = "demo-app/build/outputs/apk/debug/crewdroid-demo-debug.apk", flow = "flows/demo-new-note.yaml";
 const flags = ["--apk", apk, "--flow", flow, "--server", `http://127.0.0.1:${SP}`, "--count", "2", "--repeat", "3"];
-// AI NOTE: the mixed default put device 0 on the s22 / API 31 clone; there the flow failed in 3 of 3 T77 trials (Maestro
+// NOTE: the mixed default put device 0 on the s22 / API 31 clone; there the flow failed in 3 of 3 T77 trials (Maestro
 // "device offline" twice, "New note" not on screen yet once), the API 31 low-memory limit docs/adr/0007-agent-helper.md and
 // davx5-contacts.json already skip. Two non-31 profiles keep the check about the flags, not that limit.
 const devs = ["--profiles", "s24ultra,fold5-main"];
-// AI NOTE: every note has its own id and idempotency key, so the BUGGY server differs from the clean one only when a write
+// NOTE: every note has its own id and idempotency key, so the BUGGY server differs from the clean one only when a write
 // is sent again after the server stored it. Network faults alone made that happen in 1 of 3 BUGGY runs (T77); --lose-acks 0.3
 // drops 30 % of write answers after the commit (as check-proxy.mjs / check-run-app.mjs do): clean replays the first answer
 // (0 violations), BUGGY stores a second version (dupSuccess).
