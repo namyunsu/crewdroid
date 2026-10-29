@@ -4,6 +4,8 @@
 
 **Maestro and mobile-mcp drive your Android app. crewdroid makes the conditions and judges the result.**
 
+crewdroid is for the build-and-check loop while you develop an app; a real phone is still where you test push notifications, Play services, Google sign-in and the camera app ([Limits](#limits-when-to-use-a-real-phone)).
+
 [![15 s demo: crewdroid boots S24, Fold5 and Flip7 emulators on Android 14 and 16, cuts one phone's network while a note waits offline and syncs back, judges the server data (FAIL: 7 violations), then folds a device and turns on dark mode](docs/demo/hero.gif)](docs/demo/hero.mp4)
 
 Your AI agent can already tap through an app. What it cannot see is what happened behind the screen: the upload that went through twice when the network dropped, the record that vanished in airplane mode, the edit another user silently overwrote. crewdroid gives the agent the devices and the conditions that cause those bugs, and a verdict it can act on.
@@ -23,6 +25,16 @@ If you found crewdroid because an AI agent on the stock emulator is slow, start 
 | Screen read (`adb uiautomator dump` vs `crewdroid screen`) | 2137.5 ms | 947.1 ms via CLI, 176.6 ms in the MCP server |
 | Screenshot (`adb screencap` vs `crewdroid shot`) | 814.1 ms | 1041.4 ms via CLI (not better), 290.3 ms in the MCP server |
 
+An AI agent driving one device (Field Notes demo app, "add a note and confirm it", 5 runs per path, API 34, s24ultra; raw in [`docs/measurements/agent-bench.json`](docs/measurements/agent-bench.json)): path A reads crewdroid's text outline and taps by text, path B reads a screenshot after every action and taps by x,y.
+
+| Agent, per task | Screenshots + x,y taps | crewdroid `screen` + `tap --text` |
+|---|---|---|
+| Estimated model input tokens | 6183 | 1882 |
+| Tool time (s) | 10.46 | 10.58 (a tie, not faster) |
+| Same task on fold5-main and flip6-cover at font 1.3, no re-deriving | FAIL (s24ultra x,y outside the screen) | pass |
+
+What crewdroid adds over mobile-mcp + the stock emulator: a lighter device (table above, [`single-vs-studio.json`](docs/measurements/single-vs-studio.json)), per-device network faults (`net`), layout checks across screens and fonts ([`layout.md`](docs/measurements/layout.md)) and judging the server's data ([`run-app.json`](docs/measurements/run-app.json)). What it does not add: tap / type speed, which is the same ([`agent-bench.json`](docs/measurements/agent-bench.json); mobile-mcp itself was not benchmarked, path B stands in for screenshot-driven agents).
+
 Setup: Android 16 (API 36); the Studio side is a `pixel_9` AVD from `google_apis_playstore` with default 2 GB RAM and 4 cores, window on, `-gpu auto`, quickboot; the crewdroid side is `up` with no flags (headless, 2 cores, `google_atd` image); Ryzen 7 5700X, 64 GB, Windows 11, emulator 37.1.11.0. The CLI rows include starting `npx tsx`.
 
 ## What only crewdroid does
@@ -36,8 +48,10 @@ Also in the box: crash / ANR triage, cold start and jank, APK inspection. Every 
 ```bash
 npx crewdroid setup --yes        # Android SDK + emulator images, if you have none
 npx crewdroid up --count 3       # S24 Ultra / API 34, Fold5 / API 34, Flip7 / API 36
-npx crewdroid run scenarios/photo-upload.json --seed 1   # multi-user flow + network faults + judge, exit 1 on a bug
+npx crewdroid run --apk app.apk --flow flows/add-item.yaml --server http://127.0.0.1:8080   # your app: your Maestro flow on every device + network faults + judge, exit 1 on a bug
 ```
+
+New to it? Try the bundled sample first (sample app + sample server with a race condition): `npx crewdroid run scenarios/photo-upload.json --seed 1`. Your own app step by step: [docs/guide-your-app.md](docs/guide-your-app.md).
 
 ## Why not just the Android Emulator?
 
@@ -85,7 +99,9 @@ $ crewdroid net emulator-5580 nodata
 $ crewdroid net emulator-5582 flaky
 ```
 
-Run the multi-user scenario against a server with a race condition (`BUGGY=1` in the bundled sample server) and read the verdict:
+Run your own app (a release APK is fine): `run --apk app.apk --flow flows/add-item.yaml --server http://127.0.0.1:8080` repeats your Maestro flow on every device under network faults, puts the recording proxy in front of your backend and judges the request log ([docs/guide-your-app.md](docs/guide-your-app.md); a scenario file adds intents / adb actions per iteration). Worked example on an app that is not ours: DAVx5 (F-Droid) + a local Radicale CardDAV server, `scenarios/davx5-contacts.json`, 3 devices with airplane / nodata / slow / flaky, then again with 30 % of the answers cut: 0 violations, 12 of 12 contacts stored, none twice, so no bug found in DAVx5 ([`docs/measurements/run-app.json`](docs/measurements/run-app.json)).
+
+Or try the bundled sample: the multi-user scenario against a server with a race condition (`BUGGY=1` in the bundled sample server), and read the verdict:
 
 ```bash
 $ crewdroid run scenarios/photo-upload.json --seed 1
@@ -97,8 +113,6 @@ FAIL: 5 violations            # exit code 1
 ```
 
 Same scenario, server fixed → `OK: 3 rules, 0 violations`, exit 0. The judge rules are a JSON file, so the same check runs against your own API's export.
-
-Your own app (a release APK is fine): the scenario file names your APK, your Maestro flows / intents / adb commands per iteration and your backend; `run` puts the recording proxy in front of it and judges the request log. [docs/guide-your-app.md](docs/guide-your-app.md) walks through it; `scenarios/davx5-contacts.json` is a worked example on DAVx5 (F-Droid) + a local Radicale CardDAV server.
 
 Read the screen as text (what to tap, by name; one line per element, `--json` for the full tree):
 
@@ -145,7 +159,21 @@ Cursor: [install the MCP server](cursor://anysphere.cursor-deeplink/mcp/install?
 | Fold during upload | `fold` / `unfold` while the outbox drains: the app must survive the configuration change with exactly one upload | `unique` + `count` |
 | Crash / ANR only on one Android version or screen | mixed API 31/34/36 and S/Fold/Flip profiles in one run; `triage` reads the crash buffer, ANRs and exit reasons | — |
 
+On your app: [docs/guide-your-app.md](docs/guide-your-app.md) (`run --apk --flow --server`, proxy log rules `dupSuccess` / `lostUpdate` / `lostWrite`). On DAVx5 with 30 % of the answers cut, each committed-but-unanswered `PUT` was resent with `If-None-Match: *`, got `412` and made no second copy: 0 violations, 12 of 12 contacts ([`docs/measurements/run-app.json`](docs/measurements/run-app.json)).
+
 The bundled sample app (Kotlin, offline outbox, `probe-app/`) and sample server (`sample/server/`, `BUGGY=1` switch) make every row above reproducible on a laptop.
+
+## Limits: when to use a real phone
+
+crewdroid runs Google's `google_atd` images (chosen for lightness). Measured on fresh devices, API 31 / 34 / 36 ([`docs/measurements/atd-limits.md`](docs/measurements/atd-limits.md), re-check: `node scripts/check-atd-limits.mjs`):
+
+| Missing on the image | What breaks because of it | Instead |
+|---|---|---|
+| A Google account and any screen to add one: 0 accounts, `ADD_ACCOUNT_SETTINGS` resolves to nothing; Play services itself is there (prebuilt GmsCore 22.50 / 23.18 / 25.08) ([measured](docs/measurements/atd-limits.md)) | "Sign in with Google" and anything that needs a signed-in Google account; FCM push was not tested here | a real phone |
+| The Play Store: `com.android.vending` is only `/product/app/LicenseChecker` 1.8, `market://` resolves to nothing ([measured](docs/measurements/atd-limits.md)) | Play Billing, in-app updates, store links, installing from Play | a real phone |
+| Chrome: `com.android.chrome` not installed; `VIEW https://` goes to a stub browser (`fakesystemapp`), on API 36 to a chooser with the WebView shell ([measured](docs/measurements/atd-limits.md)) | Custom Tabs and browser links, browser-based OAuth redirects back into the app | the app's own WebView: the system WebView (91 / 113 / 133) rendered a local page on all three APIs ([measured](docs/measurements/atd-limits.md)); else a real phone |
+| A camera app on API 31 and 34: `IMAGE_CAPTURE` resolves to nothing (API 36 has `com.android.camera2`) ([measured](docs/measurements/atd-limits.md)) | camera-intent photo pickers ("take a photo" buttons) | `adb push` a picture, then the app's own picker; the system photo picker (`PICK_IMAGES`) resolves on API 34 and 36, not on 31 ([measured](docs/measurements/atd-limits.md)). A real camera: a real phone |
+| A launcher: `MAIN/HOME` is an empty stub (`fakesystemapp` `EmptyHomeActivity`) on all three APIs ([measured](docs/measurements/atd-limits.md)) | home-screen widgets, shortcuts, launcher badges | a real phone |
 
 ## Requirements
 
@@ -153,7 +181,7 @@ The bundled sample app (Kotlin, offline outbox, `probe-app/`) and sample server 
 - Node >= 22
 - Windows 10/11 x64, macOS on Apple Silicon, or Linux x64/arm64
 - Hardware acceleration: WHPX (Windows), Hypervisor.framework (macOS) or KVM (Linux, `/dev/kvm`); `setup` reports `emulator -accel-check`
-- Image limits (`google_atd`, chosen for lightness): no Play Store / Google Play services, so FCM push, Maps and Play-based sign-in cannot be verified; no Chrome, camera app, gallery, launcher, Messages or Dialer (SMS and calls change telephony state only); no GPU (frame numbers compare runs, not phones). Supported despite the image: any Unicode text input incl. Korean (on-device helper), and the API 31 black-screen-after-relaunch is detected and recovered (`blackRelaunch`)
+- Image limits (`google_atd`, chosen for lightness): see [Limits](#limits-when-to-use-a-real-phone); also no Messages or Dialer (SMS and calls change telephony state only) and no GPU (frame numbers compare runs, not phones). Supported despite the image: any Unicode text input incl. Korean (on-device helper), and the API 31 black-screen-after-relaunch is detected and recovered (`blackRelaunch`)
 - macOS/Linux: `slim` skips the NTFS sparse/compress steps (snapshot zero-fill and stale-overlay cleanup still run); RAM figures are process RSS (shared pages not split)
 
 ## Commands
@@ -170,7 +198,7 @@ Every command takes `--json` and exits non-zero on failure.
 | `crewdroid net <serial> handover [--to wifi\|cellular] [--during <ms>]` | move the default network to the other link while the app keeps running; `--during` = ms with no link in between (default 0: new link first) |
 | `crewdroid net <serial> metered on\|off` | mark the Wi-Fi network metered, so apps that sync only on unmetered networks hold back |
 | `crewdroid fold <serial>` / `unfold <serial>` | cover <-> main screen on a Fold/Flip profile |
-| `crewdroid run <scenario.json> [--seed N]` | run a multi-device scenario on any APK (Maestro flow / intent / adb actions, network faults), then judge the proxy log or the server data ([guide](docs/guide-your-app.md)) |
+| `crewdroid run --apk <app.apk> --flow <flow.yaml> --server <url>` \| `run <scenario.json> [--seed N]` | run a multi-device scenario on any APK (Maestro flow / intent / adb actions, network faults), then judge the proxy log or the server data ([guide](docs/guide-your-app.md)) |
 | `crewdroid judge --rules <file> --source <url\|file>` | check unique / count / noLostUpdate rules |
 | `crewdroid hammer --url <base>` | server-side concurrency load without devices |
 | `crewdroid slim` / `prepare` / `identity` | shrink disk, build base AVDs, make devices distinct |

@@ -8,6 +8,7 @@ import { hammer } from "./hammer.ts";
 import { flakyLoop, setNet, type NetCommand, type Transport } from "./net.ts";
 import { claimEmulators, down, measureUp, up, upDefaults } from "./up.ts";
 import { runScenario } from "./scenario.ts";
+import { flagScenario, scenarioFile } from "./scenario-actions.ts";
 import { slim } from "./slim.ts";
 import { triage } from "./triage.ts";
 import { screen, screenText } from "./screen.ts";
@@ -43,7 +44,8 @@ const { positionals, values } = parseArgs({
     grant: { type: "boolean", default: false }, restart: { type: "boolean", default: false }, since: { type: "string" }, level: { type: "string" }, seconds: { type: "string" },
     text: { type: "string" }, id: { type: "string" }, index: { type: "string" }, into: { type: "string" }, times: { type: "string" },
     bounds: { type: "boolean", default: false }, all: { type: "boolean", default: false }, "no-screen": { type: "boolean", default: false },
-    flow: { type: "string" }, fonts: { type: "string" },
+    flow: { type: "string", multiple: true }, fonts: { type: "string" },
+    apk: { type: "string" }, server: { type: "string" }, "setup-flow": { type: "string" }, "no-network": { type: "boolean", default: false }, "print-scenario": { type: "boolean", default: false },
     to: { type: "string" }, during: { type: "string" },
   },
 });
@@ -164,9 +166,16 @@ async function main() {
   }
   if (cmd === "run") {
     const [, file] = positionals;
-    if (!file) throw new Error("usage: run <scenario.json> [--seed N] [--count N (default: the file's devices.count, else 3)] [--server-port 5599] [--out file] [--proxy 5590 --log proxy.jsonl [--lose-acks 0..1]]");
-    const proxy = values.proxy ? { port: Number(values.proxy), log: values.log ?? "proxy.jsonl", loseAcks: Number(values["lose-acks"] ?? 0) } : undefined;
-    const r = await runScenario(file, { count: values.count ? Number(values.count) : undefined, basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]), profiles: values.profiles?.split(","), proxy });
+    if (file && values.apk) throw new Error(`run: give a scenario file or --apk, not both (got ${file} and --apk ${values.apk})`);
+    if (!file && !values.apk) throw new Error("usage: run <scenario.json> [--seed N] [--count N (default: the file's devices.count, else 3)] [--server-port 5599] [--out file] [--proxy 5590 --log proxy.jsonl [--lose-acks 0..1]]\n   or: run --apk <app.apk> --flow <flow.yaml> [--flow ...] [--setup-flow <flow.yaml>] --server <http://host:port> [--count 3] [--repeat 5] [--no-network] [--seed N] [--lose-acks P] [--print-scenario]");
+    // T77: flags only -> the same scenario object a JSON file loads to (src/scenario-actions.ts flagScenario)
+    const sc = values.apk ? await flagScenario({ apk: values.apk, flows: values.flow, setupFlow: values["setup-flow"], server: values.server, count: values.count ? Number(values.count) : undefined, repeat: Number(values.repeat), network: !values["no-network"] }) : file;
+    if (values["print-scenario"]) {
+      if (typeof sc === "string") throw new Error("--print-scenario needs the flags form (run --apk ... --flow ... --server ...)");
+      return console.log(scenarioFile(sc));
+    }
+    const proxy = values.proxy || values["lose-acks"] ? { port: values.proxy ? Number(values.proxy) : undefined, log: values.log ?? (values.proxy ? "proxy.jsonl" : undefined), loseAcks: Number(values["lose-acks"] ?? 0) } : undefined;
+    const r = await runScenario(sc, { count: values.count ? Number(values.count) : undefined, basePort: Number(values["base-port"]), seed: Number(values.seed), serverPort: Number(values["server-port"]), profiles: values.profiles?.split(","), proxy });
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
     if (values.json) console.log(text);
@@ -306,7 +315,7 @@ async function main() {
     const [, serial, pkg, ...extras] = positionals; // extras after `--` go to am start, e.g. `-- --es check layout-bad`
     if (!serial || !pkg) throw new Error("usage: layout <serial> <pkg> [--activity .X] [--flow flow.yaml] [--profiles a,b] [--fonts 1.0,1.3,2.0] [--out dir] [-- <am start extras>]");
     const fonts = values.fonts?.split(",").map(Number);
-    const r = await layout(serial, pkg, { activity: values.activity, flow: values.flow, profiles: values.profiles?.split(","), fonts, extras, out: values.out });
+    const r = await layout(serial, pkg, { activity: values.activity, flow: values.flow?.at(-1), profiles: values.profiles?.split(","), fonts, extras, out: values.out });
     console.log(values.json ? JSON.stringify(r, null, 2) : layoutText(r));
     if (!r.ok) process.exitCode = 1;
     return;

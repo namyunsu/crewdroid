@@ -10,11 +10,11 @@ Local e2e: 해당 없음 — 에뮬레이터 시험은 각 Todo 의 verify 스�
 
 
 ## CI (T58, FR-37)
-- `.github/workflows/ci.yml`: 모든 작업에 `if: github.repository == 'namyunsu/crewdroid'`, 트리거는 `main` push 와 `pull_request` 뿐(`ai/**` 없음, docs·md·.ai-log 는 paths-ignore). 비공개 저장소는 Actions 분을 쓰지 않는다.
+- `.github/workflows/ci.yml`: 모든 작업에 `if: github.repository == 'namyunsu/crewdroid'`, 트리거는 `main` push 와 `pull_request` 뿐(`ai/**` 없음, docs·md·.ai-log 는 paths-ignore). 공개 저장소라 포크에서는 돌지 않는다.
 - `test`: windows·macos·ubuntu x Node 22·24, `npm ci` → `npx tsc --noEmit` → `npm test`.
 - `emulator-smoke`: ubuntu + KVM(udev 규칙), 러너 SDK 로 probe·helper APK 를 gradle 로 빌드한 뒤 `.crewdroid-sdk` 를 캐시하고 `node scripts/ci-smoke.mjs`(setup → up → shot → screen → install → launch → logs → down). 스크린샷은 artifact.
 - 로컬: `node scripts/check-ci.mjs`(정적) · `node scripts/ci-smoke.mjs`(에뮬레이터 1대, 같은 흐름).
-- `[manual]` 첫 `release-public.mjs --push` 뒤 Actions 탭에서 전 작업 초록 확인 — Linux 증거.
+- `[manual]` `main` 에 병합한 뒤 Actions 탭에서 전 작업 초록 확인 — Linux 증거.
 - `test` 에 `node scripts/check-versions.mjs` 한 단계, 별도 `skills` 작업이 `check-agent-files.mjs`(스킬 front matter name·description 검사; `claude` CLI 가 없으면 plugin validate 만 건너뜀).
 
 ## 릴리스 (T68, FR-46)
@@ -23,13 +23,12 @@ Local e2e: 해당 없음 — 에뮬레이터 시험은 각 Todo 의 verify 스�
 - release.yml 순서: check-versions `--tag` → `npm ci` → `tsc --noEmit` → `npm test` → `npm publish --provenance --access public` → `mcp-publisher login github-oidc` → `mcp-publisher publish`(버전 `MCP_PUBLISHER_VERSION` 고정). npm trusted publishing(OIDC, `id-token: write`)이라 토큰 secret 은 없다. `prepack` 이 helper APK 를 러너 SDK 로 빌드하므로 setup-java 17 을 쓴다.
 - `[manual]` 최초 1회: npmjs.com 의 crewdroid 패키지 → Settings → Trusted publishing → GitHub, `namyunsu/crewdroid`, `release.yml`. 첫 태그를 push 하고 `npx crewdroid@latest --version` 이 같은지 확인.
 - 검증한 에뮬레이터·이미지 버전은 `docs/compat.md`; 다르면 `setup`·`up` 이 WARN 한 줄(오류 아님).
+- Release rhythm: at the end of every wave the human session squash-merges ai/work into main and tags; main must not lag ai/work by more than 3 days (FR-51)
 
-## 저장소 (두 저장소, T59)
-- `origin` = 비공개 개발 저장소. autopilot 대상 `ai/work`. `.ai-log/`, `docs/prd.md`, `docs/todo*.md`, `docs/source/` 는 여기에만 있다.
-- `public` = 공개 미러 `namyunsu/crewdroid`. `node scripts/release-public.mjs` 가 `public-files.json` 허용 목록만 내보낸다. 에이전트는 `public` 에 push 하지 않는다 (사람이 찍힌 `git push` 줄을 실행).
-- GitHub Actions 는 공개 미러에서만 돈다 (`ci.yml` 의 `github.repository == 'namyunsu/crewdroid'`); 비공개 저장소는 Actions 분을 쓰지 않는다.
-- (옛 기록) 2026-10-27 방향 문서의 "공개 저장소에서 직접 개발" 은 이 구조로 대체됐다.
-- autopilot 은 `ai/work` 에 커밋·push 만. 일정 작업량이 쌓이면 `autopilot.ps1` 이 `main` 에 병합.
+## 저장소
+- 저장소는 하나: `origin` = 공개 `namyunsu/crewdroid`. autopilot 은 `ai/work` 에 커밋·push 만 한다. `main` 에는 사람이 squash merge 하고 태그를 단다 (절차는 `docs/release.md` §8). `.ai-log/` 는 추적하지 않는다.
+- `scripts/release-public.mjs` / `public-files.json` 은 내보내기 허용 목록 + `check-public.mjs` 스크럽 검사다. 별도 미러로 올리는 경로가 아니다. 에이전트는 이 스크립트가 찍는 `git push` 줄을 실행하지 않는다.
+- GitHub Actions 는 `ci.yml` 의 `github.repository == 'namyunsu/crewdroid'` 조건으로 이 저장소에서만 돈다.
 
 ## 이 PC 자원 (2026-10-23)
 | 항목 | 값 |

@@ -2,6 +2,8 @@
 
 **Maestro 와 mobile-mcp 가 안드로이드 앱을 조작하면, crewdroid 는 조건을 만들고 결과를 판정한다.**
 
+crewdroid 는 앱을 개발하는 동안 빌드하고 확인하는 루프에 쓰는 도구다. 푸시 알림·Play 서비스·Google 로그인·카메라 앱은 여전히 실제 폰에서 확인한다 ([한계](#한계-실제-폰이-필요할-때)).
+
 [![15초 소개: S24·폴드5·플립7 에뮬레이터를 안드로이드 14·16 으로 띄우고, 한 폰만 네트워크를 끊어 메모가 오프라인으로 기다렸다 동기화되는 장면, 서버 데이터 판정(FAIL: 7 violations), 폴드 접기와 다크 모드](docs/demo/hero.gif)](docs/demo/hero.mp4)
 
 AI 에이전트는 이미 앱을 눌러 볼 수 있다. 하지만 화면 너머에서 일어난 일은 보지 못한다: 네트워크가 끊긴 사이 두 번 올라간 업로드, 비행기 모드에서 사라진 기록, 다른 사용자가 몰래 덮어쓴 수정. crewdroid 는 그런 버그가 나는 기기와 조건을 만들어 주고, 에이전트가 바로 쓸 수 있는 판정을 돌려준다.
@@ -21,6 +23,16 @@ AI 에이전트가 기본 에뮬레이터에서 느리다고 찾아왔다면 여
 | 화면 읽기 (`adb uiautomator dump` 대 `crewdroid screen`) | 2137.5 ms | CLI 947.1 ms, MCP 서버 안 176.6 ms |
 | 스크린샷 (`adb screencap` 대 `crewdroid shot`) | 814.1 ms | CLI 1041.4 ms (더 낫지 않음), MCP 서버 안 290.3 ms |
 
+AI 에이전트가 기기 1대를 조작할 때 (Field Notes 데모 앱, "메모를 추가하고 목록에서 확인", 경로마다 5회, API 34, s24ultra; 원본 [`docs/measurements/agent-bench.json`](docs/measurements/agent-bench.json)): A 는 crewdroid 의 텍스트 화면 요약을 읽고 글자로 누르고, B 는 동작마다 스크린샷을 읽고 x,y 로 누른다.
+
+| 에이전트, 작업 1건당 | 스크린샷 + x,y 탭 | crewdroid `screen` + `tap --text` |
+|---|---|---|
+| 모델 입력 토큰 추정 | 6183 | 1882 |
+| 도구 시간 (s) | 10.46 | 10.58 (동률, 더 빠르지 않음) |
+| 같은 작업을 fold5-main·flip6-cover, 글자 1.3 에서 다시 계산 없이 | 실패 (s24ultra 좌표가 화면 밖) | 통과 |
+
+mobile-mcp + 기본 에뮬레이터에 비해 crewdroid 가 더하는 것: 더 가벼운 기기 (위 표, [`single-vs-studio.json`](docs/measurements/single-vs-studio.json)), 기기별 네트워크 장애 (`net`), 화면·글자 크기별 레이아웃 검사 ([`layout.md`](docs/measurements/layout.md)), 서버 데이터 판정 ([`run-app.json`](docs/measurements/run-app.json)). 더하지 않는 것: 탭·입력 속도는 같다 ([`agent-bench.json`](docs/measurements/agent-bench.json); mobile-mcp 자체는 재지 않았고, B 경로가 스크린샷으로 조작하는 에이전트를 대신한다).
+
 조건: 안드로이드 16 (API 36). Studio 쪽은 `google_apis_playstore` 이미지의 `pixel_9` AVD, 기본값 RAM 2 GB·코어 4개, 창 켬, `-gpu auto`, 퀵부트. crewdroid 쪽은 플래그 없는 `up` (창 없음, 코어 2개, `google_atd` 이미지). Ryzen 7 5700X, 64 GB, Windows 11, 에뮬레이터 37.1.11.0. CLI 행에는 `npx tsx` 시작 시간이 들어 있다.
 
 ## crewdroid 만 하는 것
@@ -34,8 +46,10 @@ AI 에이전트가 기본 에뮬레이터에서 느리다고 찾아왔다면 여
 ```bash
 npx crewdroid setup --yes        # 안드로이드 SDK·이미지가 없으면 설치
 npx crewdroid up --count 3       # S24 Ultra / API 34, Fold5 / API 34, Flip7 / API 36
-npx crewdroid run scenarios/photo-upload.json --seed 1   # 다자 흐름 + 네트워크 장애 + 판정, 버그가 있으면 exit 1
+npx crewdroid run --apk app.apk --flow flows/add-item.yaml --server http://127.0.0.1:8080   # 내 앱: 기기마다 내 Maestro 흐름 + 네트워크 장애 + 판정, 버그가 있으면 exit 1
 ```
+
+처음이면 동봉 샘플부터 (샘플 앱 + 경쟁 조건이 있는 샘플 서버): `npx crewdroid run scenarios/photo-upload.json --seed 1`. 내 앱 단계별 안내: [docs/guide-your-app.md](docs/guide-your-app.md) (영문). 우리 것이 아닌 앱 예: DAVx5(F-Droid) + 로컬 Radicale CardDAV 서버, `scenarios/davx5-contacts.json`, 3대에 airplane·nodata·slow·flaky, 응답 30 % 를 끊고 한 번 더: 위반 0, 연락처 12 개 중 12 개 저장, 중복 없음 — DAVx5 에서 버그를 찾지 못했다 ([`docs/measurements/run-app.json`](docs/measurements/run-app.json)).
 
 ## 구글 에뮬레이터와 뭐가 다른가
 
@@ -61,12 +75,24 @@ npx crewdroid run scenarios/photo-upload.json --seed 1   # 다자 흐름 + 네�
 
 "동시에 누르기" 배리어는 일부러 없다. 현장의 동시성 버그는 재시도·오프라인 큐·늦은 수정이 겹쳐서 나지, 같은 밀리초에 눌러서 나지 않는다 ([ADR 0002](docs/adr/0002-no-barrier.md)).
 
+## 한계: 실제 폰이 필요할 때
+
+crewdroid 는 구글의 `google_atd` 이미지를 쓴다 (가벼움 때문에 선택). 새로 띄운 기기에서 API 31·34·36 을 측정했다 ([`docs/measurements/atd-limits.md`](docs/measurements/atd-limits.md), 다시 확인: `node scripts/check-atd-limits.mjs`):
+
+| 이미지에 없는 것 | 그래서 안 되는 것 | 대신 |
+|---|---|---|
+| Google 계정과 계정을 추가할 화면: 계정 0 개, `ADD_ACCOUNT_SETTINGS` 가 아무것에도 연결되지 않음. Play 서비스 자체는 있음 (내장 GmsCore 22.50·23.18·25.08) ([측정](docs/measurements/atd-limits.md)) | "Google 로그인" 과 로그인된 Google 계정이 필요한 모든 것. FCM 푸시는 여기서 시험하지 않음 | 실제 폰 |
+| Play 스토어: `com.android.vending` 은 `/product/app/LicenseChecker` 1.8 뿐, `market://` 는 아무것에도 연결되지 않음 ([측정](docs/measurements/atd-limits.md)) | Play 결제, 인앱 업데이트, 스토어 링크, Play 에서 설치 | 실제 폰 |
+| 크롬: `com.android.chrome` 없음. `VIEW https://` 는 가짜 브라우저(`fakesystemapp`), API 36 은 WebView 셸과 고르는 창 ([측정](docs/measurements/atd-limits.md)) | Custom Tabs·브라우저 링크, 브라우저로 갔다 앱으로 돌아오는 OAuth | 앱 자체 WebView: 시스템 WebView (91·113·133) 가 세 API 모두 로컬 페이지를 그렸다 ([측정](docs/measurements/atd-limits.md)). 아니면 실제 폰 |
+| API 31·34 의 카메라 앱: `IMAGE_CAPTURE` 가 아무것에도 연결되지 않음 (API 36 은 `com.android.camera2` 있음) ([측정](docs/measurements/atd-limits.md)) | 카메라 인텐트로 사진을 받는 화면 ("사진 찍기" 버튼) | `adb push` 로 사진을 넣고 앱 자체 선택기로. 시스템 사진 선택기(`PICK_IMAGES`)는 API 34·36 에 있고 31 에는 없다 ([측정](docs/measurements/atd-limits.md)). 진짜 카메라는 실제 폰 |
+| 런처: `MAIN/HOME` 이 세 API 모두 빈 껍데기(`fakesystemapp` `EmptyHomeActivity`) ([측정](docs/measurements/atd-limits.md)) | 홈 화면 위젯·바로가기·런처 배지 | 실제 폰 |
+
 ## 요구 사항
 
 - Node >= 22, 안드로이드 SDK + 에뮬레이터 >= 36.4 (없으면 `npx crewdroid setup --yes`)
 - Windows 10/11 x64, Apple Silicon macOS, Linux x64/arm64. 이미지는 호스트 CPU 에 맞춰 x86_64 또는 arm64-v8a
 - 하드웨어 가속: WHPX(Windows), Hypervisor.framework(macOS), KVM(Linux, `/dev/kvm`)
-- 이미지 제약(`google_atd`, 가벼움 때문에 선택): Play 스토어·Google Play 서비스가 없어 FCM 푸시·지도·Play 기반 로그인은 검증할 수 없다. 크롬·카메라 앱·갤러리·런처·문자·전화 앱 없음(SMS·통화는 통신 상태만 바뀜). GPU 없음(프레임 수치는 실행끼리 비교용). 그래도 되는 것: 한글 등 모든 문자 입력(기기 상주 도우미), API 31 재실행 후 검은 화면은 감지해 자동 복구(`blackRelaunch`)
+- 이미지 제약(`google_atd`, 가벼움 때문에 선택): [한계](#한계-실제-폰이-필요할-때) 참고. 그 밖에 문자·전화 앱 없음(SMS·통화는 통신 상태만 바뀜). GPU 없음(프레임 수치는 실행끼리 비교용). 그래도 되는 것: 한글 등 모든 문자 입력(기기 상주 도우미), API 31 재실행 후 검은 화면은 감지해 자동 복구(`blackRelaunch`)
 - macOS/Linux 의 `slim` 은 NTFS 희소·압축 단계를 건너뛰고, RAM 수치는 프로세스 RSS(공유 페이지 나누지 않음)
 
 명령 표·진단·환경·앱 제어·프로필 추가·안전 규칙은 영문 [README.md](README.md) 에 있다. 측정 원본은 [`docs/measurements/`](docs/measurements/).

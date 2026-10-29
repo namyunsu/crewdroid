@@ -11,6 +11,7 @@ import { NET_COMMANDS, setNet } from "./net.ts";
 import { CREW_RE, listProcesses } from "./platform.ts";
 import { loadProfiles } from "./profiles.ts";
 import { runScenario } from "./scenario.ts";
+import { flagScenario } from "./scenario-actions.ts";
 import { down, up, upDefaults } from "./up.ts";
 
 // A feature module adds MCP tools by exporting `mcpTools: Tool[]`; serve() picks up every src/*.ts that does.
@@ -73,9 +74,18 @@ const core: Tool[] = [
     run: (a) => hammer(a),
   },
   {
-    name: "run", long: true, description: "Run a multi-device scenario file on any app: up, install, per-device actions (Maestro flow / intent / adb) + network schedule, drain, judge (proxy log by default), down (minutes). Format: docs/guide-your-app.md.",
-    input: { file: z.string().describe("e.g. scenarios/photo-upload.json"), seed: z.number().int().default(1), count: z.number().int().optional().describe("default: the file's devices.count, else 3"), basePort: z.number().int().default(5580), serverPort: z.number().int().default(5599) },
-    run: (a) => runScenario(a.file, a),
+    name: "run", long: true, description: "Run a multi-device scenario on any app: up, install, per-device actions (Maestro flow / intent / adb) + network schedule, drain, judge (proxy log by default), down (minutes). Give `file` (scenario JSON, docs/guide-your-app.md) OR, with no file, apk + flows + server (setupFlow, count, repeat, network optional).",
+    input: {
+      file: z.string().optional().describe("scenario JSON, e.g. scenarios/photo-upload.json; omit to use apk/flows/server"),
+      apk: z.string().optional().describe("no-file form: your APK (package read from it)"), flows: z.array(z.string()).optional().describe("no-file form: Maestro flows run in order every iteration"),
+      setupFlow: z.string().optional().describe("no-file form: Maestro flow run once per device first"), server: z.string().optional().describe("no-file form: backend as the host sees it, http://host:port"),
+      repeat: z.number().int().optional().describe("no-file form: iterations per device (default 5)"), network: z.boolean().optional().describe("no-file form: false = no network faults (default: all four states)"),
+      seed: z.number().int().default(1), count: z.number().int().optional().describe("default: the file's devices.count, else 3"), basePort: z.number().int().default(5580), serverPort: z.number().int().default(5599),
+    },
+    run: async (a) => {
+      if (a.file && a.apk) throw new Error("give file or apk (with flows, server), not both");
+      return runScenario(a.file ?? await flagScenario(a), a);
+    },
   },
 ];
 

@@ -157,3 +157,4 @@ UI 없음(CLI). 샘플 앱은 시험용 최소 화면이라 디자인 단계 생
 | 2026-10-29 | 사용자 "시간 동률 허용" (T54 재측정: 토큰 1898 vs 6183, 시간 11.1 vs 10.3 s, 폴드·플립은 crewdroid 만 통과) | FR-35 합격선을 토큰 우위 + 시간 110% 이내로, 영상·README 메시지를 "더 싸고 더 튼튼하다, 시간은 같다"로 |
 | 2026-10-29 | autopilot /brief auto, reviewer 승인 1건 | T75 README 스톡 google_atd CPU 범위를 커밋된 6회 측정(baseline-atd.json)과 맞춤(FR-48). 요구사항 변경 없음 |
 | 2026-10-29 | 외부 사용 평가 `docs/source/feedback-2026-10-29.md` + 사용자 "PLAY 기능이 들어가면 장점이 상쇄, 개발 단계 도구 강조" / "왜 자꾸 샘플앱에 국한, 확실히 해결" | FR-47 제외(T71 취소). FR-49 포지셔닝·한계 표(T76), FR-50 플래그만으로 run(T77), FR-51 공개 배포 주기(T60 재개 + 사람 세션 병합). 샘플 전용으로 보인 원인: T55 가 ai/work 에만 있고 main·npm 이 10-26~27 에 멈춤 |
+| 2026-10-29 | autopilot /brief auto, reviewer 승인 1건 | T78 저장소·릴리스 문서(infra.md·release.md·CLAUDE.md)를 origin = 공개 저장소 구조와 API 36 카메라 실측에 맞춤(FR-49·FR-51). 요구사항 변경 없음 |

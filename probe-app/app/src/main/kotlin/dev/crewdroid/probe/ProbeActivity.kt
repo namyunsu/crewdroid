@@ -18,7 +18,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank|surface|env|form|layout-bad|layout-ok|transport [--es url URL] [--es file PATH]
+// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank|surface|env|form|layout-bad|layout-ok|transport|webview [--es url URL] [--es file PATH]
 // upload extras: --ei size N (N zero-ish bytes instead of a file), --es key IDEMPOTENCY_KEY, --es client X_CLIENT_ID
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
@@ -76,8 +76,26 @@ class ProbeActivity : Activity() {
             "layout-ok" -> layoutFixture(bad = false)
             // transport (T63): what the app sees as its default network: "TRANSPORT wifi|cellular|ethernet|none metered=<bool>"
             "transport" -> { report("TRANSPORT", transport()); finish() }
+            // webview (T76): an in-app WebView loads --es url (default http://10.0.2.2:5599/) -> "WEBVIEW ok title=<title>",
+            // "WEBVIEW fail <error>" (page error, or no WebView provider: the constructor throws) or "WEBVIEW fail timeout" after 20 s.
+            "webview" -> webview(intent.getStringExtra("url") ?: "http://10.0.2.2:5599/")
             else -> { report(check.uppercase(), "fail unknown check"); finish() }
         }
+    }
+
+    private fun webview(url: String) {
+        var done = false
+        val once = { r: String -> if (!done) { done = true; report("WEBVIEW", r) } }
+        val wv = try { android.webkit.WebView(this) } catch (e: Throwable) { return once("fail ${e.javaClass.simpleName}: ${e.message}") }
+        wv.webViewClient = object : android.webkit.WebViewClient() {
+            override fun onPageFinished(v: android.webkit.WebView, u: String) { once("ok title=${v.title}") }
+            override fun onReceivedError(v: android.webkit.WebView, req: android.webkit.WebResourceRequest, err: android.webkit.WebResourceError) {
+                if (req.isForMainFrame) once("fail ${err.errorCode} ${err.description}")
+            }
+        }
+        setContentView(wv)
+        wv.loadUrl(url)
+        android.os.Handler(mainLooper).postDelayed({ once("fail timeout") }, 20_000)
     }
 
     // Plain launch (launcher / am start without extras) = the sample app screen; it stays open so the outbox thread keeps running.

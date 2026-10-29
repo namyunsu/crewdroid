@@ -2,6 +2,16 @@
 
 `run` boots N mixed emulators (Galaxy screens x Android 31/34/36), installs your APK, lets every device repeat your own steps at its own seeded pace (no "press at the same moment" barrier, ADR 0002) while its network drops in and out, waits until the devices stop talking to the server, then judges what reached the server. It needs no change to your app: a release build works (no `adb root` into the app, no `run-as`, no test receiver).
 
+## 0. No JSON: flags only
+```bash
+npx crewdroid run --apk build/app-release.apk --flow flows/create-item.yaml --server http://127.0.0.1:8080
+npx crewdroid run --apk app.apk --flow a.yaml --flow b.yaml --setup-flow login.yaml --server http://127.0.0.1:8080 --count 2 --repeat 3 --no-network --lose-acks 0.1
+npx crewdroid run --apk app.apk --flow a.yaml --server http://127.0.0.1:8080 --print-scenario > my-app.json   # the JSON below, nothing boots
+```
+The package name is read from the APK. Defaults: 3 devices, 5 iterations, all four network states, drain = 20 s without a request, rules `judge/proxy.rules.json` on the proxy log. Each `--flow` is one `{maestro}` action per iteration, `--setup-flow` runs once per device first; placeholders and `CREW_*` env work as below. `--print-scenario` writes paths relative to the current folder: save the file there and `run my-app.json` loads the same scenario; edit it when you need intents, adb steps or other timings. A missing file, no `--server`, or a scenario file together with `--apk` exits 1 before any emulator boots. MCP: the `run` tool takes `apk`, `flows`, `setupFlow`, `server`, `count`, `repeat`, `network` (false = no faults) instead of `file`.
+
+Proof on the Field Notes demo app (`demo-app/`) with the sample server, no scenario file: `node scripts/check-run-flags.mjs` runs `run --apk demo-app/build/outputs/apk/debug/crewdroid-demo-debug.apk --flow flows/demo-new-note.yaml --server http://127.0.0.1:5596 --count 2 --repeat 3 --profiles s24ultra,fold5-main --lose-acks 0.3` against the clean server (exit 0) and against `BUGGY=1` (exit 1, `dupSuccess`). Each note has its own id and idempotency key, so the bug only shows when a stored write is sent again: `--lose-acks` drops some answers after the server committed them, which network faults alone rarely do. It skips the API 31 profile: there Maestro lost the device mid-flow in every trial (same limit as the DAVx5 example below). The flow ends with Home: while its list is open the demo app polls `GET /export` every 2 s, and an app that never stops talking never drains.
+
 ## 1. What you need
 - crewdroid set up (`npx crewdroid setup`), Maestro on PATH (`scoop install maestro`, `brew install maestro`, or https://maestro.dev) if your steps are Maestro flows.
 - Your APK and your backend running on the host over plain HTTP (HTTPS is tunnelled blind; see `docs/adr/0008-proxy-judge.md`).

@@ -33,7 +33,7 @@ Node 24 + TypeScript CLI (run with `tsx`, tests with `node --test`). Sample serv
 ## Gotchas
 - A USB phone is plugged in. Every adb call goes through `src/adb.ts` and must target `emulator-<port>`; mobile-mcp / Maestro device lists may show the phone — always pass an emulator serial.
 - Ports: crewdroid 5580+; user 5554+; 5570+ reserved for other suites.
-- ATD images have no Chrome/camera app/gallery/launcher; see `docs/adr/0003-image.md` once T02 writes it.
+- ATD images have no Chrome/gallery/launcher, and no camera app on API 31 and 34 (API 36 has `com.android.camera2`, `docs/measurements/atd-limits.md`); see `docs/adr/0003-image.md` once T02 writes it.
 - API 31 ATD: `am start -S` (or force-stop then start at once) usually leaves the whole screen black (SF keeps the new Task hidden); SurfaceView itself renders. Use force-stop, 2 s, start. No flag fixes it; `up` prints a WARN (`docs/adr/0005-api31-surfaceview.md`).
 - Long-running emulators drift to ~5 host cores each: measure on fresh boots.
 - Emulator host address from the device: `10.0.2.2`.

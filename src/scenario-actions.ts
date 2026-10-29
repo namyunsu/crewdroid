@@ -1,8 +1,9 @@
 import { exec, execFile } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { z } from "zod";
 import { adb } from "./adb.ts";
+import { apk } from "./apk.ts";
 import { readLog } from "./judge.ts";
 import { screen } from "./screen.ts";
 import { sleep } from "./snapshot.ts";
@@ -68,6 +69,34 @@ export function loadScenario(file: string): ({ kind: "probe" } & ProbeScenario) 
   if (!sc.server && !sc.rules) throw new Error(`${file}: without server.target the default proxy rules have no log: give rules`);
   return { kind: "app", ...sc, dir };
 }
+
+// T77: `run --apk --flow --server` with no scenario file. Builds the JSON a user would write (paths relative to `dir`) and
+// parses it with the same schema, so runScenario sees exactly what loadScenario returns for that file saved in `dir`.
+export interface RunFlags { apk?: string; flows?: string[]; setupFlow?: string; server?: string; count?: number; repeat?: number; network?: boolean }
+export async function flagScenario(f: RunFlags, dir = process.cwd(), readPackage = async (p: string) => (await apk(p)).package): Promise<{ kind: "app" } & AppScenario> {
+  const rel = (flag: string, p: string) => {
+    if (!existsSync(resolve(dir, p))) throw new Error(`${flag}: file not found: ${resolve(dir, p)}`);
+    return relative(dir, resolve(dir, p)).split(sep).join("/");
+  };
+  if (!f.apk) throw new Error("--apk <file.apk> required");
+  const apkPath = rel("--apk", f.apk);
+  if (!f.flows?.length) throw new Error("--flow <flow.yaml> required (repeat --flow for more steps)");
+  const flows = f.flows.map((x) => rel("--flow", x)), setup = f.setupFlow && rel("--setup-flow", f.setupFlow);
+  if (!f.server) throw new Error("--server http://host:port required (your backend as the host sees it)");
+  const pkg = await readPackage(resolve(dir, apkPath));
+  const r = appSchema.safeParse({
+    name: pkg, about: "built from run flags (crewdroid run --apk --flow --server)",
+    app: { apk: apkPath, package: pkg }, devices: { count: f.count ?? 3 }, repeat: f.repeat ?? 5, delayMs: [1000, 4000],
+    ...(f.network === false ? {} : { network: { states: ["airplane", "nodata", "slow", "flaky"], badMs: [5000, 12000], onlineMs: [2000, 6000] } }),
+    server: { target: f.server }, ...(setup ? { setup: [{ maestro: setup }] } : {}),
+    actions: flows.map((m) => ({ maestro: m })), drain: { idleSeconds: 20 },
+  });
+  const flag: Record<string, string> = { "server.target": "--server", "devices.count": "--count", repeat: "--repeat" };
+  if (!r.success) throw new Error(`run flags: ${issues(r.error).replace(/(server\.target|devices\.count|repeat): /g, (_, k) => `${flag[k]}: `)}`);
+  return { kind: "app", ...r.data, dir };
+}
+// `--print-scenario`: the scenario file for these flags (save it in `dir`, then `run <file>` loads the same object).
+export const scenarioFile = ({ kind, dir, ...sc }: { kind: "app" } & AppScenario) => JSON.stringify(sc, null, 2);
 
 // "{serial}", "{device}" (0-based index), "{iter}" (0-based; -1 in setup) in env values, intent fields and adb args.
 export const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(serial|device|iter)\}/g, (_, k) => String(v[k]));

@@ -13,6 +13,6 @@
   ],
   "exclude": [
     "scripts/check-hero.mjs", "scripts/check-layout.mjs", "scripts/check-surface.mjs", "scripts/check-demo-gif.mjs",
-    "docs/measurements/coexist.*", "docs/measurements/ram-sweep.json", "docs/measurements/agent-bench.*", "docs/measurements/hero*", "docs/measurements/demo*.json"
+    "docs/measurements/coexist.*", "docs/measurements/ram-sweep.json", "docs/measurements/hero*", "docs/measurements/demo*.json"
   ]
 }

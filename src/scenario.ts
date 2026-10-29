@@ -5,13 +5,13 @@ import { adb } from "./adb.ts";
 import { judge } from "./judge.ts";
 import { mulberry32, setNet, stopFlaky, type NetState } from "./net.ts";
 import { setDeviceProxy, startProxy, type ProxyHandle } from "./proxy.ts";
-import { drainDevice, loadScenario, PROXY_RULES, requestCount, runAction } from "./scenario-actions.ts";
+import { drainDevice, loadScenario, PROXY_RULES, requestCount, runAction, type AppScenario } from "./scenario-actions.ts";
 import { PKG, probeApk, sleep } from "./snapshot.ts";
 import { down, up } from "./up.ts";
 
 export interface RunOptions { count?: number; basePort?: number; seed?: number; serverPort?: number; profiles?: string[]; onReady?: (serials: string[]) => void; beforeDown?: () => Promise<void>;
   // T69: route every device through the recording proxy (ports proxy.port + k) before the app starts; the app is not told.
-  proxy?: { port: number; log: string; loseAcks?: number } }
+  proxy?: { port?: number; log?: string; loseAcks?: number } }
 
 const bc = (serial: string, action: string, ...extras: string[]) =>
   adb(serial, ["shell", "am", "broadcast", "--include-stopped-packages", "-n", `${PKG}/.SampleReceiver`, "-a", `dev.crewdroid.sample.${action}`, ...extras]);
@@ -38,11 +38,12 @@ function hostPeak() {
 
 // Two kinds of scenario file (src/scenario-actions.ts): "preset": "probe" drives the bundled probe app through its test receiver
 // and reads its outbox (root); any other app is driven only by the file's own actions (Maestro flow, intent, adb) and judged on
-// the T69 proxy log, so a release build works as is.
-export async function runScenario(file: string, { count, basePort = 5580, seed = 1, serverPort = 5599, profiles, onReady, beforeDown, proxy }: RunOptions = {}) {
-  const sc = loadScenario(file); // every check before any device boots: bad file -> exit 1 here
+// the T69 proxy log, so a release build works as is. `src` = a scenario file, or the object flagScenario built from `run --apk` flags.
+export async function runScenario(src: string | ({ kind: "app" } & AppScenario), { count, basePort = 5580, seed = 1, serverPort = 5599, profiles, onReady, beforeDown, proxy }: RunOptions = {}) {
+  const sc = typeof src === "string" ? loadScenario(src) : src; // every check before any device boots: bad file -> exit 1 here
+  const file = typeof src === "string" ? src : "(flags)";
   const app = sc.kind === "app" ? sc : undefined, probe = sc.kind === "probe" ? sc : undefined;
-  const at = (p: string) => (isAbsolute(p) ? p : resolve(dirname(resolve(file)), p));
+  const at = (p: string) => (isAbsolute(p) ? p : resolve(app ? app.dir : dirname(resolve(file)), p));
   const rules = app ? (app.rules ? at(app.rules) : PROXY_RULES) : at(probe!.rules);
   const server = app ? app.server?.target : `http://10.0.2.2:${serverPort}`;
   const t0 = Date.now();

@@ -1,6 +1,6 @@
 # crewdroid
 
-Lightweight multi-user Android field lab on top of Google's emulator. Boots N headless emulators with mixed Galaxy profiles and Android versions, sets per-device network states, then judges server data for concurrency bugs (duplicate / missing / overwritten records).
+Lightweight multi-user Android field lab on top of Google's emulator: a development-loop tool (build, install, check while you write the app; push, Google sign-in, Play and the camera app still need a real phone, see `docs/measurements/atd-limits.md`). Boots N headless emulators with mixed Galaxy profiles and Android versions, sets per-device network states, then judges server data for concurrency bugs (duplicate / missing / overwritten records).
 
 ## Install and run
 ```bash
@@ -40,7 +40,7 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `judge` | rules on server data: unique / count / noLostUpdate (`--rules <file> --source <url\|file>`); on a proxy log: dupSuccess / lostUpdate / lostWrite / idle (`--log proxy.jsonl`, `judge/proxy.rules.json`) | implemented |
 | `proxy` | recording HTTP proxy, devices pointed at it by the system proxy setting, no app/server change (`proxy start --target http://host:port [--port 5590] [--devices ...] [--lose-acks P]` \| `stop` \| `log`; `run --proxy 5590 --log f.jsonl`) | implemented |
 | `hammer` | N virtual users against the API | implemented |
-| `run` | scenario on any APK: up, install, per-device `actions` (`{maestro}` / `{intent}` / `{adb}`) + network schedule, drain, judge (proxy log by default), down; `"preset": "probe"` = the bundled probe app (`docs/guide-your-app.md`) | implemented |
+| `run` | scenario on any APK: up, install, per-device `actions` (`{maestro}` / `{intent}` / `{adb}`) + network schedule, drain, judge (proxy log by default), down; `"preset": "probe"` = the bundled probe app (`docs/guide-your-app.md`); no file: `run --apk app.apk --flow f.yaml [--flow ...] [--setup-flow s.yaml] --server http://host:port [--count 3] [--repeat 5] [--no-network] [--print-scenario]` | implemented |
 | `setup` | install SDK pieces (JDK 17, cmdline-tools, platform-tools, emulator, google_atd images); `--dry-run`, `--yes` | implemented |
 | `mcp` | stdio MCP server wrapping the commands above | implemented |
 | `prepare`, `identity`, `slim`, `measure` | base-image maintenance and measurement | implemented |

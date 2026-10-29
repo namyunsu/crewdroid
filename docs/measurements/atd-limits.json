@@ -1,0 +1,203 @@
+{
+  "date": "2026-10-29T08:20:36.500Z",
+  "method": "fresh crew device per API (profile s22), one at a time; see atd-limits.md",
+  "devices": [
+    {
+      "api": 31,
+      "accounts": 0,
+      "webview": {
+        "provider": "com.android.webview",
+        "version": "91.0.4472.114",
+        "valid": [
+          "com.android.webview 91.0.4472.114"
+        ],
+        "renders": true,
+        "result": "ok title=crewdroid webview page",
+        "hostRequests": 2
+      },
+      "intents": {
+        "VIEW https://example.com": {
+          "resolves": "com.android.fakesystemapp/.browser.StubBrowserActivity",
+          "handlers": [
+            "com.android.fakesystemapp/.browser.StubBrowserActivity"
+          ]
+        },
+        "IMAGE_CAPTURE": {
+          "resolves": "none",
+          "handlers": []
+        },
+        "MAIN/HOME": {
+          "resolves": "com.android.fakesystemapp/.launcher.EmptyHomeActivity",
+          "handlers": [
+            "com.android.fakesystemapp/.launcher.EmptyHomeActivity",
+            "com.android.fakesystemapp/.launcher.FallbackHome"
+          ]
+        },
+        "SEND text/plain": {
+          "resolves": "android/com.android.internal.app.ResolverActivity",
+          "handlers": [
+            "com.android.bluetooth/.opp.BluetoothOppLauncherActivity",
+            "com.android.nfc/.BeamShareActivity",
+            "com.google.android.gms/.nearby.sharing.ShareSheetActivity"
+          ]
+        },
+        "PICK_IMAGES": {
+          "resolves": "none",
+          "handlers": []
+        },
+        "VIEW market://details": {
+          "resolves": "none",
+          "handlers": []
+        },
+        "ADD_ACCOUNT_SETTINGS": {
+          "resolves": "none",
+          "handlers": []
+        }
+      },
+      "packages": {
+        "com.google.android.gms": {
+          "codePath": "/product/priv-app/PrebuiltGmsCore",
+          "versionName": "22.50.14 (190800-499278674)"
+        },
+        "com.android.vending": {
+          "codePath": "/product/app/LicenseChecker",
+          "versionName": "1.8"
+        },
+        "com.android.chrome": null
+      }
+    },
+    {
+      "api": 34,
+      "accounts": 0,
+      "webview": {
+        "provider": "com.android.webview",
+        "version": "113.0.5672.136",
+        "valid": [
+          "com.android.webview 113.0.5672.136"
+        ],
+        "renders": true,
+        "result": "ok title=crewdroid webview page",
+        "hostRequests": 2
+      },
+      "intents": {
+        "VIEW https://example.com": {
+          "resolves": "com.android.fakesystemapp/.browser.StubBrowserActivity",
+          "handlers": [
+            "com.android.fakesystemapp/.browser.StubBrowserActivity"
+          ]
+        },
+        "IMAGE_CAPTURE": {
+          "resolves": "none",
+          "handlers": []
+        },
+        "MAIN/HOME": {
+          "resolves": "com.android.fakesystemapp/.launcher.EmptyHomeActivity",
+          "handlers": [
+            "com.android.fakesystemapp/.launcher.EmptyHomeActivity",
+            "com.android.fakesystemapp/.launcher.FallbackHome"
+          ]
+        },
+        "SEND text/plain": {
+          "resolves": "android/com.android.internal.app.ResolverActivity",
+          "handlers": [
+            "com.google.android.bluetooth/com.android.bluetooth.opp.BluetoothOppLauncherActivity",
+            "com.google.android.gms/.nearby.sharing.ShareSheetActivity"
+          ]
+        },
+        "PICK_IMAGES": {
+          "resolves": "com.google.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity",
+          "handlers": [
+            "com.google.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity"
+          ]
+        },
+        "VIEW market://details": {
+          "resolves": "none",
+          "handlers": []
+        },
+        "ADD_ACCOUNT_SETTINGS": {
+          "resolves": "none",
+          "handlers": []
+        }
+      },
+      "packages": {
+        "com.google.android.gms": {
+          "codePath": "/product/priv-app/PrebuiltGmsCore",
+          "versionName": "23.18.18 (190800-535401451)"
+        },
+        "com.android.vending": {
+          "codePath": "/product/app/LicenseChecker",
+          "versionName": "1.8"
+        },
+        "com.android.chrome": null
+      }
+    },
+    {
+      "api": 36,
+      "accounts": 0,
+      "webview": {
+        "provider": "com.android.webview",
+        "version": "133.0.6943.137",
+        "valid": [
+          "com.android.webview 133.0.6943.137"
+        ],
+        "renders": true,
+        "result": "ok title=crewdroid webview page",
+        "hostRequests": 2
+      },
+      "intents": {
+        "VIEW https://example.com": {
+          "resolves": "android/com.android.internal.app.ResolverActivity",
+          "handlers": [
+            "com.android.fakesystemapp/.browser.StubBrowserActivity",
+            "org.chromium.webview_shell/.WebViewBrowserActivity"
+          ]
+        },
+        "IMAGE_CAPTURE": {
+          "resolves": "com.android.camera2/com.android.camera.CaptureActivity",
+          "handlers": [
+            "com.android.camera2/com.android.camera.CaptureActivity"
+          ]
+        },
+        "MAIN/HOME": {
+          "resolves": "com.android.fakesystemapp/.launcher.EmptyHomeActivity",
+          "handlers": [
+            "com.android.fakesystemapp/.launcher.EmptyHomeActivity",
+            "com.android.fakesystemapp/.launcher.FallbackHome"
+          ]
+        },
+        "SEND text/plain": {
+          "resolves": "android/com.android.internal.app.ResolverActivity",
+          "handlers": [
+            "com.google.android.bluetooth/com.android.bluetooth.opp.BluetoothOppLauncherActivity",
+            "com.google.android.gms/.nearby.sharing.send.SendActivity"
+          ]
+        },
+        "PICK_IMAGES": {
+          "resolves": "com.google.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity",
+          "handlers": [
+            "com.google.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity"
+          ]
+        },
+        "VIEW market://details": {
+          "resolves": "none",
+          "handlers": []
+        },
+        "ADD_ACCOUNT_SETTINGS": {
+          "resolves": "none",
+          "handlers": []
+        }
+      },
+      "packages": {
+        "com.google.android.gms": {
+          "codePath": "/product/priv-app/PrebuiltGmsCore",
+          "versionName": "25.08.34 (260800-739221510)"
+        },
+        "com.android.vending": {
+          "codePath": "/product/app/LicenseChecker",
+          "versionName": "1.8"
+        },
+        "com.android.chrome": null
+      }
+    }
+  ]
+}

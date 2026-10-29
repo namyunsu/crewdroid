@@ -1,0 +1,20 @@
+# Field Notes demo app (demo-app/): add one note per iteration, then go home.
+# Used by `crewdroid run --apk <demo apk> --flow flows/demo-new-note.yaml --server ...` (scripts/check-run-flags.mjs).
+# The app talks to http://10.0.2.2:5599 by default; `run` points the system proxy at its recording proxy, which forwards
+# every 10.0.2.2 request to --server, so no server argument is needed here.
+# Home at the end: while its screen is open the app polls GET /export every 2 s, so the idle drain would never end.
+appId: dev.crewdroid.demo
+---
+- launchApp:
+    stopApp: false
+# the first launch after install on an API 31 clone took longer than tapOn's own wait (check-run-flags, clean seed 1)
+- extendedWaitUntil:
+    visible: "New note"
+    timeout: 30000
+- tapOn: "New note"
+- inputText: "${CREW_SERIAL} note ${CREW_ITER}"
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: "${CREW_SERIAL} note ${CREW_ITER}"
+    timeout: 10000
+- pressKey: Home

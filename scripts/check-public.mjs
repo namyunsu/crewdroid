@@ -31,6 +31,14 @@ check(readme.includes("npx crewdroid up --count 3"), "README: install line `npx 
 check(/"mcpServers"[\s\S]*"crewdroid"[\s\S]*"-y", "crewdroid", "mcp"/.test(readme), "README: mcpServers block with npx -y crewdroid mcp");
 check(/\| Disk \|[^\n]*24\.7 GiB[^\n]*6\.99 GiB/.test(readme), "README: numbers table (disk)"); // boot row dropped 2026-10-27: snapshot boot != ready, misleading
 check(/!\[[^\]]*\]\(docs\/demo\/hero\.gif\)/.test(readme), "README: hero image docs/demo/hero.gif");
+// T76: your app first, and the image limits are measured
+const runLine = readme.split("\n").find((l) => l.includes("crewdroid run")) ?? "";
+check(runLine.includes("--apk"), `README: first \`crewdroid run\` line uses --apk (got: ${runLine.trim()})`);
+check(readme.indexOf("photo-upload.json") > readme.indexOf(runLine), "README: photo-upload.json does not appear before the first `crewdroid run --apk` line");
+const limits = readme.match(/^## Limits\b[^\n]*\n([\s\S]*?)(?=^## )/m)?.[1];
+check(limits !== undefined, "README: a `## Limits` heading exists");
+for (const l of (limits ?? "").split("\n").filter((l) => /\d/.test(l)))
+  check(l.includes("docs/measurements/"), `README Limits: a line with a number has no docs/measurements/ link: ${l.slice(0, 80)}`);
 for (const m of readme.matchAll(/\]\((?!https?:|cursor:|#)([^)]+)\)/g)) {
   if (m[1] !== "AGENTS.md") check(existsSync(join(root, m[1])), `README: link target exists: ${m[1]}`); // AGENTS.md is T25's
 }

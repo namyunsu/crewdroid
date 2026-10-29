@@ -2,16 +2,11 @@
 
 에이전트는 아래를 실행하지 않는다. 순서대로 직접 한다. 시작 전에 `node scripts/check-public.mjs` 가 `OK: public-release checks passed` 를 내는지 확인한다.
 
-## 릴리스 흐름 (비공개 개발 저장소 -> 공개 미러, T59)
+## 릴리스 흐름 (T78)
 
-개발은 비공개 저장소(`origin`)에서 한다. 공개 저장소(`public` 리모트)에는 `public-files.json` 허용 목록만 올라간다 (`.ai-log/`, `docs/prd.md`, `docs/todo*.md`, `docs/source/` 등은 올라가지 않는다). 깨끗한 `main` 에서:
+저장소는 하나이고 `origin` 이 공개 `namyunsu/crewdroid` 다. autopilot 은 `ai/work` 에만 push 한다. 사람이 `main` 에 squash merge 하고 태그를 단다: 단계는 아래 §8. `scripts/release-public.mjs` / `public-files.json` 은 내보내기 허용 목록과 `check-public.mjs` 스크럽 검사로 남아 있다.
 
-1. `node scripts/release-public.mjs --out ../crewdroid-public --fresh` (처음 한 번, 새 루트 커밋. 다음부터는 `--fresh` 없이: `public` 리모트의 main 위에 커밋). 스크럽(PC 이름·계정·로컬 경로·`.ai-log`·옛 비공개 앱 이름), `npm pack` + `npx crewdroid --help`, `check-public.mjs` 를 내보낸 폴더 안에서 돌리고 통과해야 커밋한다.
-2. 스크립트가 찍어 주는 `git push` 줄을 사람이 실행한다 (스크립트는 `--push` 가 없으면 push 하지 않는다).
-3. 회사 PC: `npm publish --access public`
-4. `mcp-publisher publish`
-
-버전은 `package.json` · `server.json` · `package-lock.json` · `.claude-plugin/plugin.json` 이 같아야 한다 (지금 0.1.0 = npm). `CHANGELOG.md` 맨 위 `Unreleased` 가 다음 릴리스 노트다.
+버전은 `package.json` · `server.json` · `package-lock.json` · `.claude-plugin/plugin.json` 이 같아야 한다 (현재 값은 `package.json`, 릴리스 노트는 `CHANGELOG.md`). `CHANGELOG.md` 맨 위 `Unreleased` 가 다음 릴리스 노트다.
 
 ## 0. 공개 전에 결정할 것
 
@@ -89,19 +84,30 @@ node -e 'console.log("cursor://anysphere.cursor-deeplink/mcp/install?name=crewdr
 
 ## 8. 0.2.0 배포 (0.1.0 이 이미 나간 뒤)
 
-`package.json` 과 `server.json` 은 이미 0.2.0 이고 `CHANGELOG.md` 에 0.2.0 항목이 있다. 시작 전에 `node scripts/check-public.mjs` 가 `OK: public-release checks passed` 를 내는지 확인한다.
+버전 0.2.0 은 `package.json`, `package-lock.json`, `server.json` (두 곳), `.claude-plugin/plugin.json` 에 같이 들어 있다. `CHANGELOG.md` 의 `[0.2.0]` 항목이 릴리스 노트다. 흐름은 한 번만 쓴다 (`origin` = 공개 저장소):
 
-회사 PC (npm 배포; 브라우저 승인이 필요하다):
+1. 에이전트가 `ai/work` 에서 확인: `node scripts/check-versions.mjs && node scripts/check-public.mjs && npm test` 가 모두 통과.
+2. 사람 세션: `ai/work` 를 `main` 에 squash merge 하고 push (메시지 한 줄로 의미를 적는다).
 
 ```bash
-git pull
-npm publish --access public   # 브라우저가 열리면 승인
-npx -y crewdroid@0.2.0 --help
+git switch main && git pull --ff-only
+git merge --squash ai/work && git commit -m "0.2.0: helper, run on any APK, proxy judge, layout, device conditions, CI"
+git push origin main
 ```
 
-아무 PC (npm 에 0.2.0 이 올라간 뒤에만 통과한다):
+3. 사람 세션: 태그를 push 한다. 태그 push 만 `.github/workflows/release.yml` 을 돌린다 (`check-versions --tag` → 테스트 → `npm publish --provenance` → MCP Registry publish).
 
 ```bash
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+4. npmjs 의 trusted publisher 가 설정돼 있으면 3 에서 끝난다. 설정이 없으면 release.yml 의 npm 단계가 실패한다. 그때는 아래를 직접 한다 (회사 PC, 브라우저 승인 필요):
+
+```bash
+npm publish --access public
+npx -y crewdroid@0.2.0 --help   # up 과 mcp 가 보여야 한다
 mcp-publisher login github
 mcp-publisher publish
 ```
+
+5. 확인: `npx -y crewdroid@latest --version` 이 `0.2.0` 을 찍는다.
