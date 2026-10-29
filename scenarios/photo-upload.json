@@ -1,5 +1,6 @@
 {
   "name": "photo-upload",
+  "preset": "probe",
   "about": "Each device repeats: take a photo (outbox upload), read records, edit a shared record. Network states are mixed per device. No shared start (ADR 0002).",
   "repeat": 8,
   "delayMs": [800, 3500],

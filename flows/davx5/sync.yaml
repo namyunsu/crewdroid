@@ -1,0 +1,7 @@
+# DAVx5: open the app and press "Sync all accounts" (the user's manual sync).
+appId: at.bitfire.davdroid
+---
+# no launchApp: on the API 36 ATD clones Maestro's launchApp dropped the adb connection ("device offline") every time,
+# so the scenario opens the app with an intent action first.
+- runFlow: skip-intro.yaml
+- tapOn: "Sync all accounts"

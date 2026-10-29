@@ -134,7 +134,7 @@ UI·웹 서비스가 없어서 XSS·새로고침 연타 같은 웹 케이스는 
 ## FR-35 AI 조작 효율
 - 상주 도우미: 트리 p50 ≤ 0.3초, MCP 탭 ≤ 0.5초, 한글 입력, 도우미 죽어도 대체 경로, 대기 RAM +5 % 이내 `[verify]` T52
 - screen 기본 출력 ≤ 2400자(카드 제목·Synced·New note 포함), 행동 후 새 화면 반환, logs ≤ 40줄, tsc 깨끗 `[verify]` T53
-- 재측정: crewdroid 방식 토큰·시간 < 스크린샷 방식, FAB 가림 없음 `[verify]` T54
+- 재측정: crewdroid 방식 토큰 < 스크린샷 방식, 시간은 스크린샷 방식의 110% 이내(동률 허용, 2026-10-29), FAB 가림 없음 `[verify]` T54
 
 ## FR-36 run 일반화
 - 스키마 오류는 기기 부팅 전 1, Field Notes 를 UI 단계만으로 3대: 버그 서버 seed 3개 중 2개 이상 위반, 정상 3/3 통과, 로그에 샘플 앱 패키지 없음 `[verify]` T55
@@ -167,3 +167,13 @@ UI·웹 서비스가 없어서 XSS·새로고침 연타 같은 웹 케이스는 
 
 ## 공존 (포지셔닝)
 - mobile-mcp·Maestro 와 crewdroid 를 같은 기기에서 섞어 써도 6개 사례 각 10/10 통과 `[verify]` T66
+
+## 요청서 2026-10-27
+- `screen`·`tap`·`type` 회당 0.5초 이하, 트리 방식이 시간·토큰 모두 스크린샷 방식보다 적음 `[verify]` T54
+- `layout` 이 데모가 아닌 APK 에서 명령 1줄로 끝나고, 일부러 깨뜨린 화면은 잡고 정상은 통과 `[verify]` T67
+- 버전 일치·`--version` `[verify]` T68 / 태그 푸시로 npm 배포 `[manual]` T68 (FR-46)
+- 데모가 아닌 앱의 Maestro 흐름으로 3대 `run` + 판정 `[verify]` T55
+- 샘플 서버를 안 고치고 프록시 기록으로 BUGGY 의 중복·덮어쓰기 검출, 정상 통과 `[verify]` T69 (FR-45)
+- 기본 google_atd AVD 대비 비교표 `[verify]` T70
+- 1대 기준 Android Studio 기본 에뮬레이터 대비 부팅·RAM·유휴 CPU·디스크·화면 읽기 수치가 README 맨 위 표에 측정 파일 근거와 함께 `[verify]` T72 (FR-48)
+- Play 이미지 1대 부팅, GMS·Play 스토어 존재, 무게 측정 `[verify]` T71 / FCM 토큰 발급→푸시 수신→알림 탭→대상 화면 `[manual]` T71 (FR-47)

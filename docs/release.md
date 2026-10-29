@@ -2,6 +2,17 @@
 
 에이전트는 아래를 실행하지 않는다. 순서대로 직접 한다. 시작 전에 `node scripts/check-public.mjs` 가 `OK: public-release checks passed` 를 내는지 확인한다.
 
+## 릴리스 흐름 (비공개 개발 저장소 -> 공개 미러, T59)
+
+개발은 비공개 저장소(`origin`)에서 한다. 공개 저장소(`public` 리모트)에는 `public-files.json` 허용 목록만 올라간다 (`.ai-log/`, `docs/prd.md`, `docs/todo*.md`, `docs/source/` 등은 올라가지 않는다). 깨끗한 `main` 에서:
+
+1. `node scripts/release-public.mjs --out ../crewdroid-public --fresh` (처음 한 번, 새 루트 커밋. 다음부터는 `--fresh` 없이: `public` 리모트의 main 위에 커밋). 스크럽(PC 이름·계정·로컬 경로·`.ai-log`·옛 비공개 앱 이름), `npm pack` + `npx crewdroid --help`, `check-public.mjs` 를 내보낸 폴더 안에서 돌리고 통과해야 커밋한다.
+2. 스크립트가 찍어 주는 `git push` 줄을 사람이 실행한다 (스크립트는 `--push` 가 없으면 push 하지 않는다).
+3. 회사 PC: `npm publish --access public`
+4. `mcp-publisher publish`
+
+버전은 `package.json` · `server.json` · `package-lock.json` · `.claude-plugin/plugin.json` 이 같아야 한다 (지금 0.1.0 = npm). `CHANGELOG.md` 맨 위 `Unreleased` 가 다음 릴리스 노트다.
+
 ## 0. 공개 전에 결정할 것
 
 `check-public.mjs` 의 스크럽은 `docs/**`, `.ai-log/**` 와 몇 개 파일을 보지 않는다. 저장소를 공개하면 그대로 보이므로 지울지 남길지 정한다.

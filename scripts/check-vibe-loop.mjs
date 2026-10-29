@@ -60,7 +60,7 @@ try {
   const im = r.content?.find((c) => c.type === "image");
   claim(!r.isError && im?.mimeType === "image/png" && im.data.length > 1000, `shot -> image item ${im?.mimeType} ${im?.data?.length ?? 0} b64 chars`);
 
-  r = await step("screen", { serial });
+  r = await step("screen", { serial, format: "json" });
   j = json(r);
   const send = j?.nodes?.find((n) => n.text === "Send");
   claim(!r.isError && !!send, `screen finds Send: ${send ? `${send.cls} ${send.bounds}` : "not found"} (focus ${j?.focus})`);
@@ -71,7 +71,7 @@ try {
   r = await step("tap", { serial, text: "Send" });
   claim(!r.isError, `tap Send`);
   await new Promise((ok) => setTimeout(ok, 1000));
-  r = await step("logs", { serial, pkg: PKG, since: "1m" });
+  r = await step("logs", { serial, pkg: PKG, since: "1m", format: "json" });
   j = json(r);
   const form = j?.lines?.filter((l) => l.tag === "CrewProbe" && l.message.startsWith("FORM")).map((l) => l.message) ?? [];
   claim(!r.isError && form.includes(`FORM ${text}`), `logs since 1m has "CrewProbe FORM ${text}": ${JSON.stringify(form)}`);

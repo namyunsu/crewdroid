@@ -8,11 +8,28 @@
 
 Your AI agent can already tap through an app. What it cannot see is what happened behind the screen: the upload that went through twice when the network dropped, the record that vanished in airplane mode, the edit another user silently overwrote. crewdroid gives the agent the devices and the conditions that cause those bugs, and a verdict it can act on.
 
+## One device, against Android Studio's default emulator
+
+If you found crewdroid because an AI agent on the stock emulator is slow, start here. One device, medians of 3 runs, measured on the same PC (raw runs in [`docs/measurements/single-vs-studio.json`](docs/measurements/single-vs-studio.json)):
+
+| | Android Studio default AVD | crewdroid `up` |
+|---|---|---|
+| Cold boot to `sys.boot_completed` | 39.3 s | 23.7 s |
+| Start from snapshot to `sys.boot_completed` | 5.4 s | 5.6 s (not better) |
+| Start from snapshot to first screen read | 10 s | 14.4 s (not better: includes starting the CLI) |
+| Host RAM after ready | 3479 MB | 1426 MB |
+| Idle CPU, 60 s (100 % = 1 core) | 215.1 % (runs: 48.4 to 362.2) | 170 % |
+| Disk (AVD + system image) | 6.78 GiB | 2.09 GiB |
+| Screen read (`adb uiautomator dump` vs `crewdroid screen`) | 2137.5 ms | 947.1 ms via CLI, 176.6 ms in the MCP server |
+| Screenshot (`adb screencap` vs `crewdroid shot`) | 814.1 ms | 1041.4 ms via CLI (not better), 290.3 ms in the MCP server |
+
+Setup: Android 16 (API 36); the Studio side is a `pixel_9` AVD from `google_apis_playstore` with default 2 GB RAM and 4 cores, window on, `-gpu auto`, quickboot; the crewdroid side is `up` with no flags (headless, 2 cores, `google_atd` image); Ryzen 7 5700X, 64 GB, Windows 11, emulator 37.1.11.0. The CLI rows include starting `npx tsx`.
+
 ## What only crewdroid does
 
-1. **Judges the server, not the screen.** After a run, `crewdroid judge` reads your API's data and checks rules: `unique` (no duplicates), `count` (nothing missing), `noLostUpdate` (no silent overwrite). A bug comes back as `VIOLATION` lines and exit code 1, not as a screenshot to interpret.
+1. **Judges the server, not the screen.** After a run, `crewdroid judge` reads your API's data and checks rules: `unique` (no duplicates), `count` (nothing missing), `noLostUpdate` (no silent overwrite). A bug comes back as `VIOLATION` lines and exit code 1, not as a screenshot to interpret. No export endpoint? `crewdroid proxy start --target http://127.0.0.1:8080` records every request the emulators send (through the Android system proxy, no app or server change), and `crewdroid judge --rules judge/proxy.rules.json --log proxy.jsonl` checks `dupSuccess` (one write applied twice), `lostUpdate` (two edits on the same version both accepted), `lostWrite` (a failed write never retried) and `idle` from that log. Plain HTTP only for now ([ADR 0008](docs/adr/0008-proxy-judge.md)).
 2. **Breaks one device at a time, mid-flow.** Network `airplane` / `nodata` / `slow` / `flaky` per device on its own schedule, fold / unfold during an upload, Doze, trim-memory, full storage, a low-end CPU / RAM spec. Every setter reads the state back.
-3. **Runs a mixed fleet from one command.** Android 12 / 14 / 16 and S24 · Fold · Flip or any `WxH@dpi`, headless, all clones of one base image: 3 devices in 3.93 GB of host RAM and 6.99 GiB of disk.
+3. **Runs a mixed fleet from one command.** Android 12 / 14 / 16 and S24 · Fold · Flip or any `WxH@dpi`, headless, all clones of one base image: 3 devices in 3.93 GB of host RAM and 6.99 GiB of disk (allocated).
 
 Also in the box: crash / ANR triage, cold start and jank, APK inspection. Every command has `--json` and an exit code, and every command is an MCP tool.
 
@@ -31,15 +48,20 @@ The stock emulator is one phone with a window, driven by hand. crewdroid is a *f
 | Multi-user bugs | not a feature | `run` repeats a flow on every device at different timings, then `judge` checks the server: `unique`, `count`, `noLostUpdate` |
 | Network | one toggle in Extended Controls | per-device `airplane`, `nodata`, `slow`, `flaky` on a randomised schedule, mid-upload |
 | Devices | one AVD = one window, one disk image each | N read-only clones of one base image, mixed screens (S/Fold/Flip/any `WxH@dpi`) and API levels, one command |
-| Disk | 24.7 GiB (3 AVDs) | 6.99 GiB (3 clones, 3 API levels) |
-| Host RAM | 8.45 GB | 3.93 GB |
-| Idle CPU (100 % = 1 core) | 1000 % | ~600 % |
 | Interaction | click in a window | `--json` output + exit code on every command |
 | Device state | GUI panels | `env` (GPS, battery, rotation, dark mode, font, locale, GSM, SMS, calls) and `app` (permissions, deep links, Doze, trim, full storage) — each setter reads its state back |
 | Fold / Flip | needs a foldable AVD | `fold` / `unfold` on any clone: the app gets a real configuration change |
 | For an AI agent | nothing to call | MCP server, `AGENTS.md`, 7 skills triggered by symptoms ("app crashed", "deep link does not open", "sync duplicated a row") |
 
-Numbers measured on one Windows 11 PC (Ryzen 7 5700X, 64 GB, WHPX), 3 devices, against 3 stock `google_apis` AVDs. Raw JSON and method in [`docs/measurements/`](docs/measurements/).
+Resources for 3 devices (3 API levels each; stock = `avdmanager` defaults, headless, fresh):
+
+| | stock `google_apis` | stock `google_atd` | crewdroid |
+|---|---|---|---|
+| Disk | 24.7 GiB (file length; not re-measured as allocated) | 11.8 GiB allocated (33.2 GiB file length) | 6.99 GiB allocated |
+| Host RAM | 8.45 GB | 8.5-8.8 GB | 3.93 GB |
+| Idle CPU (100 % = 1 core) | ~1000 % | ~248-352 % | ~600 % |
+
+"Allocated" = bytes really on disk (sparse holes and NTFS compression excluded), the only disk number comparable to crewdroid's slimmed clones; the `google_apis` figure was taken as file length, so it overstates that column. Disk and RAM are lighter than both stock images, but idle CPU is not: crewdroid's ~600 % is higher than 3 stock `google_atd` AVDs (~248-352 % over 6 runs; one 60 s sample is noisy), so the CPU gap against `google_apis` comes from the image, not from crewdroid. Measured on one Windows 11 PC (Ryzen 7 5700X, 64 GB, WHPX), 3 devices. Raw JSON and method in [`docs/measurements/`](docs/measurements/) (`baseline.md`, `baseline-atd.md`).
 
 No barrier, by design. Real concurrency bugs come from retries, offline queues and late edits overlapping — not from pressing a button at the exact same millisecond. crewdroid gives each device its own delays and network schedule and lets the overlap happen, then reads the truth from the server ([ADR 0002](docs/adr/0002-no-barrier.md)).
 
@@ -76,12 +98,20 @@ FAIL: 5 violations            # exit code 1
 
 Same scenario, server fixed → `OK: 3 rules, 0 violations`, exit 0. The judge rules are a JSON file, so the same check runs against your own API's export.
 
-Read the screen as text (what to tap, by name):
+Your own app (a release APK is fine): the scenario file names your APK, your Maestro flows / intents / adb commands per iteration and your backend; `run` puts the recording proxy in front of it and judges the request log. [docs/guide-your-app.md](docs/guide-your-app.md) walks through it; `scenarios/davx5-contacts.json` is a worked example on DAVx5 (F-Droid) + a local Radicale CardDAV server.
+
+Read the screen as text (what to tap, by name; one line per element, `--json` for the full tree):
 
 ```bash
-$ crewdroid screen emulator-5580 --json
-{ "focused": "dev.crewdroid.probe/.ProbeActivity",
-  "tree": [ { "cls": "TextView", "text": "outbox: 1 pending", "bounds": [32,180,620,230], "clickable": false, "depth": 3 }, ... ] }
+$ crewdroid screen emulator-5580
+dev.crewdroid.demo/dev.crewdroid.demo.MainActivity 1080x2340
+[0] text "Field Notes" #app_title @391,141
+[2] text "Synced ✓" #sync @908,169
+[3] list #list @540,1306
+  [5] text "Replace filter on intake line" #note_title @579,380
+...
+[35] btn "New note" #fab @819,2205
+$ crewdroid tap emulator-5580 '[35]'      # or --text "New note"; prints the new screen once it settled
 ```
 
 ## Agent interface
@@ -136,8 +166,11 @@ Every command takes `--json` and exits non-zero on failure.
 | `crewdroid up [--cores 1\|2\|4\|6\|8] [--ram 896..8192]` | pick the guest CPU count and RAM like a real device spec (also `cores`/`ramMB` in a profile, e.g. `a16-lowend`); default 2 cores / 896 MB; a new spec builds its own base snapshot on first use (`docs/measurements/spec.md`) |
 | `crewdroid down` | kill every `crew-*` emulator |
 | `crewdroid net <serial> airplane\|nodata\|slow\|flaky\|online` | set one device's network state |
+| `crewdroid net <serial> wifi\|cellular\|both\|none` | which link is up: the emulator's "AndroidWifi" access point, mobile data, both, neither; `slow` and `flaky` then act on the chosen link. Every `net` call returns the transport apps see (`default: wifi\|cellular\|none`, `metered`). Wi-Fi gets an address on one device at a time (`docs/adr/0009-wifi.md`) |
+| `crewdroid net <serial> handover [--to wifi\|cellular] [--during <ms>]` | move the default network to the other link while the app keeps running; `--during` = ms with no link in between (default 0: new link first) |
+| `crewdroid net <serial> metered on\|off` | mark the Wi-Fi network metered, so apps that sync only on unmetered networks hold back |
 | `crewdroid fold <serial>` / `unfold <serial>` | cover <-> main screen on a Fold/Flip profile |
-| `crewdroid run <scenario.json> [--seed N]` | run a multi-device scenario, then judge the server data |
+| `crewdroid run <scenario.json> [--seed N]` | run a multi-device scenario on any APK (Maestro flow / intent / adb actions, network faults), then judge the proxy log or the server data ([guide](docs/guide-your-app.md)) |
 | `crewdroid judge --rules <file> --source <url\|file>` | check unique / count / noLostUpdate rules |
 | `crewdroid hammer --url <base>` | server-side concurrency load without devices |
 | `crewdroid slim` / `prepare` / `identity` | shrink disk, build base AVDs, make devices distinct |
@@ -153,10 +186,12 @@ Every command takes `--json` and exits non-zero on failure.
 | Command | What it does |
 |---|---|
 | `crewdroid shot <serial> [file.png]` | `exec-out screencap -p` to `file.png` (default `./crewdroid-<serial>-<yyyymmdd-HHMMSS>.png`); prints path, width x height and `blackRelaunch` (API 31 black screen recovered first, as in `screen`). The MCP tool returns the PNG as image content plus one text line. |
-| `crewdroid tap <serial> <x> <y>` \| `--text <T>` \| `--id <resource-id>` `[--index N]` | `input tap` at a point or at the centre of the element from the `screen` tree whose text / content-desc or resource-id (full or the part after `:id/`) matches: exact first, then case-insensitive contains. No match, or several without `--index` (0-based), exits 1 with the candidates (text, id, bounds). |
+| `crewdroid tap <serial> <x> <y>` \| `'[n]'` \| `--text <T>` \| `--id <resource-id>` `[--index N]` | `input tap` at a point, at line `[n]` of the last `screen` outline (no new tree read while the same window has focus), or at the centre of the element whose text / content-desc or resource-id (full or the part after `:id/`) matches: exact first, then case-insensitive contains. No match, or several without `--index` (0-based), exits 1 with the candidates (text, id, bounds). |
 | `crewdroid type <serial> <text> [--into <text\|id>]` | appends the text to the focused field through the on-device helper (any Unicode, e.g. Korean); `--into` taps the field first. Without the helper: `input text`, ASCII only, see below. |
 | `crewdroid swipe <serial> up\|down\|left\|right [--times N]` \| `swipe <serial> x1 y1 x2 y2 [ms]` | finger direction over the middle 50 % of the current screen (`up` scrolls the content down). |
 | `crewdroid key <serial> back\|home\|enter\|delete\|tab\|menu\|KEYCODE_*` | `input keyevent`; prints the focused window afterwards. |
+
+`tap`, `type`, `swipe` and `key` then print the new screen outline (as `screen`), read once the tree is unchanged for 150 ms (1 s at most), so an agent needs no separate observe call; `--no-screen` (MCP `screen:false`) skips it, `--json` (MCP `format:"json"`) returns the result object with the outline as `screen`.
 
 `screen`, `tap`, `type`, `swipe` and `key` go through a small on-device helper that `up` starts on every device (instrumentation APK `dev.crewdroid.agent`, reached over `adb forward` on 127.0.0.1; `docs/adr/0007-agent-helper.md`): a tree read takes tens of milliseconds instead of a `uiautomator dump`. Each result says `via: "helper"` or `via: "fallback"` (helper not answering: the old `uiautomator` / `input` path, then the helper is restarted). Points outside the screen exit 1 before anything is sent. Without the helper, non-ASCII text (e.g. Korean) is not typed: `type` exits 1 with the reason. `input text` only types characters in the device key map, ATD has no shell command that sets the clipboard for a paste (`cmd clipboard` has no implementation), and crewdroid does not install a keyboard app; pass such text through your app (intent extra, test hook) or install an IME such as ADBKeyboard yourself. The probe app has a form for these: `--es check form` (field id `name`, button `Send` -> `CrewProbe FORM <text>`, a 3-screen scroll whose bottom `END` logs `CrewProbe SCROLL END`). `node scripts/check-input.mjs` runs all of it on an API 34 and an API 36 device.
 
@@ -167,7 +202,7 @@ Read-only commands (nothing stays running on the device). Each takes `--json`; t
 | Command | Output |
 |---|---|
 | `crewdroid triage <serial> [--app <pkg>] [--heap out.hprof]` | `crashes` (logcat crash buffer: pkg, exception, top frame in the app, time), `anrs` (ActivityManager log + `dumpsys activity exit-info`), `anrTraces` (`/data/anr` headers, or `"unreadable"` without root), `exits` (exit reasons), `recentLog` (the app's last 200 lines), `summary`. `--heap` runs `am dumpheap` and pulls the hprof. |
-| `crewdroid screen <serial> [--png file]` | focused window (`dumpsys window`) and a compact accessibility tree from the on-device helper (`uiautomator` as fallback) `[{cls, text, desc, id, bounds, clickable, depth, editable?, scrollable?, checked?}]`. Compose `testTag` shows as `id` only under `testTagsAsResourceId = true`. On API 31 a fully black screen left by an app relaunch (Android 12 emulator bug, any tool's `am start -S`) is recovered first (HOME + resume) and reported as `blackRelaunch`, so it is never mistaken for an app bug. |
+| `crewdroid screen <serial> [--png file] [--bounds]` | focused window (`dumpsys window`) and screen size, then one line per visible element of the accessibility tree from the on-device helper (`uiautomator` as fallback): `[n] role "text" #id @x,y flags` (role btn / edit / text / img / list / check; a clickable card is one line with its texts; R8-obfuscated ids left out; `@x,y` = centre, `--bounds` adds `[l,t,r,b]`; flags `focused` / `checked` / `disabled`; `… N more below (swipe up)` for off-screen nodes). `--json` (MCP `format:"json"`) = the full tree `[{cls, text, desc, id, bounds, clickable, depth, editable?, scrollable?, checked?, focused?, disabled?}]`. Compose `testTag` shows as `id` only under `testTagsAsResourceId = true`. On API 31 a fully black screen left by an app relaunch (Android 12 emulator bug, any tool's `am start -S`) is recovered first (HOME + resume) and reported as `blackRelaunch`, so it is never mistaken for an app bug. |
 | `crewdroid perf <serial> <pkg> [--activity .Main] [-- <am start extras>]` | cold start (`am force-stop`, 2 s, `am start -W`; TotalTime ms), frames / jank % / p50-p90-p99 from `dumpsys gfxinfo`, PSS total / Java / native KB from `dumpsys meminfo`. ATD images have no GPU: compare frame numbers between runs, not with a phone. |
 | `crewdroid apk <file.apk>` | host only (`aapt2` from the newest `build-tools`): package, version, min/target SDK, permissions, exported activities, deep-link filters. |
 
@@ -209,6 +244,14 @@ The probe app has targets for these: `adb -s emulator-5580 shell am start -n dev
 | `fill-storage <GB>` / `fill-storage free` | `fallocate` a file in `/data/local/tmp`, read back with `df -k /data`; `free` removes it. The image has about 5.8 GB free |
 
 The probe app has the deep links `crewdroid://probe/*` and `https://probe.crewdroid.example/*` (autoVerify) and logs `CrewProbe LINK <uri>`. `node scripts/check-app.mjs` runs all of it on 2 devices.
+
+## Used-phone load
+
+`crewdroid load <serial> off|low|mid|high [--keep-apps] [--json]`, or `crewdroid up --load <level>` (applied after boot). Also an MCP tool (`load`, and a `load` input on `up`). Off by default: a plain `up` installs nothing of this.
+
+A real user's phone has many apps installed, several alive in the background, little free RAM and some CPU work going on. Each level is a fixed recipe: installed filler apps (30 / 80 / 150 tiny APKs, generated once by `scripts/gen-filler-apks.mjs`; every 3rd wakes up and schedules a periodic job), background processes of the load app `dev.crewdroid.load` (5 / 15 / 30), memory ballast until MemAvailable is at 50 / 30 / 15 % of its value with load off, CPU workers at 10 / 25 / 50 % of every guest core, and AlarmManager / JobScheduler wakeups. `off` force-stops the load app (processes, ballast, alarms, jobs) and uninstalls the fillers and the load app unless `--keep-apps`. The result is the measured guest state: MemAvailable (MB, %), swap, load average, CPU busy %, running processes, installed packages.
+
+The default 896 MB guest has only ~130 MB free at idle, so lmkd kills apps from `low` on; use `--ram 2048` or more to tell the levels apart. What each level costs (cold start, jank, low-memory kills of the app under test, host CPU/RAM) on API 34 and 36: `docs/measurements/load.md` (`node scripts/check-load.mjs`).
 
 ## Add a device profile
 

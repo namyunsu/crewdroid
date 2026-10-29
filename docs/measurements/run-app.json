@@ -1,0 +1,410 @@
+[
+  {
+    "label": "faults",
+    "args": [],
+    "scenario": "davx5-contacts",
+    "file": "scenarios/davx5-contacts.json",
+    "seed": 1,
+    "server": {
+      "stored": 12,
+      "expected": 12,
+      "missing": [],
+      "duplicated": []
+    },
+    "app": "at.bitfire.davdroid",
+    "rules": "judge/carddav.rules.json",
+    "date": "2026-10-28T11:05:03.661Z",
+    "ok": true,
+    "drained": true,
+    "drainSeconds": 60,
+    "devices": [
+      {
+        "serial": "emulator-5580",
+        "profile": "s24ultra",
+        "model": "Galaxy S24 Ultra (FHD+ default)",
+        "api": 34,
+        "image": "android-34/google_atd",
+        "screen": "1080x2340@450",
+        "network": [
+          {
+            "t": 2.3,
+            "state": "airplane"
+          },
+          {
+            "t": 20.9,
+            "state": "online"
+          },
+          {
+            "t": 32.1,
+            "state": "nodata"
+          },
+          {
+            "t": 48,
+            "state": "online"
+          },
+          {
+            "t": 55.4,
+            "state": "slow"
+          },
+          {
+            "t": 69.3,
+            "state": "online"
+          },
+          {
+            "t": 77.7,
+            "state": "flaky"
+          },
+          {
+            "t": 90.1,
+            "state": "online"
+          }
+        ],
+        "drained": true,
+        "drainSeconds": 60,
+        "errors": [],
+        "log": {
+          "actionsOk": 12,
+          "actionsFailed": 0,
+          "requests": 39
+        }
+      },
+      {
+        "serial": "emulator-5582",
+        "profile": "fold5-main",
+        "model": "Galaxy Z Fold5 main",
+        "api": 34,
+        "image": "android-34/google_atd",
+        "screen": "1812x2176@420",
+        "network": [
+          {
+            "t": 4,
+            "state": "nodata"
+          },
+          {
+            "t": 20.3,
+            "state": "online"
+          },
+          {
+            "t": 29.1,
+            "state": "slow"
+          },
+          {
+            "t": 44.8,
+            "state": "online"
+          },
+          {
+            "t": 52.7,
+            "state": "flaky"
+          },
+          {
+            "t": 60.7,
+            "state": "online"
+          },
+          {
+            "t": 67.9,
+            "state": "airplane"
+          },
+          {
+            "t": 84.5,
+            "state": "online"
+          }
+        ],
+        "drained": true,
+        "drainSeconds": 46,
+        "errors": [],
+        "log": {
+          "actionsOk": 12,
+          "actionsFailed": 0,
+          "requests": 34
+        }
+      },
+      {
+        "serial": "emulator-5584",
+        "profile": "s26ultra",
+        "model": "Galaxy S26 Ultra (FHD+ default)",
+        "api": 36,
+        "image": "android-36/google_atd",
+        "screen": "1080x2340@420",
+        "network": [
+          {
+            "t": 3.6,
+            "state": "slow"
+          },
+          {
+            "t": 19.1,
+            "state": "online"
+          },
+          {
+            "t": 26.6,
+            "state": "flaky"
+          },
+          {
+            "t": 38.9,
+            "state": "online"
+          },
+          {
+            "t": 46.4,
+            "state": "airplane"
+          },
+          {
+            "t": 63.6,
+            "state": "online"
+          },
+          {
+            "t": 73.2,
+            "state": "nodata"
+          },
+          {
+            "t": 84.7,
+            "state": "online"
+          }
+        ],
+        "drained": true,
+        "drainSeconds": 50,
+        "errors": [],
+        "log": {
+          "actionsOk": 12,
+          "actionsFailed": 0,
+          "requests": 38
+        }
+      }
+    ],
+    "judge": {
+      "ok": true,
+      "rules": 4,
+      "violations": []
+    },
+    "proxy": {
+      "log": "(temp)",
+      "ports": [
+        {
+          "device": "emulator-5580",
+          "port": 5590
+        },
+        {
+          "device": "emulator-5582",
+          "port": 5591
+        },
+        {
+          "device": "emulator-5584",
+          "port": 5592
+        }
+      ],
+      "loseAcks": 0
+    },
+    "wallSeconds": 448,
+    "host": {
+      "peakCpuPercent": 92,
+      "peakRamMB": 24853,
+      "totalRamMB": 65462,
+      "cores": 16
+    }
+  },
+  {
+    "label": "lost-acks",
+    "args": [
+      "--proxy",
+      "5590",
+      "--log",
+      "--lose-acks",
+      "0.3"
+    ],
+    "scenario": "davx5-contacts",
+    "file": "scenarios/davx5-contacts.json",
+    "seed": 1,
+    "server": {
+      "stored": 12,
+      "expected": 12,
+      "missing": [],
+      "duplicated": []
+    },
+    "app": "at.bitfire.davdroid",
+    "rules": "judge/carddav.rules.json",
+    "date": "2026-10-28T11:12:39.268Z",
+    "ok": true,
+    "drained": true,
+    "drainSeconds": 66,
+    "devices": [
+      {
+        "serial": "emulator-5580",
+        "profile": "s24ultra",
+        "model": "Galaxy S24 Ultra (FHD+ default)",
+        "api": 34,
+        "image": "android-34/google_atd",
+        "screen": "1080x2340@450",
+        "network": [
+          {
+            "t": 2.3,
+            "state": "airplane"
+          },
+          {
+            "t": 19.6,
+            "state": "online"
+          },
+          {
+            "t": 29.9,
+            "state": "nodata"
+          },
+          {
+            "t": 45.9,
+            "state": "online"
+          },
+          {
+            "t": 53,
+            "state": "slow"
+          },
+          {
+            "t": 67,
+            "state": "online"
+          },
+          {
+            "t": 75.3,
+            "state": "flaky"
+          },
+          {
+            "t": 87.9,
+            "state": "online"
+          }
+        ],
+        "drained": true,
+        "drainSeconds": 46,
+        "errors": [],
+        "log": {
+          "actionsOk": 12,
+          "actionsFailed": 0,
+          "requests": 38
+        }
+      },
+      {
+        "serial": "emulator-5582",
+        "profile": "fold5-main",
+        "model": "Galaxy Z Fold5 main",
+        "api": 34,
+        "image": "android-34/google_atd",
+        "screen": "1812x2176@420",
+        "network": [
+          {
+            "t": 4,
+            "state": "nodata"
+          },
+          {
+            "t": 21.2,
+            "state": "online"
+          },
+          {
+            "t": 30.1,
+            "state": "slow"
+          },
+          {
+            "t": 45.9,
+            "state": "online"
+          },
+          {
+            "t": 54.4,
+            "state": "flaky"
+          },
+          {
+            "t": 62.5,
+            "state": "online"
+          },
+          {
+            "t": 71.3,
+            "state": "airplane"
+          },
+          {
+            "t": 87.4,
+            "state": "online"
+          }
+        ],
+        "drained": true,
+        "drainSeconds": 66,
+        "errors": [],
+        "log": {
+          "actionsOk": 12,
+          "actionsFailed": 0,
+          "requests": 37
+        }
+      },
+      {
+        "serial": "emulator-5584",
+        "profile": "s26ultra",
+        "model": "Galaxy S26 Ultra (FHD+ default)",
+        "api": 36,
+        "image": "android-36/google_atd",
+        "screen": "1080x2340@420",
+        "network": [
+          {
+            "t": 3.6,
+            "state": "slow"
+          },
+          {
+            "t": 19.3,
+            "state": "online"
+          },
+          {
+            "t": 26.6,
+            "state": "flaky"
+          },
+          {
+            "t": 38.9,
+            "state": "online"
+          },
+          {
+            "t": 46.2,
+            "state": "airplane"
+          },
+          {
+            "t": 63.5,
+            "state": "online"
+          },
+          {
+            "t": 72.3,
+            "state": "nodata"
+          },
+          {
+            "t": 84.1,
+            "state": "online"
+          }
+        ],
+        "drained": true,
+        "drainSeconds": 46,
+        "errors": [],
+        "log": {
+          "actionsOk": 12,
+          "actionsFailed": 0,
+          "requests": 40
+        }
+      }
+    ],
+    "judge": {
+      "ok": true,
+      "rules": 4,
+      "violations": []
+    },
+    "proxy": {
+      "log": "(temp)",
+      "ports": [
+        {
+          "device": "emulator-5580",
+          "port": 5590
+        },
+        {
+          "device": "emulator-5582",
+          "port": 5591
+        },
+        {
+          "device": "emulator-5584",
+          "port": 5592
+        }
+      ],
+      "loseAcks": 0.3
+    },
+    "wallSeconds": 449,
+    "host": {
+      "peakCpuPercent": 91,
+      "peakRamMB": 23661,
+      "totalRamMB": 65462,
+      "cores": 16
+    }
+  }
+]

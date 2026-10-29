@@ -1,0 +1,6 @@
+{
+  "rules": [
+    { "table": "records", "rule": "unique(id)" },
+    { "table": "writes", "rule": "noLostUpdate(id,baseVersion)" }
+  ]
+}

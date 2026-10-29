@@ -25,11 +25,11 @@
 | old WS 합 | 8453 MB | 8538 MiB | 4093 MiB |
 | Private Bytes 합 | — | 10971 MiB | 6180 MiB |
 
-[확인함 `ram.json`, `ram-sweep.json` `k0-base`, `baseline.md`, `.ai-log/evidence/T16-1.txt`]
+[확인함 `ram.json`, `ram-sweep.json` `k0-base`, `baseline.md`]
 
-채택값 (`src/avd.ts` `KNOBS`): `-lowram`, 게스트 RAM 896 MB (API 31 만 768 MB), 호스트 Vulkan 끔 (`-feature -Vulkan`), 나머지는 그대로 (`-gpu host`, 파일 기반 RAM 끔, 스냅샷 부팅). 같은 verify 에서 `check-scenario` (BUGGY 3/3 잡음, 정상 3/3 통과) 와 `mvp-private-app --runs 1` (WebRTC 통화 1/1) 통과 [확인함 `T16-1.txt`]. 추가로 `check-up`, `check-render` (3대 모두 그려짐), `check-disk` (5.92 GiB, 부팅 평균 6.37 s) 통과 [확인함 `T16-1.txt` 끝부분].
+채택값 (`src/avd.ts` `KNOBS`): `-lowram`, 게스트 RAM 896 MB (API 31 만 768 MB), 호스트 Vulkan 끔 (`-feature -Vulkan`), 나머지는 그대로 (`-gpu host`, 파일 기반 RAM 끔, 스냅샷 부팅). 같은 verify 에서 `check-scenario` (BUGGY 3/3 잡음, 정상 3/3 통과) 통과 [확인함 `T16-1.txt`]. 추가로 `check-up`, `check-render` (3대 모두 그려짐), `check-disk` (5.92 GiB, 부팅 평균 6.37 s) 통과 [확인함 `T16-1.txt` 끝부분].
 
-같은 896 MB 설정을 모든 API 에 쓴 두 번은 4283 / 4313 MiB 로 기준에 붙어 있었다 (실행마다 ±50~100 MiB 흔들림). API 31 은 private-app 통화에 쓰지 않으므로 768 MB 로 내려 여유를 만들었다 [확인함 `ram-sweep.json` `k-896-novk`, `k-896-novk-2`, `src/integrations/private-app.ts` PRIVATE_APP_PROFILES].
+같은 896 MB 설정을 모든 API 에 쓴 두 번은 4283 / 4313 MiB 로 기준에 붙어 있었다 (실행마다 ±50~100 MiB 흔들림). API 31 은 통화 시험에 쓰지 않으므로 768 MB 로 내려 여유를 만들었다 [확인함 `ram-sweep.json` `k-896-novk`, `k-896-novk-2`].
 
 ## 손잡이별 (한 번에 하나, 3대 합계)
 

@@ -1,0 +1,8 @@
+{
+  "rules": [
+    { "rule": "dupSuccess()" },
+    { "rule": "lostUpdate(/crew/contacts/:file, if-match)" },
+    { "rule": "lostWrite(120)" },
+    { "rule": "idle(5)" }
+  ]
+}

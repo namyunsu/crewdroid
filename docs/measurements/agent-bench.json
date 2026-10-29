@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26T14:14:22.017Z",
+  "date": "2026-10-29T00:03:15.422Z",
   "task": "open the Field Notes demo app, add a note 'Fix pump #3', confirm it appears in the list",
   "device": {
     "profile": "s24ultra",
@@ -17,103 +17,116 @@
     "path": "A",
     "runs": 5,
     "ok": 5,
-    "tokensPerTask": 9695,
-    "secondsPerTask": 23.91,
-    "toolCallsPerTask": 7,
-    "payloadBytesPerTask": 38793,
-    "observeCallsPerTask": 3,
+    "tokensPerTask": 1882,
+    "secondsPerTask": 10.58,
+    "toolCallsPerTask": 6.2,
+    "payloadBytesPerTask": 7545,
+    "observeCallsPerTask": 2,
     "images": [],
     "steps": [
       {
         "step": "launch",
         "tool": "launch",
-        "seconds": 6.22,
+        "runs": 5,
+        "seconds": 6.61,
         "bytes": 198,
         "tokens": 50
       },
       {
-        "step": "observe (tree)",
+        "step": "observe (screen)",
         "tool": "screen",
-        "seconds": 3.55,
-        "bytes": 11119,
-        "tokens": 2778
+        "runs": 5,
+        "seconds": 0.48,
+        "bytes": 1704,
+        "tokens": 424
       },
       {
-        "step": "tap New note",
+        "step": "tap New note (+screen)",
         "tool": "tap",
-        "seconds": 3.27,
-        "bytes": 256,
-        "tokens": 64
+        "runs": 5,
+        "seconds": 1.58,
+        "bytes": 399,
+        "tokens": 100
       },
       {
-        "step": "type into title",
+        "step": "type into title (+screen)",
         "tool": "type",
-        "seconds": 4.4,
-        "bytes": 268,
-        "tokens": 67
+        "runs": 5,
+        "seconds": 0.48,
+        "bytes": 419,
+        "tokens": 105
       },
       {
-        "step": "tap Save",
+        "step": "tap Save (+screen)",
         "tool": "tap",
-        "seconds": 3.2,
-        "bytes": 252,
-        "tokens": 63
-      },
-      {
-        "step": "confirm (tree)",
-        "tool": "screen",
-        "seconds": 2.98,
-        "bytes": 11374,
-        "tokens": 2841
+        "runs": 5,
+        "seconds": 1.04,
+        "bytes": 1725,
+        "tokens": 429
       },
       {
         "step": "confirm (logs)",
         "tool": "logs",
-        "seconds": 0.29,
-        "bytes": 15326,
-        "tokens": 3832
+        "runs": 5,
+        "seconds": 0.25,
+        "bytes": 2752,
+        "tokens": 687
+      },
+      {
+        "step": "re-check (screen; Save's screen lacked the note)",
+        "tool": "screen",
+        "runs": 1,
+        "seconds": 0.69,
+        "bytes": 1736,
+        "tokens": 432
       }
     ],
+    "perCall": {
+      "screen": 0.52,
+      "tap": 1.31,
+      "type": 0.48,
+      "logs": 0.25
+    },
     "perRun": [
       {
         "run": 1,
         "ok": true,
-        "seconds": 29.12,
-        "tokens": 10370,
-        "bytes": 41492,
-        "calls": 7
+        "seconds": 11.9,
+        "tokens": 1826,
+        "bytes": 7323,
+        "calls": 6
       },
       {
         "run": 2,
         "ok": true,
-        "seconds": 27.36,
-        "tokens": 10129,
-        "bytes": 40529,
+        "seconds": 11.72,
+        "tokens": 2304,
+        "bytes": 9238,
         "calls": 7
       },
       {
         "run": 3,
         "ok": true,
-        "seconds": 21.96,
-        "tokens": 9295,
-        "bytes": 37193,
-        "calls": 7
+        "seconds": 12.21,
+        "tokens": 1826,
+        "bytes": 7323,
+        "calls": 6
       },
       {
         "run": 4,
         "ok": true,
-        "seconds": 20.1,
-        "tokens": 9500,
-        "bytes": 38015,
-        "calls": 7
+        "seconds": 8.83,
+        "tokens": 1740,
+        "bytes": 6976,
+        "calls": 6
       },
       {
         "run": 5,
         "ok": true,
-        "seconds": 20.99,
-        "tokens": 9181,
-        "bytes": 36736,
-        "calls": 7
+        "seconds": 8.22,
+        "tokens": 1712,
+        "bytes": 6863,
+        "calls": 6
       }
     ],
     "failures": []
@@ -122,16 +135,16 @@
     "path": "B",
     "runs": 5,
     "ok": 5,
-    "tokensPerTask": 6212,
-    "secondsPerTask": 10.26,
+    "tokensPerTask": 6183,
+    "secondsPerTask": 10.46,
     "toolCallsPerTask": 8,
-    "payloadBytesPerTask": 922820,
+    "payloadBytesPerTask": 931301,
     "observeCallsPerTask": 4,
     "images": [
       {
         "width": 1080,
         "height": 2340,
-        "bytes": 239578,
+        "bytes": 242621,
         "tokens": 1513
       }
     ],
@@ -139,138 +152,260 @@
       {
         "step": "launch",
         "tool": "launch",
-        "seconds": 5.93,
+        "runs": 5,
+        "seconds": 6.11,
         "bytes": 198,
         "tokens": 50
       },
       {
         "step": "observe (shot)",
         "tool": "shot",
-        "seconds": 0.87,
-        "bytes": 239434,
+        "runs": 5,
+        "seconds": 0.85,
+        "bytes": 242689,
         "tokens": 1530
       },
       {
         "step": "tap New note (x,y)",
         "tool": "tap",
-        "seconds": 0.29,
-        "bytes": 56,
-        "tokens": 14
+        "runs": 5,
+        "seconds": 0.23,
+        "bytes": 15,
+        "tokens": 4
       },
       {
         "step": "observe (shot)",
         "tool": "shot",
-        "seconds": 0.81,
-        "bytes": 244865,
+        "runs": 5,
+        "seconds": 1,
+        "bytes": 246237,
         "tokens": 1530
       },
       {
         "step": "type",
         "tool": "type",
-        "seconds": 0.82,
-        "bytes": 56,
-        "tokens": 14
+        "runs": 5,
+        "seconds": 0.65,
+        "bytes": 19,
+        "tokens": 5
       },
       {
         "step": "observe (shot)",
         "tool": "shot",
-        "seconds": 0.61,
-        "bytes": 181034,
+        "runs": 5,
+        "seconds": 0.67,
+        "bytes": 184047,
         "tokens": 1530
       },
       {
         "step": "tap Save (x,y)",
         "tool": "tap",
-        "seconds": 0.23,
-        "bytes": 56,
-        "tokens": 14
+        "runs": 5,
+        "seconds": 0.18,
+        "bytes": 15,
+        "tokens": 4
       },
       {
         "step": "confirm (shot)",
         "tool": "shot",
-        "seconds": 0.69,
-        "bytes": 257121,
+        "runs": 5,
+        "seconds": 0.76,
+        "bytes": 258082,
         "tokens": 1530
       }
     ],
+    "perCall": {
+      "tap": 0.21,
+      "type": 0.65,
+      "shot": 0.82
+    },
     "perRun": [
       {
         "run": 1,
         "ok": true,
-        "seconds": 14.29,
-        "tokens": 6212,
-        "bytes": 902038,
+        "seconds": 11.56,
+        "tokens": 6183,
+        "bytes": 944170,
         "calls": 8,
-        "untimedLocateSeconds": 13.24
+        "untimedLocateSeconds": 1.72
       },
       {
         "run": 2,
         "ok": true,
-        "seconds": 10.87,
-        "tokens": 6212,
-        "bytes": 937752,
+        "seconds": 13.6,
+        "tokens": 6183,
+        "bytes": 908343,
         "calls": 8,
-        "untimedLocateSeconds": 9.03
+        "untimedLocateSeconds": 1.73
       },
       {
         "run": 3,
         "ok": true,
-        "seconds": 8.87,
-        "tokens": 6212,
-        "bytes": 933241,
+        "seconds": 10.41,
+        "tokens": 6183,
+        "bytes": 914156,
         "calls": 8,
-        "untimedLocateSeconds": 8.02
+        "untimedLocateSeconds": 1.3
       },
       {
         "run": 4,
         "ok": true,
-        "seconds": 8.61,
-        "tokens": 6212,
-        "bytes": 930898,
+        "seconds": 8.57,
+        "tokens": 6183,
+        "bytes": 940841,
         "calls": 8,
-        "untimedLocateSeconds": 7.77
+        "untimedLocateSeconds": 0.87
       },
       {
         "run": 5,
         "ok": true,
-        "seconds": 8.65,
-        "tokens": 6212,
-        "bytes": 910170,
+        "seconds": 8.15,
+        "tokens": 6183,
+        "bytes": 948997,
         "calls": 8,
-        "untimedLocateSeconds": 7.51
+        "untimedLocateSeconds": 0.79
       }
     ],
     "failures": []
   },
   "ratio": {
-    "tokens": 0.64,
-    "seconds": 0.43,
-    "payloadBytes": 23.79,
-    "toolCalls": 1.14
+    "tokens": 3.29,
+    "seconds": 0.99,
+    "payloadBytes": 123.43,
+    "toolCalls": 1.29
+  },
+  "perCallTarget": {
+    "maxSeconds": 0.5,
+    "screen": {
+      "seconds": 0.52,
+      "ok": false
+    },
+    "tap": {
+      "seconds": 1.31,
+      "ok": false
+    },
+    "type": {
+      "seconds": 0.48,
+      "ok": true
+    }
+  },
+  "api36": {
+    "api": 36,
+    "serial": "emulator-5580",
+    "A": {
+      "ok": true,
+      "seconds": 19.11,
+      "tokens": 2543,
+      "perCall": {
+        "observe (screen)": 1.96,
+        "tap New note (+screen)": 3.76,
+        "type into title (+screen)": 1.43,
+        "tap Save (+screen)": 2.03,
+        "confirm (logs)": 0.39
+      }
+    },
+    "B": {
+      "ok": true,
+      "seconds": 19.27,
+      "tokens": 6183,
+      "perCall": {
+        "observe (shot)": 1.54,
+        "tap New note (x,y)": 0.28,
+        "type": 3.32,
+        "tap Save (x,y)": 1.13,
+        "confirm (shot)": 1.49
+      }
+    }
+  },
+  "robustness": [
+    {
+      "profile": "fold5-main",
+      "screen": "1812x2176@420",
+      "font": 1.3,
+      "A": {
+        "ok": true,
+        "seconds": 8.22,
+        "tokens": 1723,
+        "perCall": {
+          "observe (screen)": 0.3,
+          "tap New note (+screen)": 0.89,
+          "type into title (+screen)": 0.42,
+          "tap Save (+screen)": 0.92,
+          "confirm (logs)": 0.16
+        }
+      },
+      "B": {
+        "ok": false,
+        "error": "tap New note (x,y): error: point (819, 2205) is outside the screen 1812x2176"
+      }
+    },
+    {
+      "profile": "flip6-cover",
+      "screen": "720x748@320",
+      "font": 1.3,
+      "A": {
+        "ok": true,
+        "seconds": 7.62,
+        "tokens": 1170,
+        "perCall": {
+          "observe (screen)": 0.22,
+          "tap New note (+screen)": 0.89,
+          "type into title (+screen)": 0.42,
+          "tap Save (+screen)": 0.59,
+          "confirm (logs)": 0.16
+        }
+      },
+      "B": {
+        "ok": false,
+        "error": "tap New note (x,y): error: point (819, 2205) is outside the screen 720x748"
+      }
+    }
+  ],
+  "before": {
+    "date": "2026-10-26",
+    "commit": "1274c6b",
+    "A": {
+      "tokensPerTask": 9695,
+      "secondsPerTask": 23.91,
+      "toolCallsPerTask": 7,
+      "payloadBytesPerTask": 38793,
+      "perCall": {
+        "screen": 3.27,
+        "tap": 3.24,
+        "type": 4.4,
+        "logs": 0.29
+      }
+    },
+    "B": {
+      "tokensPerTask": 6212,
+      "secondsPerTask": 10.26,
+      "toolCallsPerTask": 8,
+      "payloadBytesPerTask": 922820
+    }
   },
   "firstDevice": {
-    "crewdroidSeconds": 8.5,
+    "crewdroidSeconds": 8.4,
     "crewdroidCmd": "crewdroid up --profile s24ultra --api 34",
     "crewdroidReadySeconds": 8.2,
-    "crewdroidFirstUpSeconds": 8.7,
-    "stockSeconds": 24.2,
-    "stockFirstBootSeconds": 41.9,
-    "stockQuickBootSeconds": 5.8,
+    "crewdroidFirstUpSeconds": 8.2,
+    "stockSeconds": 22.3,
+    "stockFirstBootSeconds": 35.5,
+    "stockQuickBootSeconds": 5.7,
     "stock": [
       {
         "label": "first boot (fresh AVD)",
         "flags": "-netdelay none -netspeed full -avd bench-stock-34 -port 5592",
-        "seconds": 41.9
+        "seconds": 35.5
       },
       {
         "label": "cold boot",
         "flags": "-netdelay none -netspeed full -avd bench-stock-34 -port 5592 -no-snapshot-load",
-        "seconds": 24.2
+        "seconds": 22.3
       },
       {
         "label": "quick boot (snapshot saved on exit)",
         "flags": "-netdelay none -netspeed full -avd bench-stock-34 -port 5592",
-        "seconds": 5.8
+        "seconds": 5.7
       }
     ],
     "stockAvd": "avdmanager create avd -d medium_phone -k \"system-images;android-34;google_atd;x86_64\" + hw.gpu.mode=auto, hw.keyboard=yes; window shown (minimized), deleted afterwards",

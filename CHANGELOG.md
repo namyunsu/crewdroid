@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.2.0]
+## [Unreleased]
 
 ### Added
 - `setup`: installs the Android SDK pieces (JDK 17, cmdline-tools, platform-tools, emulator, google_atd images); `--dry-run` and `--yes`.

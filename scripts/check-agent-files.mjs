@@ -61,8 +61,10 @@ for (const d of readdirSync(skillsDir).filter((d) => statSync(join(skillsDir, d)
 
 // claude plugin validate --strict. Unavoidable exception: plugin root == repo root, so the validator always warns
 // "CLAUDE.md at the plugin root is not loaded" (CLAUDE.md must stay for Claude Code). Any other warning/error fails.
-const v = spawnSync("claude plugin validate --strict .", { shell: true, encoding: "utf8" });
-if (v.status !== 0) {
+const hasClaude = spawnSync("claude --version", { shell: true, encoding: "utf8" }).status === 0;
+const v = hasClaude ? spawnSync("claude plugin validate --strict .", { shell: true, encoding: "utf8" }) : { status: 0 };
+if (!hasClaude) console.log("validate --strict: skipped (claude CLI not installed, e.g. on CI)");
+else if (v.status !== 0) {
   const j = JSON.parse(spawnSync("claude plugin validate --strict --json .", { shell: true, encoding: "utf8" }).stdout);
   const items = [j.manifest, ...j.contents].filter(Boolean);
   const bad = items.flatMap((i) => [...i.errors, ...i.warnings.filter((w) => !/^CLAUDE.md at the plugin root/.test(w.message))]);

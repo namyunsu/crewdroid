@@ -1,0 +1,46 @@
+name: Bug report
+description: A crewdroid command fails or gives a wrong result
+labels: [bug]
+body:
+  - type: input
+    id: os
+    attributes:
+      label: Host OS and CPU
+      placeholder: Windows 11 x64 / macOS 15 Apple Silicon / Ubuntu 24.04 x64
+    validations:
+      required: true
+  - type: input
+    id: emulator
+    attributes:
+      label: Emulator version and crewdroid version
+      description: "`emulator -version` and `npx crewdroid --version`"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command you ran.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output with --json
+      description: Run the same command again with `--json` and paste the result.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+    validations:
+      required: true

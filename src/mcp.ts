@@ -7,7 +7,7 @@ import { z, type ZodRawShape } from "zod";
 import { adb } from "./adb.ts";
 import { hammer } from "./hammer.ts";
 import { judge } from "./judge.ts";
-import { NET_STATES, setNet } from "./net.ts";
+import { NET_COMMANDS, setNet } from "./net.ts";
 import { CREW_RE, listProcesses } from "./platform.ts";
 import { loadProfiles } from "./profiles.ts";
 import { runScenario } from "./scenario.ts";
@@ -15,7 +15,8 @@ import { down, up, upDefaults } from "./up.ts";
 
 // A feature module adds MCP tools by exporting `mcpTools: Tool[]`; serve() picks up every src/*.ts that does.
 // `long` tools get a `timeoutSec` input and should print progress with console.error (sent as logging notifications).
-// `content` (optional) turns the result into MCP content items (e.g. an image); without it the result is sent as JSON text.
+// `content` (optional) turns the result into MCP content items (e.g. an image); without it a string result is sent as is
+// (the compact screen / logs text), anything else as JSON text.
 export type ContentItem = { type: "text"; text: string } | { type: "image"; mimeType: string; data: string };
 export interface Tool { name: string; description: string; input: ZodRawShape; long?: boolean; run(args: any): Promise<unknown>; content?(result: any): ContentItem[] }
 
@@ -47,19 +48,24 @@ const core: Tool[] = [
   { name: "devices", description: "Use to find the emulator-<port> serial every other tool needs, or to check what is already running. Returns [{serial, avd, api, profile, screen, cores, ramMB, booted}]; empty = call up.", input: {}, run: () => devices() },
   {
     name: "up", long: true, description: "Start of the loop: boot headless emulators (1-3 min). No args = ONE device (s24ultra, newest API <= 36), the right choice for building/checking an app; count > 1 mixes Galaxy profiles and Android versions. Returns {devices:[{serial, api, profile, wmSize}]}; pass serial to every other tool.",
-    input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), cores: z.number().int().optional().describe("guest CPUs, e.g. 1|2|4|6|8 (default 2; <= host CPUs)"), ram: z.number().int().optional().describe("guest RAM MB, 896..8192 (default 896, API 31 768)"), basePort: z.number().int().default(5580) },
-    run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api, cores: a.cores, ramMB: a.ram }); },
+    input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), cores: z.number().int().optional().describe("guest CPUs, e.g. 1|2|4|6|8 (default 2; <= host CPUs)"), ram: z.number().int().optional().describe("guest RAM MB, 896..8192 (default 896, API 31 768)"), load: z.enum(["off", "low", "mid", "high"]).optional().describe("used-phone load applied after boot (see the load tool)"), basePort: z.number().int().default(5580) },
+    run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api, cores: a.cores, ramMB: a.ram, load: a.load }); },
   },
   { name: "down", description: "End of the loop: kill every crewdroid (crew-*) emulator. Always call it when finished. Returns {killed: pids, ports}.", input: {}, run: () => down() },
   {
-    name: "net", description: "Set one emulator's network state.",
-    input: { serial: z.string().describe("emulator-<port>"), state: z.enum(NET_STATES as [string, ...string[]]), seed: z.number().int().default(1) },
-    run: (a) => setNet(a.serial, a.state, a.seed),
+    name: "net", description: "Set one emulator's network state (airplane|nodata|slow|flaky|online), which link is up (wifi|cellular|both|none), switch the active link while traffic flows (handover), or mark Wi-Fi metered. Returns the transport apps see: {default: wifi|cellular|none, connected, metered}.",
+    input: {
+      serial: z.string().describe("emulator-<port>"), state: z.enum(NET_COMMANDS as unknown as [string, ...string[]]), seed: z.number().int().default(1),
+      to: z.enum(["wifi", "cellular"]).optional().describe("handover target (default: the other link)"),
+      during: z.number().int().optional().describe("handover: ms with no link between old and new (default 0 = new link up before the old one goes)"),
+      metered: z.boolean().optional().describe("state=metered: true = Wi-Fi metered"),
+    },
+    run: (a) => setNet(a.serial, a.state, a.seed, { to: a.to, during: a.during, metered: a.metered }),
   },
   {
-    name: "judge", description: "Judge server data against rules (unique / count / noLostUpdate). ok=false lists violations.",
-    input: { rules: z.string().default("judge/sample.rules.json"), source: z.string().describe("server base URL (GETs /export) or JSON file") },
-    run: (a) => judge(a.rules, a.source),
+    name: "judge", description: "Judge server data (unique / count / noLostUpdate) and/or a proxy request log (dupSuccess / lostUpdate / lostWrite / idle) against a rules file. ok=false lists violations.",
+    input: { rules: z.string().default("judge/sample.rules.json"), source: z.string().optional().describe("server base URL (GETs /export) or JSON file"), log: z.string().optional().describe("proxy JSONL log (proxy tool / run with proxy), e.g. with judge/proxy.rules.json") },
+    run: (a) => judge(a.rules, a.source, a.log),
   },
   {
     name: "hammer", description: "Virtual users hit a server API concurrently, then judge the result.",
@@ -67,8 +73,8 @@ const core: Tool[] = [
     run: (a) => hammer(a),
   },
   {
-    name: "run", long: true, description: "Run a multi-device scenario file: up, app, network schedule, judge, down (minutes).",
-    input: { file: z.string().describe("e.g. scenarios/photo-upload.json"), seed: z.number().int().default(1), count: z.number().int().default(3), basePort: z.number().int().default(5580), serverPort: z.number().int().default(5599) },
+    name: "run", long: true, description: "Run a multi-device scenario file on any app: up, install, per-device actions (Maestro flow / intent / adb) + network schedule, drain, judge (proxy log by default), down (minutes). Format: docs/guide-your-app.md.",
+    input: { file: z.string().describe("e.g. scenarios/photo-upload.json"), seed: z.number().int().default(1), count: z.number().int().optional().describe("default: the file's devices.count, else 3"), basePort: z.number().int().default(5580), serverPort: z.number().int().default(5599) },
     run: (a) => runScenario(a.file, a),
   },
 ];
@@ -102,7 +108,7 @@ export async function serve() {
         const r = t.long
           ? await Promise.race([work, new Promise((_, no) => { timer = setTimeout(() => no(new Error(`${t.name} timed out after ${a.timeoutSec}s (emulators may still run; call down)`)), a.timeoutSec * 1000); })])
           : await work;
-        return t.content ? { content: t.content(r), isError: false } : text(JSON.stringify(r ?? null, null, 2));
+        return t.content ? { content: t.content(r), isError: false } : text(typeof r === "string" ? r : JSON.stringify(r ?? null, null, 2));
       } catch (e) {
         return text(`error: ${e instanceof Error ? e.message : String(e)}`, true);
       } finally {

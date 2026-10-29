@@ -12,7 +12,7 @@ const check = (cond, msg) => { if (!cond) { fails.push(msg); console.error("FAIL
 // (1) scrub
 const FORBIDDEN = [/NYS/, /jjkng/, /C:\/Users\//, /C:\\Users\\/, /D:\/workspace/, /D:\\workspace/, /R3CT\w+/];
 // AI NOTE: these hold the patterns themselves, fake serials used as negative test input, or the private agent notes (CLAUDE.md, never packed; T25 reduces it to `@AGENTS.md`, release.md tells the user to decide).
-const SCRUB_SKIP = new Set(["scripts/check-public.mjs", "test/adb.test.ts", "scripts/check-mcp-server.mjs", "CLAUDE.md"]);
+const SCRUB_SKIP = new Set(["scripts/check-public.mjs", "scripts/release-public.mjs", "test/adb.test.ts", "scripts/check-mcp-server.mjs", "CLAUDE.md"]);
 const files = execSync("git ls-files", { cwd: root, encoding: "utf8" }).split("\n").filter(Boolean)
   .filter((f) => !f.startsWith("docs/") && !f.startsWith(".ai-log/") && !SCRUB_SKIP.has(f) && !f.endsWith(".jar"));
 for (const f of files) {

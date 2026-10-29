@@ -1,0 +1,7 @@
+{
+  "rules": [
+    { "table": "orders", "rule": "unique(requestId)" },
+    { "table": "orders", "rule": "count(requests)", "on": "requestId" },
+    { "table": "profiles", "rule": "noLostUpdate(id,baseVersion)" }
+  ]
+}

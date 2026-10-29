@@ -1,55 +1,87 @@
 {
-  "date": "2026-10-26T08:22:18.888Z",
+  "date": "2026-10-29T00:40:28.620Z",
+  "message": "your AI agent drives this emulator cheaper and more robustly than clicking a window; same wall time (never 'faster')",
   "numbers": {
-    "ready": 7.4,
-    "loop": 79,
-    "ram": "4.12",
-    "disk": "7.12"
+    "ready": 7.8,
+    "ramMB": 1455,
+    "stock": 22.3,
+    "A": {
+      "tokens": 1882,
+      "seconds": 10.58,
+      "robust": true
+    },
+    "B": {
+      "tokens": 6183,
+      "seconds": 10.46,
+      "robust": false
+    },
+    "tokenRatio": 3.3
   },
   "shown": {
-    "ready": 7.4,
-    "readyText": "ready in 7.4 s"
+    "ready": 7.8,
+    "stock": 22.3,
+    "agentLines": [
+      "crewdroid tap emulator-5580 --text New note",
+      "crewdroid type emulator-5580 Fix pump #3",
+      "crewdroid tap emulator-5580 --text Save"
+    ],
+    "agentLit": [
+      "on done",
+      "on done",
+      "on now"
+    ],
+    "A": {
+      "tokens": "1,882",
+      "seconds": "10.6"
+    },
+    "B": {
+      "tokens": "6,183",
+      "seconds": "10.5"
+    },
+    "end": "1 device ready in 7.8 s · 1,455 MB RAM3.3× fewer tokens than screenshots · same time"
+  },
+  "deviceArea": {
+    "up": [
+      490,
+      120,
+      940,
+      358
+    ],
+    "agent": [
+      734,
+      60,
+      948,
+      512
+    ],
+    "offline": [
+      528,
+      72,
+      944,
+      512
+    ],
+    "screens": [
+      300,
+      64,
+      660,
+      484
+    ]
   },
   "sources": {
-    "ready": "docs/measurements/single.md (mean ready)",
-    "loop": "docs/measurements/demo-vibe.json loopSeconds",
-    "ram": "docs/measurements/ram.md",
-    "disk": "docs/measurements/slim.md"
+    "ready": "docs/measurements/single.md (mean ready, 1 device)",
+    "ramMB": "docs/measurements/single.md (idle working set, 1 device)",
+    "stock": "docs/measurements/agent-bench.json firstDevice.stockSeconds (stock emulator cold boot)",
+    "A": "docs/measurements/agent-bench.json A (tree path)",
+    "B": "docs/measurements/agent-bench.json B (screenshot path)",
+    "robust": "docs/measurements/agent-bench.json robustness (fold/flip)",
+    "clips": "docs/measurements/hero-clips.json"
   },
-  "captures": [
-    {
-      "serial": "emulator-5580",
-      "api": 34,
-      "profile": "s24ultra",
-      "width": 1080,
-      "height": 2340
-    },
-    {
-      "serial": "emulator-5582",
-      "api": 34,
-      "profile": "fold5-main",
-      "width": 1812,
-      "height": 2176
-    },
-    {
-      "serial": "emulator-5584",
-      "api": 36,
-      "profile": "flip7-main",
-      "width": 1080,
-      "height": 2520
-    }
-  ],
   "layout": [
     {
-      "scene": "problem",
+      "scene": "title",
       "problems": []
     },
     {
-      "scene": "answer",
-      "problems": []
-    },
-    {
-      "scene": "any-screen",
+      "scene": "up",
       "problems": []
     },
     {
@@ -57,16 +89,31 @@
       "problems": []
     },
     {
-      "scene": "logo",
+      "scene": "offline",
+      "problems": []
+    },
+    {
+      "scene": "screens",
+      "problems": []
+    },
+    {
+      "scene": "end",
       "problems": []
     }
   ],
   "gif": {
     "path": "docs/demo/hero.gif",
+    "fps": 15,
     "width": 960,
     "height": 540,
-    "fps": 15,
-    "bytes": 1420700,
+    "bytes": 3965461,
+    "seconds": 15
+  },
+  "mp4": {
+    "path": "docs/demo/hero.mp4",
+    "width": 960,
+    "height": 540,
+    "bytes": 892416,
     "seconds": 15
   }
 }

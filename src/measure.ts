@@ -74,7 +74,7 @@ export async function measure(avds: string[], basePort: number, idleSec = 60) {
       avdDir(avd);
       const port = basePort + 2 * i;
       const serial = `emulator-${port}`;
-      // same flags as private-app avd-up.ps1, plus -read-only so the AVD files are never modified
+      // same flags as the launcher script it replaced, plus -read-only so the AVD files are never modified
       await launchEmulator(["-avd", avd, "-port", String(port), "-no-window", "-no-audio", "-read-only", "-gpu", "host", "-camera-back", "emulated"], join(tmpdir(), `crewdroid-${avd}.log`));
       started.push({ avd, serial, t0: Date.now() });
       await sleep(3000); // AI NOTE: launching 3 emulators in the same instant intermittently hung one at startup (log stops after GPU init); a 3 s stagger avoids it

@@ -2,6 +2,7 @@
 // Field Notes layout sweep. One device (s24ultra), profiles switched with wm size/density (what `up --profile` applies), font
 // scale with `env font`, app restarted after each switch (force-stop, 2 s, start). Per combo: the list and the editor sheet.
 // Evidence: .ai-log/evidence/T51/<profile>-<font>-<list|editor>.{png,json} + summary.json. Static checks run first.
+// T54: the list is also scrolled to its end, where the "New note" FAB must not overlap any card (bottom padding).
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -107,6 +108,18 @@ async function unreachableLabels(serial, nodes, size, kind) {
   return want.filter((w) => !seen.has(w));
 }
 
+// Scrolls the list to its end (until the visible card titles stop changing), then every card (#note) the FAB overlaps.
+// At the top of a long list the FAB floats over cards by design; at the end the list's bottom padding must clear it.
+async function fabOverlapAtEnd(serial) {
+  let nodes = (await screen(serial)).nodes, prev = "";
+  const titles = (ns) => ns.filter((n) => /:id\/note_title$/.test(n.id)).map((n) => n.text).join("|");
+  for (let i = 0; i < 8 && titles(nodes) !== prev; i++) { prev = titles(nodes); await swipe(serial, { dir: "up" }); await sleep(700); nodes = (await screen(serial)).nodes; }
+  const fab = nodes.find((n) => /:id\/fab$/.test(n.id)), cards = nodes.filter((n) => /:id\/note$/.test(n.id));
+  if (!fab) return { fails: ["FAB not on screen at the end of the list"], nodes };
+  if (!cards.length) return { fails: ["no card (#note) on screen at the end of the list"], nodes };
+  return { fails: cards.filter((c) => inter(c.bounds, fab.bounds)).map((c) => `FAB [${fab.bounds}] overlaps a card [${c.bounds}] at the end of the list`), nodes };
+}
+
 async function ellipsisNow(serial) {
   const log = await adb(serial, ["logcat", "-d", "-s", "FieldNotes:I"]);
   const m = [...log.matchAll(/LAYOUT title=(-?\d+) subtitle=(-?\d+) sync=(-?\d+)/g)].at(-1);
@@ -161,7 +174,9 @@ try {
         if (f === 1.0) for (const n of scr.nodes.filter((x) => x.clickable && x.text)) baseline.set(`${kind}|${n.text}`, h(n));
         const missing = await unreachableLabels(serial, scr.nodes, size, kind);
         const { fails, ratios } = judge(scr.nodes, size, kind, baseline, ell, missing);
-        writeFileSync(`${base}.json`, JSON.stringify({ profile: p.name, font: f, kind, screen: size, density: p.density, ellipsis: ell, ratios, fails, unreachable: missing, focus: scr.focus, nodes: scr.nodes }, null, 1));
+        const end = kind === "list" ? await fabOverlapAtEnd(serial) : undefined;
+        if (end) fails.push(...end.fails);
+        writeFileSync(`${base}.json`, JSON.stringify({ profile: p.name, font: f, kind, screen: size, density: p.density, ellipsis: ell, ratios, fails, unreachable: missing, focus: scr.focus, nodes: scr.nodes, ...(end ? { endOfList: end.nodes } : {}) }, null, 1));
         summary.push({ profile: p.name, font: f, kind, ratios, ellipsis: ell, fails });
         for (const x of fails) failures.push(`${p.name} font ${f} ${kind}: ${x}`);
         console.log(`${p.name} ${f} ${kind}: ${fails.length ? "FAIL" : "ok"}`);

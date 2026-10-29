@@ -118,7 +118,7 @@ try {
     await closeSheet(s);
     await sleep(500);
     const t0 = performance.now();
-    const m = await client.callTool({ name: "tap", arguments: { serial: s, text: "New note" } });
+    const m = await client.callTool({ name: "tap", arguments: { serial: s, text: "New note", screen: false, format: "json" } }); // T53: the tap call alone, as T52 measured it
     const mcpMs = Math.round(performance.now() - t0);
     let mj = {};
     try { mj = JSON.parse(m.content?.[0]?.text ?? "{}"); } catch { mj = { error: m.content?.[0]?.text }; }

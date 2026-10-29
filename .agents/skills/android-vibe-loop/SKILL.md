@@ -18,17 +18,20 @@ In a checkout without the package installed, `crewdroid` = `npx tsx src/cli.ts`.
 | 1. Boot one device (1-3 min) | `up` {} -> `devices[0].serial` | `crewdroid up` |
 | 2. Install the new build | `install` {target, apk} | `crewdroid install $SERIAL $APK [--grant]` |
 | 3. Start / restart the app | `launch` {serial, pkg, restart:true} | `crewdroid launch $SERIAL $PKG --restart` |
-| 4a. Read the screen (tree) | `screen` {serial} | `crewdroid screen $SERIAL` |
+| 4a. Read the screen (outline) | `screen` {serial} | `crewdroid screen $SERIAL` |
 | 4b. Look at the screen (pixels) | `shot` {serial} -> image | `crewdroid shot $SERIAL [file.png]` |
-| 5. Poke it | `tap` {serial, text\|id\|x,y}, `type` {serial, text, into}, `swipe`, `key` | `crewdroid tap $SERIAL --text Send`, `crewdroid type $SERIAL hi --into name`, `crewdroid swipe $SERIAL up`, `crewdroid key $SERIAL back` |
-| 6. What did the app print? | `logs` {serial, pkg, since:"1m"} | `crewdroid logs $SERIAL $PKG --since 1m` |
+| 5. Poke it (returns the new screen) | `tap` {serial, text\|id\|x,y\|index}, `type` {serial, text, into}, `swipe`, `key` | `crewdroid tap $SERIAL --text Send`, `crewdroid tap $SERIAL '[3]'`, `crewdroid type $SERIAL hi --into name`, `crewdroid swipe $SERIAL up`, `crewdroid key $SERIAL back` |
+| 6. What did the app print? | `logs` {serial, pkg, since:"1m"} (last 40 lines) | `crewdroid logs $SERIAL $PKG --since 1m` |
 | 7. Finished | `down` {} | `crewdroid down` |
 
 Edit code, rebuild, then repeat 2-6 on the same device; boot (`up`) only once. Always `down` at the end.
 `devices` lists what is already running (serial, api, profile) if you lost the serial.
 
-Pick `screen` before `tap`/`type`: it gives text, id and bounds of each element. Use `shot` only to judge how it looks
-(layout, colours, clipping); do not guess tap coordinates from a picture when the tree has the element.
+Pick `screen` before `tap`/`type`: one line per element, e.g. `[3] btn "Send" #send @540,1210` (role, text, id, centre).
+`tap`, `type`, `swipe` and `key` print the new screen in the same form once it settled, so you need no `screen` call between
+actions; `tap '[n]'` (MCP `index` alone) taps line n of the last one while that window is still shown. `--no-screen` /
+`screen:false` skips it; `--json` / `format:"json"` gives the full tree. Use `shot` only to judge how it looks (layout,
+colours, clipping); do not guess tap coordinates from a picture when the outline has the element.
 
 ```bash verify
 crewdroid install $SERIAL $APK --json | grep -q '"ok": true'
@@ -53,7 +56,9 @@ crewdroid logs $SERIAL $PKG --since 1m --json | grep -q 'FORM skill loop'
   the screen is not the one you expected (check `screen` focus) or the label differs.
 - `tap` x,y outside the screen fails with the reason. `type` sets any text (Korean too) through the on-device helper
   (`via: "helper"`); `via: "fallback"` = helper not answering, then non-ASCII fails with the reason.
-- `logs` shows only this app's lines (its pid). `note: ... not running` = the app is gone; lines come from its last pid.
+- `logs` shows only this app's lines (its pid): the last 40 at level >= I, `HH:MM:SS.mmm L Tag: message`, repeats folded
+  `(xN)`, stack traces cut to 8 app frames. `--all` (MCP `all:true`) = everything at level V. `note: ... not running` = the
+  app is gone; lines come from its last pid.
 - `install` -> `ok:false` with `INSTALL_FAILED_*`: see android-apk.
 - Compose apps: ids appear in `screen` only with `testTagsAsResourceId = true`; otherwise tap by text.
 

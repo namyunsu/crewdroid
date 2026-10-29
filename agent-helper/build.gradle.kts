@@ -9,7 +9,7 @@ android {
         applicationId = "dev.crewdroid.agent"
         minSdk = 31
         targetSdk = 34
-        versionCode = 1 // keep equal to HELPER_VERSION in src/helper.ts (test/helper.test.ts checks)
+        versionCode = 5 // keep equal to HELPER_VERSION in src/helper.ts (test/helper.test.ts checks)
         versionName = "0.1"
     }
     buildTypes {

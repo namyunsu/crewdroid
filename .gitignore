@@ -13,7 +13,11 @@ demo-app/local.properties
 agent-helper/.gradle/
 agent-helper/build/
 agent-helper/local.properties
+load-app/.gradle/
+load-app/build/
+load-app/local.properties
 sample/server/data/
 # public repo: autopilot state stays local (2026-10-27)
 .ai-log/*
 *.tgz
+.cache/

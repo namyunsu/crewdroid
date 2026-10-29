@@ -1,37 +1,460 @@
 {
-  "cases": [
+  "date": "2026-10-28T03:19:20.804Z",
+  "rounds": 10,
+  "summary": [
     {
       "name": "a mobile-mcp 1s after up",
-      "ok": true,
-      "ms": 5667
+      "passed": 10,
+      "runs": 10,
+      "medianMs": 6298,
+      "maxMs": 13212,
+      "errors": []
     },
     {
       "name": "b mobile-mcp 1s after crewdroid screen",
-      "ok": true,
-      "ms": 5895
+      "passed": 10,
+      "runs": 10,
+      "medianMs": 5849,
+      "maxMs": 6584,
+      "errors": []
     },
     {
       "name": "c mobile-mcp 5s after crewdroid screen",
-      "ok": true,
-      "ms": 5575
+      "passed": 10,
+      "runs": 10,
+      "medianMs": 6048,
+      "maxMs": 6736,
+      "errors": []
     },
     {
       "name": "d maestro 1s after crewdroid tap",
-      "ok": true,
-      "ms": 27979
+      "passed": 8,
+      "runs": 10,
+      "medianMs": 42204,
+      "maxMs": 52353,
+      "errors": [
+        "C:\\Users\\NYS\\.maestro\\tests\\2026-10-28_120118",
+        "maestro.MaestroDriverStartupException$AndroidDriverTimeoutException: Maestro Android driver did not start up in time on emulator [ emulator-5580 ] (driver port 64957)"
+      ]
     },
     {
       "name": "e maestro 5s after crewdroid tap",
-      "ok": true,
-      "ms": 23494
+      "passed": 10,
+      "runs": 10,
+      "medianMs": 28484,
+      "maxMs": 35186,
+      "errors": []
     },
     {
-      "name": "f crewdroid screen during maestro flow",
-      "ok": true,
-      "ms": 14488,
-      "maestroOk": false
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "passed": 8,
+      "runs": 10,
+      "medianMs": 32186,
+      "maxMs": 44203,
+      "errors": [
+        "maestro: C:\\Users\\NYS\\.maestro\\tests\\2026-10-28_114935",
+        "maestro: C:\\Users\\NYS\\.maestro\\tests\\2026-10-28_120925"
+      ]
     }
   ],
-  "helperIdleMs": 3000,
-  "date": "2026-10-27T03:34:00.451Z"
+  "cases": [
+    {
+      "round": 1,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 6006
+    },
+    {
+      "round": 1,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 5340
+    },
+    {
+      "round": 1,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 5545
+    },
+    {
+      "round": 1,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 39280
+    },
+    {
+      "round": 1,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 25745
+    },
+    {
+      "round": 1,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": false,
+      "ms": 26882,
+      "error": "maestro: C:\\Users\\NYS\\.maestro\\tests\\2026-10-28_114935",
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 24737 ms: screen 3003-5027 ms, shot 5027-6770 ms, net 6770-11242 ms, env 11242-11749 ms)",
+      "evidence": {
+        "adbServerPid": "6444",
+        "state": "device",
+        "forwards": "emulator-5582 tcp:6828 tcp:6790\r\nemulator-5580 tcp:6826 tcp:6790",
+        "logcat": []
+      }
+    },
+    {
+      "round": 2,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 8603
+    },
+    {
+      "round": 2,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 5957
+    },
+    {
+      "round": 2,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 5429
+    },
+    {
+      "round": 2,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 52353
+    },
+    {
+      "round": 2,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 29814
+    },
+    {
+      "round": 2,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 28035,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 25894 ms: screen 3010-4783 ms, shot 4783-5975 ms, net 5975-11159 ms, env 11159-11800 ms)"
+    },
+    {
+      "round": 3,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 5843
+    },
+    {
+      "round": 3,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 6209
+    },
+    {
+      "round": 3,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 5840
+    },
+    {
+      "round": 3,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 42204
+    },
+    {
+      "round": 3,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 24092
+    },
+    {
+      "round": 3,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 29534,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 27270 ms: screen 3005-5370 ms, shot 5370-7890 ms, net 7890-12869 ms, env 12869-13347 ms)"
+    },
+    {
+      "round": 4,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 5684
+    },
+    {
+      "round": 4,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 6584
+    },
+    {
+      "round": 4,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 6170
+    },
+    {
+      "round": 4,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 45338
+    },
+    {
+      "round": 4,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 28484
+    },
+    {
+      "round": 4,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 28078,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 25893 ms: screen 3016-4926 ms, shot 4926-6231 ms, net 6231-10417 ms, env 10417-10924 ms)"
+    },
+    {
+      "round": 5,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 6298
+    },
+    {
+      "round": 5,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 5429
+    },
+    {
+      "round": 5,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 6500
+    },
+    {
+      "round": 5,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": false,
+      "ms": 30714,
+      "error": "C:\\Users\\NYS\\.maestro\\tests\\2026-10-28_120118",
+      "evidence": {
+        "adbServerPid": "6444",
+        "state": "device",
+        "forwards": "emulator-5582 tcp:6828 tcp:6790",
+        "logcat": []
+      }
+    },
+    {
+      "round": 5,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 25911
+    },
+    {
+      "round": 5,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 44203,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 41852 ms: screen 3003-5004 ms, shot 5004-7464 ms, net 7464-11803 ms, env 11803-12139 ms)"
+    },
+    {
+      "round": 6,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 5291
+    },
+    {
+      "round": 6,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 5338
+    },
+    {
+      "round": 6,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 6002
+    },
+    {
+      "round": 6,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 43468
+    },
+    {
+      "round": 6,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 34461
+    },
+    {
+      "round": 6,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 35357,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 31905 ms: screen 3006-5811 ms, shot 5811-8184 ms, net 8184-15174 ms, env 15174-15557 ms)"
+    },
+    {
+      "round": 7,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 11421
+    },
+    {
+      "round": 7,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 6284
+    },
+    {
+      "round": 7,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 6275
+    },
+    {
+      "round": 7,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": false,
+      "ms": 32084,
+      "error": "maestro.MaestroDriverStartupException$AndroidDriverTimeoutException: Maestro Android driver did not start up in time on emulator [ emulator-5580 ] (driver port 64957)",
+      "evidence": {
+        "adbServerPid": "6444",
+        "state": "device",
+        "forwards": "emulator-5582 tcp:6828 tcp:6790\r\nemulator-5580 tcp:6826 tcp:6790",
+        "logcat": []
+      }
+    },
+    {
+      "round": 7,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 35186
+    },
+    {
+      "round": 7,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": false,
+      "ms": 22239,
+      "error": "maestro: C:\\Users\\NYS\\.maestro\\tests\\2026-10-28_120925",
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 20558 ms: screen 3010-4615 ms, shot 4615-6176 ms, net 6176-10430 ms, env 10430-11206 ms)",
+      "evidence": {
+        "adbServerPid": "6444",
+        "state": "device",
+        "forwards": "emulator-5582 tcp:6828 tcp:6790\r\nemulator-5580 tcp:6826 tcp:6790",
+        "logcat": []
+      }
+    },
+    {
+      "round": 8,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 6449
+    },
+    {
+      "round": 8,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 5287
+    },
+    {
+      "round": 8,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 6736
+    },
+    {
+      "round": 8,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 41966
+    },
+    {
+      "round": 8,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 26315
+    },
+    {
+      "round": 8,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 32320,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 30177 ms: screen 3005-5017 ms, shot 5017-6722 ms, net 6723-11552 ms, env 11552-12364 ms)"
+    },
+    {
+      "round": 9,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 13212
+    },
+    {
+      "round": 9,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 5849
+    },
+    {
+      "round": 9,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 6048
+    },
+    {
+      "round": 9,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 43937
+    },
+    {
+      "round": 9,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 28587
+    },
+    {
+      "round": 9,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 34117,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 31860 ms: screen 3011-4520 ms, shot 4520-6845 ms, net 6845-11363 ms, env 11363-11756 ms)"
+    },
+    {
+      "round": 10,
+      "name": "a mobile-mcp 1s after up",
+      "ok": true,
+      "ms": 5037
+    },
+    {
+      "round": 10,
+      "name": "b mobile-mcp 1s after crewdroid screen",
+      "ok": true,
+      "ms": 4669
+    },
+    {
+      "round": 10,
+      "name": "c mobile-mcp 5s after crewdroid screen",
+      "ok": true,
+      "ms": 4051
+    },
+    {
+      "round": 10,
+      "name": "d maestro 1s after crewdroid tap",
+      "ok": true,
+      "ms": 33964
+    },
+    {
+      "round": 10,
+      "name": "e maestro 5s after crewdroid tap",
+      "ok": true,
+      "ms": 20394
+    },
+    {
+      "round": 10,
+      "name": "f maestro flow while crewdroid screen, shot, net, env run",
+      "ok": true,
+      "ms": 32186,
+      "detail": "(screen via helper, after the flow via helper; 4/4 crewdroid commands finished before the flow ended at 30198 ms: screen 3006-5217 ms, shot 5217-7984 ms, net 7984-14784 ms, env 14784-15482 ms)"
+    }
+  ]
 }

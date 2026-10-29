@@ -6,7 +6,7 @@ Limits, checked before the lock is taken or anything launches (exit 1 with the r
 
 ## Does a quickboot snapshot saved with one `-memory`/`-cores` load with another?
 
-No. Measured 2026-10-27 (emulator 37.1.11.0, Windows 11, WHPX): `-read-only` clones of `crew-android-36-google_atd` (snapshot `default_boot` saved with `hw.ramSize = 896`, `hw.cpu.ncore = 2`), launched with the usual args and `-verbose`, only `-memory`/`-cores` changed. Log lines (full excerpts in `.ai-log/evidence/T64-1-snapshot.txt`):
+No. Measured 2026-10-27 (emulator 37.1.11.0, Windows 11, WHPX): `-read-only` clones of `crew-android-36-google_atd` (snapshot `default_boot` saved with `hw.ramSize = 896`, `hw.cpu.ncore = 2`), launched with the usual args and `-verbose`, only `-memory`/`-cores` changed. Log lines:
 
 | `-memory` / `-cores` | emulator log | boot to `sys.boot_completed` | guest nproc / MemTotal |
 |---|---|---|---|

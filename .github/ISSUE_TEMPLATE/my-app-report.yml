@@ -1,0 +1,36 @@
+name: Works with my app
+description: You tried crewdroid on your app. Tell us what happened.
+labels: [feedback]
+body:
+  - type: markdown
+    attributes:
+      value: This is the most useful report you can send. Good and bad results both help.
+  - type: input
+    id: app-type
+    attributes:
+      label: App type
+      description: Native or cross-platform, what it does, how it talks to a server.
+      placeholder: Kotlin shopping app, REST API, uploads photos
+    validations:
+      required: true
+  - type: textarea
+    id: found
+    attributes:
+      label: What crewdroid found
+      description: Commands you ran and what came back (a bug found, no bug found, a crash, a layout problem).
+    validations:
+      required: true
+  - type: textarea
+    id: missing
+    attributes:
+      label: What was missing
+      description: What you wanted to do and could not, or what was hard.
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Setup
+      description: Host OS, driver tool (Maestro, mobile-mcp, adb), number of devices.
+    validations:
+      required: false

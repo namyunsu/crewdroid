@@ -19,28 +19,32 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `devices` | list running crew emulators: serial, api, profile, screen, booted | implemented |
 | `down` | kill every `crew-*` emulator | implemented |
 | `net` | per-device network state: airplane / nodata / slow / flaky / online | implemented |
+| `load` | used-phone load: `load <serial> off\|low\|mid\|high [--keep-apps]` or `up --load <level>` (filler apps, background processes, RAM ballast, CPU, wakeups) | implemented |
 | `env` | location, battery, rotation, dark mode, font, locale, network, SMS/call (`env <serial> <what> [args]`) | implemented |
 | `app` | permissions, deep links, data clear, backup, resource pressure | implemented |
 | `install` | `adb install -r [-g]` an APK on one emulator or `all` (`install <serial\|all> <apk> [--grant]`) | implemented |
 | `launch` | start an app, TotalTime, crash summary (`launch <serial> <pkg> [--activity .Main] [--restart] [-- <extras>]`) | implemented |
-| `logs` | one app's logcat lines (`logs <serial> <pkg> [--since 60s] [--level I] [--seconds N]`) | implemented |
+| `logs` | one app's logcat lines: last 40 at level >= I, repeats folded, stack traces cut (`logs <serial> <pkg> [--since 60s] [--level I] [--seconds N] [--all]`) | implemented |
 | `shot` | screenshot PNG (`shot <serial> [file.png]`; MCP returns image content) | implemented |
-| `tap` | tap a point or an element (`tap <serial> <x> <y>` \| `--text T` \| `--id ID` `[--index N]`) | implemented |
+| `tap` | tap a point, an element or line `[n]` of the last screen, then print the new screen (`tap <serial> <x> <y>` \| `[n]` \| `--text T` \| `--id ID` `[--index N]` `[--no-screen]`) | implemented |
 | `type` | type any text into the focused field via the on-device helper (`type <serial> <text> [--into <text\|id>]`; without the helper ASCII only) | implemented |
 | `swipe` | `swipe <serial> up\|down\|left\|right [--times N]` or `x1 y1 x2 y2 [ms]` | implemented |
 | `key` | `key <serial> back\|home\|enter\|delete\|tab\|menu\|KEYCODE_*` | implemented |
 | `fold` | fold a fold/flip profile to its cover screen (`fold <serial>`) | implemented |
 | `unfold` | unfold a fold/flip profile to its main screen (`unfold <serial>`) | implemented |
+| `layout` | broken-screen sweep of any installed app on ONE device: 5 Galaxy profiles x fonts 1.0/1.3/2.0 (15 combos, app restarted each), findings wrap / clip / offscreen / overlap (> 20 %) / target (< 48 dp) from the helper's tree, PNG with boxes per combo with findings, exit 1 on any (`layout <serial> <pkg> [--activity .X] [--flow f.yaml] [--profiles a,b] [--fonts 1.0,2.0] [-- <extras>]`) | implemented |
 | `triage` | crashes, ANRs, exit reasons, heap dump | implemented |
-| `screen` | focused activity + accessibility tree | implemented |
+| `screen` | focused activity + one line per visible element `[n] role "text" #id @x,y flags` (`--json` = full tree, `--bounds`) | implemented |
 | `perf` | start time, frame jank, memory | implemented |
 | `apk` | manifest summary of an APK (host only) | implemented |
-| `judge` | rules on server data: unique / count / noLostUpdate (`--rules <file> --source <url\|file>`) | implemented |
+| `judge` | rules on server data: unique / count / noLostUpdate (`--rules <file> --source <url\|file>`); on a proxy log: dupSuccess / lostUpdate / lostWrite / idle (`--log proxy.jsonl`, `judge/proxy.rules.json`) | implemented |
+| `proxy` | recording HTTP proxy, devices pointed at it by the system proxy setting, no app/server change (`proxy start --target http://host:port [--port 5590] [--devices ...] [--lose-acks P]` \| `stop` \| `log`; `run --proxy 5590 --log f.jsonl`) | implemented |
 | `hammer` | N virtual users against the API | implemented |
-| `run` | scenario: up, install, per-device loops + network schedule, judge, down | implemented |
+| `run` | scenario on any APK: up, install, per-device `actions` (`{maestro}` / `{intent}` / `{adb}`) + network schedule, drain, judge (proxy log by default), down; `"preset": "probe"` = the bundled probe app (`docs/guide-your-app.md`) | implemented |
 | `setup` | install SDK pieces (JDK 17, cmdline-tools, platform-tools, emulator, google_atd images); `--dry-run`, `--yes` | implemented |
 | `mcp` | stdio MCP server wrapping the commands above | implemented |
 | `prepare`, `identity`, `slim`, `measure` | base-image maintenance and measurement | implemented |
+| `version` | print the package version (`crewdroid --version`, also `--json`) | implemented |
 | `help` | usage text | implemented |
 
 ## Vibe-coding loop (one device, build and check an app)
@@ -48,9 +52,9 @@ Skill: `.agents/skills/android-vibe-loop/SKILL.md`. Same names as MCP tools and 
 1. `setup` (dry run; once per machine) -> every step `present`.
 2. `up` (no args = one s24ultra device) -> `devices[0].serial`, e.g. `emulator-5580`.
 3. `install <serial> app.apk` after each build; `launch <serial> <pkg> --restart` -> `crashed:false` (true = read `logs`).
-4. `screen <serial>` = accessibility tree (text, id, bounds) to find what to tap; `shot <serial>` = pixels to judge the look.
-5. `tap --text|--id|x y`, `type <text> --into <field>`, `swipe up`, `key back`; several matches -> retry with `--index N`.
-6. `logs <serial> <pkg> --since 1m` = only this app's lines. Repeat 3-6 per change; `down` when finished.
+4. `screen <serial>` = outline, one line per element (`[3] btn "Send" #send @540,1210`) to find what to tap; `shot <serial>` = pixels to judge the look.
+5. `tap --text|--id|x y|[n]`, `type <text> --into <field>`, `swipe up`, `key back`; each prints the new screen (no extra `screen` call); several matches -> retry with `--index N`.
+6. `logs <serial> <pkg> --since 1m` = only this app's last 40 lines (`--all` = everything). Repeat 3-6 per change; `down` when finished.
 Verified end to end over MCP by `node scripts/check-vibe-loop.mjs` (prints each step's time and the total).
 
 ## Safety rules (every agent must keep)

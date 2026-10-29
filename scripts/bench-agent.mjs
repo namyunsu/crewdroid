@@ -1,10 +1,13 @@
-// T49 verify: node scripts/bench-agent.mjs (boots 1 device + a stock AVD 3 times; ~15 min)
+// T49/T54 verify: node scripts/bench-agent.mjs (boots 1 device, then API 36 once, then a stock AVD 3 times; ~20 min)
 // Agent driving benchmark, deterministic (no LLM). Task: open the Field Notes demo app, add a note "Fix pump #3", confirm it
 // appears in the list. Same device (s24ultra, API 34), 5 runs per path, A and B interleaved, app data + server reset before
 // each run (untimed). Both paths call the same crewdroid MCP server over stdio, so only the way of observing differs:
-//   A (tree):       launch, screen (JSON tree), tap --text, type --into, tap --text, screen (confirm), logs (confirm SAVED)
-//   B (screenshot): launch, then a shot (screencap -p PNG) after every action, taps by x,y. The x,y come from an untimed
-//                   uiautomator dump standing in for the vision model's "find it in the image" (favours B: no misses, no time).
+//   A (tree, T54 defaults): launch, screen (compact outline), tap --text / type --into / tap --text whose returned screens are
+//                   the observations, logs (default view) to confirm SAVED. The note in Save's returned screen confirms the list.
+//   B (screenshot, exactly as T49): launch, then a shot (screencap -p PNG) after every action, taps by x,y. The x,y come from an
+//                   untimed uiautomator dump standing in for the vision model's "find it in the image" (favours B: no misses, no time).
+// Then once on API 36 (both paths), and a robustness row: fold5-main and flip6-cover at font 1.3, A by text, B by the
+// s24ultra coordinates it learned (no re-deriving).
 // Per step: wall time, observation payload bytes, estimated model input tokens (text chars/4; image: Anthropic vision formula).
 // Then "time to first usable device": crewdroid `up` (1 device) vs a fresh stock google_atd AVD (Android Studio default
 // flags, with a window): first boot, cold boot (-no-snapshot-load) and quick boot. The stock AVD is deleted afterwards.
@@ -20,6 +23,7 @@ import { avdHome, imagePackage } from "../src/avd.ts";
 import { launchEmulator } from "../src/emulator.ts";
 import { findNodes } from "../src/input.ts";
 import { listProcesses } from "../src/platform.ts";
+import { loadProfiles } from "../src/profiles.ts";
 import { screen } from "../src/screen.ts";
 import { sdkRoot } from "../src/sdk.ts";
 import { pngSize } from "../src/shot.ts";
@@ -31,6 +35,14 @@ const work = mkdtempSync(join(tmpdir(), "crewbench-"));
 const PKG = "dev.crewdroid.demo", PORT = 5596, RUNS = 5, NOTE = "Fix pump #3", PROFILE = "s24ultra", API = 34;
 const STOCK = "bench-stock-34", STOCK_PORT = 5592;
 const DOC = "https://docs.claude.com/en/docs/build-with-claude/vision";
+const ROBUST = ["fold5-main", "flip6-cover"], ROBUST_FONT = 1.3;
+// T49's result (commit 1274c6b, docs/measurements/agent-bench.json of 2026-10-26), kept as "before"
+const BEFORE = {
+  date: "2026-10-26", commit: "1274c6b",
+  A: { tokensPerTask: 9695, secondsPerTask: 23.91, toolCallsPerTask: 7, payloadBytesPerTask: 38793, perCall: { screen: 3.27, tap: 3.24, type: 4.4, logs: 0.29 } },
+  B: { tokensPerTask: 6212, secondsPerTask: 10.26, toolCallsPerTask: 8, payloadBytesPerTask: 922820 },
+};
+const PER_CALL_MAX = 0.5; // s, screen / tap / type each (T54)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const r1 = (x) => Math.round(x * 10) / 10, r2 = (x) => Math.round(x * 100) / 100;
 const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
@@ -87,34 +99,41 @@ async function reset(i) {
 
 const launchArgs = () => ({ serial, pkg: PKG, restart: true, extras: ["--es", "server", `http://10.0.2.2:${PORT}`] });
 
+// T54: the defaults an agent gets now: compact `screen`, actions that return the settled screen, short `logs`. No extra calls.
 async function runA() {
   const steps = [];
   const step = async (label, name, args) => { const s = await call(name, args); steps.push({ step: label, ...s }); if (s.isError) throw new Error(`${label}: ${s.text.slice(0, 300)}`); return s; };
   await step("launch", "launch", launchArgs());
-  await step("observe (tree)", "screen", { serial });
-  await step("tap New note", "tap", { serial, text: "New note" });
-  await step("type into title", "type", { serial, text: NOTE, into: "title" });
-  await step("tap Save", "tap", { serial, text: "Save" });
-  const s = await step("confirm (tree)", "screen", { serial });
-  const l = await step("confirm (logs)", "logs", { serial, pkg: PKG, since: "1m" });
-  const inList = JSON.parse(s.text).nodes.some((n) => n.text === NOTE), saved = JSON.parse(l.text).lines.some((x) => /^SAVED /.test(x.message));
+  await step("observe (screen)", "screen", { serial });
+  await step("tap New note (+screen)", "tap", { serial, text: "New note" });
+  await step("type into title (+screen)", "type", { serial, text: NOTE, into: "title" });
+  let s = await step("tap Save (+screen)", "tap", { serial, text: "Save" });
+  // AI NOTE (T54): the app inserts the card after its async list diff; on a busy emulator the returned screen can settle
+  // (150 ms quiet) before that. An agent then looks once more: counted as an extra call, not hidden.
+  if (!s.text.includes(JSON.stringify(NOTE))) s = await step("re-check (screen; Save's screen lacked the note)", "screen", { serial });
+  const l = await step("confirm (logs)", "logs", { serial, pkg: PKG });
+  // the returned outline names the new card; the default log view has the app's `SAVED <id>` line
+  const inList = s.text.includes(JSON.stringify(NOTE)), saved = /^\S+ I FieldNotes: SAVED /m.test(l.text);
   if (!inList || !saved) throw new Error(`confirm: inList=${inList} SAVED=${saved}`);
   return steps;
 }
 
-async function runB() {
+// B's x,y from its first s24ultra run: what an agent that learned them would reuse on another screen (robustness row)
+let learned;
+async function runB(fixed) {
   const steps = [];
   let untimed = 0;
   const step = async (label, name, args) => { const s = await call(name, args); steps.push({ step: label, ...s }); if (s.isError) throw new Error(`${label}: ${s.text.slice(0, 300)}`); return s; };
-  const find = async (q) => { const t0 = Date.now(); const p = await locate(q); untimed += (Date.now() - t0) / 1000; return p; };
+  const find = async (q) => { if (fixed) return fixed[q]; const t0 = Date.now(); const p = await locate(q); untimed += (Date.now() - t0) / 1000; (learned ??= {})[q] ??= p; return p; };
   const png = (k) => join(work, `b-${k}.png`);
   await step("launch", "launch", launchArgs());
   await step("observe (shot)", "shot", { serial, file: png(1) });
-  await step("tap New note (x,y)", "tap", { serial, ...(await find("New note")) });
+  // screen:false = T49's tap/type, which returned only the point (T53 made returning the new screen the default)
+  await step("tap New note (x,y)", "tap", { serial, ...(await find("New note")), screen: false });
   await step("observe (shot)", "shot", { serial, file: png(2) }); // title field has focus: the model sees the cursor there
-  await step("type", "type", { serial, text: NOTE });
+  await step("type", "type", { serial, text: NOTE, screen: false });
   await step("observe (shot)", "shot", { serial, file: png(3) });
-  await step("tap Save (x,y)", "tap", { serial, ...(await find("Save")) });
+  await step("tap Save (x,y)", "tap", { serial, ...(await find("Save")), screen: false });
   await step("confirm (shot)", "shot", { serial, file: png(4) });
   const t0 = Date.now();
   const inList = (await screen(serial)).nodes.some((n) => n.text === NOTE); // what the model would have to read in the last image
@@ -126,7 +145,9 @@ async function runB() {
 function summary(path, runs) {
   const ok = runs.filter((r) => r.ok);
   const per = (f) => r2(mean(ok.map((r) => f(r.steps))));
-  const labels = ok[0]?.steps.map((s) => s.step) ?? [];
+  // key = label + its occurrence in the run (B observes 3 times); a step only some runs needed is averaged over those
+  const keyed = (r) => r.steps.map((s, i) => [`${s.step}#${r.steps.slice(0, i).filter((x) => x.step === s.step).length}`, s]);
+  const labels = [...new Set(ok.flatMap((r) => keyed(r).map(([k]) => k)))];
   return {
     path, runs: runs.length, ok: ok.length,
     tokensPerTask: Math.round(mean(ok.map((r) => r.steps.reduce((a, s) => a + s.tokens, 0)))),
@@ -135,10 +156,11 @@ function summary(path, runs) {
     payloadBytesPerTask: Math.round(mean(ok.map((r) => r.steps.reduce((a, s) => a + s.bytes, 0)))),
     observeCallsPerTask: per((st) => st.filter((s) => /observe|confirm/.test(s.step)).length),
     images: ok[0]?.steps.flatMap((s) => s.images).slice(0, 1) ?? [],
-    steps: labels.map((label, i) => ({
-      step: label, tool: ok[0].steps[i].name,
-      seconds: r2(mean(ok.map((r) => r.steps[i].seconds))), bytes: Math.round(mean(ok.map((r) => r.steps[i].bytes))), tokens: Math.round(mean(ok.map((r) => r.steps[i].tokens))),
-    })),
+    steps: labels.map((label) => {
+      const xs = ok.map((r) => keyed(r).find(([k]) => k === label)?.[1]).filter(Boolean);
+      return { step: xs[0].step, tool: xs[0].name, runs: xs.length, seconds: r2(mean(xs.map((s) => s.seconds))), bytes: Math.round(mean(xs.map((s) => s.bytes))), tokens: Math.round(mean(xs.map((s) => s.tokens))) };
+    }),
+    perCall: Object.fromEntries(["screen", "tap", "type", "logs", "shot"].map((t) => [t, ok.flatMap((r) => r.steps.filter((s) => s.name === t).map((s) => s.seconds))]).filter(([, xs]) => xs.length).map(([t, xs]) => [t, r2(mean(xs))])),
     perRun: runs.map((r) => ({ run: r.run, ok: r.ok, seconds: r2(r.steps.reduce((a, s) => a + s.seconds, 0)), tokens: r.steps.reduce((a, s) => a + s.tokens, 0), bytes: r.steps.reduce((a, s) => a + s.bytes, 0), calls: r.steps.length, ...(r.untimed ? { untimedLocateSeconds: r2(r.untimed) } : {}), ...(r.error ? { error: r.error } : {}) })),
     failures: failures[path],
   };
@@ -181,7 +203,21 @@ async function stockBoot(label, extra) {
 }
 
 const A = [], B = [];
-let firstDevice;
+let firstDevice, api36, robustness = [];
+// one A and one B run, untimed setup first; { ok, seconds, tokens, error }
+async function once(path, fn) {
+  await reset(`${path}-${Date.now()}`);
+  try { const st = await fn(); return { ok: true, seconds: r2(st.reduce((a, s) => a + s.seconds, 0)), tokens: st.reduce((a, s) => a + s.tokens, 0), perCall: Object.fromEntries(st.filter((s) => s.name !== "launch").map((s) => [s.step, r2(s.seconds)])) }; }
+  catch (e) { return { ok: false, error: e.message.slice(0, 300) }; }
+}
+async function upOne(api) {
+  const r = await client.callTool({ name: "up", arguments: { profiles: [PROFILE], api } }, undefined, { timeout: 900000 });
+  if (r.isError) throw new Error(`up api ${api}: ${r.content?.[0]?.text}`);
+  const d = JSON.parse(r.content[0].text).devices[0];
+  const i = await client.callTool({ name: "install", arguments: { target: d.serial, apk } }, undefined, { timeout: 300000 });
+  if (i.isError) throw new Error(`install: ${i.content?.[0]?.text}`);
+  return d;
+}
 try {
   await down(); // lock owner; the MCP server child inherits CREWDROID_OWNER through env
   client = new Client({ name: "bench-agent", version: "0.0.1" });
@@ -213,6 +249,26 @@ try {
       console.log(`${path}${i}: ${last.ok ? `${r2(last.steps.reduce((a, s) => a + s.seconds, 0))} s, ${last.steps.reduce((a, s) => a + s.tokens, 0)} tokens, ${last.steps.length} calls` : `FAIL ${last.error}`}`);
     }
   }
+
+  // robustness: other screens at font 1.3, same strategy as on s24ultra (A by text, B by the coordinates it learned)
+  for (const name of ROBUST) {
+    const p = loadProfiles().find((x) => x.name === name);
+    await adb(serial, ["shell", `wm size ${p.width}x${p.height} && wm density ${p.density} && settings put system font_scale ${ROBUST_FONT}`]);
+    await sleep(1500);
+    const a = await once("A", runA), b = learned ? await once("B", () => runB(learned)) : { ok: false, error: "no learned coordinates (every s24ultra B run failed)" };
+    robustness.push({ profile: name, screen: `${p.width}x${p.height}@${p.density}`, font: ROBUST_FONT, A: a, B: b });
+    console.log(`robustness ${name} font ${ROBUST_FONT}: A ${a.ok ? "pass" : `FAIL ${a.error}`} | B ${b.ok ? "pass" : `FAIL ${b.error}`}`);
+  }
+  await adb(serial, ["shell", `wm size reset && wm density reset && settings put system font_scale 1.0`]);
+
+  // once on API 36 (both paths), same profile
+  await call("down", {});
+  const d36 = await upOne(36), keep = serial;
+  serial = d36.serial;
+  await reset("36-warm"); await call("launch", launchArgs()); await sleep(3000);
+  api36 = { api: 36, serial, A: await once("A", runA), B: await once("B", () => runB()) };
+  console.log(`API 36: A ${api36.A.ok ? `${api36.A.seconds} s, ${api36.A.tokens} tokens` : `FAIL ${api36.A.error}`} | B ${api36.B.ok ? `${api36.B.seconds} s, ${api36.B.tokens} tokens` : `FAIL ${api36.B.error}`}`);
+  serial = keep;
 
   // time to first usable device, crewdroid: a second `up` after down (base snapshot surely prepared by then)
   await call("down", {});
@@ -264,6 +320,8 @@ const j = {
   tokenEstimate: { text: "chars / 4 of every text item the tool returns (MCP sends JSON pretty-printed)", image: "long edge scaled to <= 1568 px (and <= ~1600 tokens), then width*height/750", doc: DOC },
   A: jA, B: jB,
   ratio: { tokens: ratio("tokensPerTask"), seconds: ratio("secondsPerTask"), payloadBytes: ratio("payloadBytesPerTask"), toolCalls: ratio("toolCallsPerTask") },
+  perCallTarget: { maxSeconds: PER_CALL_MAX, ...Object.fromEntries(["screen", "tap", "type"].map((t) => [t, { seconds: jA.perCall[t], ok: jA.perCall[t] <= PER_CALL_MAX }])) },
+  api36, robustness, before: BEFORE,
   firstDevice,
 };
 writeFileSync(join(root, "docs/measurements/agent-bench.json"), JSON.stringify(j, null, 2) + "\n");
@@ -272,36 +330,47 @@ const img = jB.images[0];
 const fd = firstDevice;
 const sec = (x) => (x == null ? "did not finish in 600 s" : `${x} s`);
 const tree = jA.steps.find((s) => s.tool === "screen"), logsStep = jA.steps.find((s) => s.tool === "logs");
-const dumpSteps = jA.steps.filter((s) => ["screen", "tap", "type"].includes(s.tool)); // A taps/types by text or id: each runs a dump
+const pc = j.perCallTarget, bf = BEFORE;
+const pass = (x) => (x.ok ? "pass" : `FAIL: ${x.error}`);
+const slowest = ["screen", "tap", "type"].filter((t) => !pc[t].ok);
 // which side wins, worded from the numbers (no fixed claim)
 const cmp = (a, b, what) => (a < b ? `the tree path is ${r2(b / a)}x ${what}` : a > b ? `screenshots are ${r2(a / b)}x ${what} here` : "equal");
-const md = `# Agent driving benchmark: tree (crewdroid) vs screenshots (T49)
+const md = `# Agent driving benchmark: tree (crewdroid) vs screenshots (T49, re-measured T54)
 
 Date: ${j.date.slice(0, 10)} · raw: \`agent-bench.json\` · script: \`node scripts/bench-agent.mjs\`
 Device: ${PROFILE} (${dev?.wmSize}), API ${API}, \`${serial}\` · app: Field Notes (\`demo-app/\`) · ${RUNS} runs per path, interleaved.
 
 Task: ${j.task}. Deterministic, no LLM. These numbers are **observation cost and latency**, not a model's success rate.
 
-- **A (crewdroid way):** \`screen\` (JSON accessibility tree) to observe, \`tap --text\` / \`type --into\` to act, \`screen\` + \`logs\` to confirm.
-- **B (screenshot way, how pixel-based agents and computer-use drive an emulator window):** \`screencap -p\` PNG after every action, taps by x,y.
-  B's x,y come from an untimed uiautomator dump standing in for the vision model's "find the button in the image": no misses, no time. This favours B.
+- **A (crewdroid way, T54 defaults):** \`screen\` once (compact outline), then \`tap --text\` / \`type --into\` / \`tap --text\`; each returns the settled new screen, which is the next observation (Save's returned screen shows the new card). \`logs\` (default view) confirms the app's \`SAVED\` line. No other calls.
+- **B (screenshot way, how pixel-based agents and computer-use drive an emulator window), unchanged since T49:** \`screencap -p\` PNG after every action, taps by x,y; \`tap\` / \`type\` with \`screen:false\`, i.e. returning only the point as in T49.
+  B's x,y come from an untimed uiautomator dump standing in for the vision model's "find the button in the image": no misses, no time. B's shot after a tap does not wait for the screen to settle and B's confirm reads the last image for free (untimed dump). These favour B.
 - Both paths go through the same crewdroid MCP server over stdio; only the observation differs. Model think time is not counted on either side.
 - Tokens: text = characters / 4; image = Anthropic's vision formula, long edge scaled to <= 1568 px, then tokens ≈ width × height / 750 (${DOC}).${img ? ` One ${img.width}x${img.height} screenshot = ${img.tokens} tokens (${img.bytes} PNG bytes).` : ""}
 
-## Per task (mean of ${jA.ok}/${jA.runs} A and ${jB.ok}/${jB.runs} B successful runs)
+## Per task (mean of ${jA.ok}/${jA.runs} A and ${jB.ok}/${jB.runs} B successful runs), before (T49, ${bf.date}, commit ${bf.commit}) and after
 
-| Metric | A: tree (crewdroid) | B: screenshots | B / A |
+| Metric | A before (T49) | A after | B before (T49) | B after | B / A after |
+|---|---|---|---|---|---|
+| Estimated model input tokens | ${bf.A.tokensPerTask} | ${jA.tokensPerTask} | ${bf.B.tokensPerTask} | ${jB.tokensPerTask} | ${j.ratio.tokens}x |
+| Wall time (s) | ${bf.A.secondsPerTask} | ${jA.secondsPerTask} | ${bf.B.secondsPerTask} | ${jB.secondsPerTask} | ${j.ratio.seconds}x |
+| Tool calls | ${bf.A.toolCallsPerTask} | ${jA.toolCallsPerTask} | ${bf.B.toolCallsPerTask} | ${jB.toolCallsPerTask} | ${j.ratio.toolCalls}x |
+| Observation payload (bytes) | ${bf.A.payloadBytesPerTask} | ${jA.payloadBytesPerTask} | ${bf.B.payloadBytesPerTask} | ${jB.payloadBytesPerTask} | ${j.ratio.payloadBytes}x |
+
+## Per call, path A (mean seconds; reported, not gated: the <= ${PER_CALL_MAX} s wish of request 2026-10-27 task 1)
+
+| Tool | T49 | T54 | <= ${PER_CALL_MAX} s wish |
 |---|---|---|---|
-| Estimated model input tokens | ${jA.tokensPerTask} | ${jB.tokensPerTask} | ${j.ratio.tokens}x |
-| Wall time (s) | ${jA.secondsPerTask} | ${jB.secondsPerTask} | ${j.ratio.seconds}x |
-| Tool calls | ${jA.toolCallsPerTask} | ${jB.toolCallsPerTask} | ${j.ratio.toolCalls}x |
-| Observation payload (bytes) | ${jA.payloadBytesPerTask} | ${jB.payloadBytesPerTask} | ${j.ratio.payloadBytes}x |
+${["screen", "tap", "type"].map((t) => `| \`${t}\` | ${bf.A.perCall[t]} | ${pc[t].seconds} | ${pc[t].ok ? "met" : "not met"} |`).join("\n")}
+| \`logs\` | ${bf.A.perCall.logs} | ${jA.perCall.logs} | - |
+
+\`tap\` and \`type\` include the returned screen: the helper waits on the device until no accessibility event came for 150 ms and the tree reads the same 50 ms later.
 
 ## Per step (mean)
 
-| Path | Step | Tool | Seconds | Bytes | Tokens |
-|---|---|---|---|---|---|
-${[jA, jB].flatMap((p) => p.steps.map((s) => `| ${p.path} | ${s.step} | ${s.tool} | ${s.seconds} | ${s.bytes} | ${s.tokens} |`)).join("\n")}
+| Path | Step | Tool | Runs | Seconds | Bytes | Tokens |
+|---|---|---|---|---|---|---|
+${[jA, jB].flatMap((p) => p.steps.map((s) => `| ${p.path} | ${s.step} | ${s.tool} | ${s.runs} | ${s.seconds} | ${s.bytes} | ${s.tokens} |`)).join("\n")}
 
 ## Runs
 
@@ -312,6 +381,20 @@ ${[jA, jB].flatMap((p) => p.perRun.map((r) => `| ${p.path} | ${r.run} | ${r.ok ?
 Failure modes seen: ${[...jA.failures.map((f) => `A ${f}`), ...jB.failures.map((f) => `B ${f}`)].join("; ") || "none in these runs"}.
 Failure modes not exercised (B gets them for free here): a vision model misreading a button's position or text, tapping during the
 bottom-sheet animation, re-taking a screenshot to check. A's \`tap --text\` fails with the list of candidates instead of tapping the wrong spot.
+
+## API 36 (one run per path, ${PROFILE})
+
+| Path | OK | Seconds | Tokens | Per call (s) |
+|---|---|---|---|---|
+${api36 ? ["A", "B"].map((k) => `| ${k} | ${api36[k].ok ? "yes" : `no: ${api36[k].error}`} | ${api36[k].seconds ?? "-"} | ${api36[k].tokens ?? "-"} | ${Object.entries(api36[k].perCall ?? {}).map(([s, v]) => `${s} ${v}`).join("; ")} |`).join("\n") : "| - | not run | | | |"}
+
+## Robustness: other screens at font ${ROBUST_FONT}, no re-deriving
+
+A taps by text as on ${PROFILE}; B reuses the x,y it learned on ${PROFILE} (${learned ? Object.entries(learned).map(([q, p]) => `${q} ${p.x},${p.y}`).join("; ") : "none"}). Same API ${API} device, \`wm size\` / \`wm density\` of the profile and \`font_scale ${ROBUST_FONT}\`, one run each.
+
+| Profile | Screen | A (by text) | B (${PROFILE} coordinates) |
+|---|---|---|---|
+${robustness.map((r) => `| ${r.profile} | ${r.screen} | ${pass(r.A)} | ${pass(r.B)} |`).join("\n")}
 
 ## Time to first usable device
 
@@ -327,17 +410,20 @@ Cold boot over \`up\`: ${r1(fd.stockSeconds / fd.crewdroidSeconds)}x.
 
 ## Where the cost goes
 
-- A: one \`screen\` result = ${tree.tokens} tokens (${tree.bytes} bytes of pretty-printed JSON), one \`logs\` result = ${logsStep.tokens} tokens. B: one screenshot = ${img?.tokens} tokens.
-- A: every call that reads the tree (\`screen\`, \`tap --text\`, \`type --into\`) runs \`uiautomator dump\` on the device: ${r1(mean(dumpSteps.map((s) => s.seconds)))} s each on average, ${dumpSteps.length} per task. A \`shot\` takes ${r1(mean(jB.steps.filter((s) => s.tool === "shot").map((s) => s.seconds)))} s.
+- A: one \`screen\` outline = ${tree.tokens} tokens (${tree.bytes} bytes), one default \`logs\` = ${logsStep.tokens} tokens; each action's returned screen is in its row above. B: one screenshot = ${img?.tokens} tokens.
+- A: the tree comes from the on-device helper (T52), not \`uiautomator dump\`. A \`shot\` takes ${r1(mean(jB.steps.filter((s) => s.tool === "shot").map((s) => s.seconds)))} s.
+- Both: \`launch\` (am start -W, then a 2 s crash check) is ${jA.steps[0].seconds} s of A's ${jA.secondsPerTask} s and ${jB.steps[0].seconds} s of B's ${jB.secondsPerTask} s.
+${slowest.length ? `- Per-call wish not met for ${slowest.map((t) => `\`${t}\` (${pc[t].seconds} s)`).join(", ")}: most of it is the app's own transition after the tap (measured in T54 by polling the tree after a tap: Field Notes' editor sheet is in the tree 0.3-0.6 s after the tap on this emulator; Save closes the sheet and animates the new card in, 300 ms), plus the 150 ms quiet period that makes the returned screen a settled one.` : "- Per-call wish met for screen, tap and type."}
 - B pays nothing here for finding the buttons (untimed dump, ${r1(mean(jB.perRun.filter((r) => r.ok).map((r) => r.untimedLocateSeconds ?? 0)))} s per task left out); a real vision model would add its own image-reading time and misses.
 
 ## What this means for an agent
 
 1. Observation tokens per task: tree ${jA.tokensPerTask} vs screenshots ${jB.tokensPerTask}: ${cmp(jA.tokensPerTask, jB.tokensPerTask, "fewer tokens")}.
-2. Tool time per task: tree ${jA.secondsPerTask} s vs screenshots ${jB.secondsPerTask} s: ${cmp(jA.secondsPerTask, jB.secondsPerTask, "faster")}; tree taps go by text and fail with candidates instead of hitting a guessed pixel.
+2. Tool time per task: tree ${jA.secondsPerTask} s vs screenshots ${jB.secondsPerTask} s: ${cmp(jA.secondsPerTask, jB.secondsPerTask, "faster")} (gate, user 2026-10-29 "time tie allowed": A <= B x 1.1 = ${r2(jB.secondsPerTask * 1.1)} s, ${jA.secondsPerTask <= jB.secondsPerTask * 1.1 ? "met" : "missed"}; the 5-run spread is about +-3 s); tree taps go by text and fail with candidates instead of hitting a guessed pixel.
 3. A ready device: \`crewdroid up\` ${fd.crewdroidSeconds} s vs stock emulator cold boot ${fd.stockSeconds} s (${r1(fd.stockSeconds / fd.crewdroidSeconds)}x; stock quick boot ${sec(fd.stockQuickBootSeconds)}, fresh first boot ${sec(fd.stockFirstBootSeconds)}).
 `;
 writeFileSync(join(root, "docs/measurements/agent-bench.md"), md);
 try { rmSync(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 1000 }); } catch (e) { console.error(`temp dir left: ${e.message}`); }
 console.log(`A ${jA.ok}/${jA.runs}: ${jA.tokensPerTask} tokens, ${jA.secondsPerTask} s, ${jA.toolCallsPerTask} calls | B ${jB.ok}/${jB.runs}: ${jB.tokensPerTask} tokens, ${jB.secondsPerTask} s, ${jB.toolCallsPerTask} calls | first device: crewdroid ${fd.crewdroidSeconds} s, stock cold ${fd.stockSeconds} s`);
+console.log(`per call (A): ${["screen", "tap", "type"].map((t) => `${t} ${pc[t].seconds} s ${pc[t].ok ? "ok" : "not met"}`).join(", ")} (wish <= ${PER_CALL_MAX} s, not gated)`);
 if (jA.ok < RUNS || jB.ok < RUNS) process.exitCode = 1;

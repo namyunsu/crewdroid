@@ -1,0 +1,58 @@
+# DAVx5 (F-Droid release build): log in to a CardDAV server and turn on sync for its address book.
+# env: URL (the server as the device sees it, e.g. http://10.0.2.2:5597/), USER, PASSWORD
+# Safe to run again after a partial run (the scenario retries a failed setup once): an existing account is reused.
+appId: at.bitfire.davdroid
+---
+# no launchApp: on the API 36 ATD clones Maestro's launchApp dropped the adb connection ("device offline") every time,
+# so the scenario opens the app with an intent action first.
+- runFlow: skip-intro.yaml
+- extendedWaitUntil:      # the API 31 clone drew the account list ~seconds after the intro closed
+    visible: "Add account|CardDAV|crew"
+    timeout: 30000
+- runFlow:                # retry after the account was made: open it from the list
+    when:
+      visible: "crew"
+      notVisible: "CardDAV"
+    commands:
+      - tapOn: "crew"
+- runFlow:
+    when:
+      notVisible: "CardDAV"
+    commands:
+      - tapOn: "Add account"
+      - tapOn: "Login with URL and user name"
+      - tapOn: "Continue"
+      - tapOn: "Base URL"
+      - inputText: ${URL}
+      - tapOn: "User name"
+      - inputText: ${USER}
+      - tapOn: "Password"
+      - inputText: ${PASSWORD}
+      - tapOn: "Login"
+      - extendedWaitUntil:
+          visible: "Finish"
+          timeout: 60000
+      - tapOn: "Finish"
+- tapOn:
+    text: "CardDAV"
+    index: 0
+# AI NOTE: in one T55 check (lost-acks run, emulator-5582) the CardDAV tab stayed empty for 60 s although the device had
+# sent the same discovery PROPFINDs as the others and got 207; "Refresh list" re-reads the collections.
+- repeat:
+    while:
+      notVisible: "synchronize this collection"
+    times: 4
+    commands:
+      - tapOn: "Refresh list"
+      - extendedWaitUntil:
+          visible: "synchronize this collection"
+          timeout: 20000
+          optional: true
+- tapOn: "synchronize this collection"
+- runFlow:                # it was already on (a rerun): DAVx5 asks before switching it off, keep it
+    when:
+      visible: "Turn off synchronization?"
+    commands:
+      - tapOn: "Cancel"
+- tapOn: "Synchronize now"
+- tapOn: "Navigate up"      # back to the account list, where sync.yaml starts

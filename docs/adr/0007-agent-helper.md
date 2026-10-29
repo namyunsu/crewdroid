@@ -2,7 +2,7 @@
 
 - 날짜: 2026-10-27 · 상태: 실측 근거 있음 (T52, API 31·34·36)
 - 결정: `agent-helper/` 의 계측(instrumentation) APK `dev.crewdroid.agent` 를 `up` 이 기기마다 설치·시작한다. 도우미는 기기 안 `127.0.0.1:6790` 에서 작은 HTTP 를 받고, 호스트는 `adb forward tcp:0 tcp:6790` 으로 받은 빈 포트로 붙는다. `screen`·`tap`·`type`·`swipe`·`key` 는 도우미가 답하면 도우미로, 답하지 않으면 지금까지의 `uiautomator dump`·`input` 경로로 간다(결과의 `via`).
-- 확인: `npm test && node scripts/check-helper.mjs` [확인함 `.ai-log/evidence/T52-1.txt`]
+- 확인: `npm test && node scripts/check-helper.mjs`
 
 ## 구조
 | 부분 | 내용 |
@@ -15,11 +15,13 @@
 | `up` | 기기별 identity 단계 뒤 `startHelper` 를 wm 단계와 나란히 돌린다. 결과 `devices[].helper` = `{ok, port, seconds}`, `phases.helper`. 설치·연결은 `up` 이 끝난 뒤 기기 안에서 이어진다 |
 | 배포 | APK 는 npm 패키지에 넣는다: `files` 에 Gradle 산출물 경로, `prepack` 이 `probe-app` 의 Gradle wrapper 로 `agent-helper` 를 빌드한다. 사용자는 JDK·Gradle 없이 받는다. 저장소 체크아웃에서는 `probe-app/gradlew -p agent-helper assembleRelease` (check-helper 가 빌드한다). APK 가 없으면 `up` 의 `helper.ok=false` 와 이유, 명령은 옛 경로 |
 
-## UiAutomation 은 시스템에 하나만 — 쉬면 놓는다
-Android 는 UiAutomation 클라이언트를 한 번에 하나만 받는다. 도우미가 연결을 쥐고 있는 동안 `uiautomator dump` 는 `UiAutomationService ... already registered!` 로 죽는다 [확인함 API 34 logcat, `UiAutomationManager.registerUiTestAutomationServiceLocked`]. 그러면 crewdroid 의 대체 경로, mobile-mcp 의 요소 목록(`uiautomator dump`), Maestro 드라이버가 모두 막힌다. 그래서 도우미는 요청 없이 3 초가 지나면 연결을 놓고(`UiAutomation.destroy()`, 숨은 API 라 `--no-hidden-api-checks`) 다음 요청에서 다시 잡는다. `accept()` 의 timeout 을 그 타이머로 써 스레드를 늘리지 않았다.
-- 놓은 뒤 `uiautomator dump` 는 성공한다 [확인함 check-helper parity 항목: dump 를 도우미가 쉬는 동안 돌린다].
-- 다시 잡는 비용은 요청 한 번에 약 0.1 초다 (아래 표의 "쉰 뒤").
-- 남는 한계: 도우미는 요청 없이 3 초가 지나야 UiAutomation 을 놓으므로 그 안에 mobile-mcp·Maestro 를 섞으면 나중 쪽이 실패할 수 있다. 도우미가 500 을 내면 `src/helper.ts`(64, 89행)는 대체 경로 없이 예외를 던진다(연결 거부·빈 응답·421 만 대체 경로). 측정(T61, `docs/measurements/coexist.md`): 세 번 실행에서 첫 실행만 a(`up` 1 초 뒤 mobile-mcp)와 f(Maestro 흐름 중 `screen`, 흐름도 실패)가 실패했고 나머지 두 번은 6 사례 모두 성공했다(단 f 의 Maestro 흐름은 세 번째에도 실패). 도우미 500 은 관찰되지 않았고 원인은 가리지 못했다. 이 충돌은 도우미 이전에도 dump 와 Maestro 사이에 있었다.
+## UiAutomation 은 시스템에 하나만 — 요청 하나 동안만 쥔다 (T66 공존)
+Android 는 UiAutomation 클라이언트를 한 번에 하나만 받는다. 도우미가 연결을 쥐고 있는 동안 `uiautomator dump` 는 `UiAutomationService ... already registered!` 로 죽는다 [확인함 API 34 logcat, `UiAutomationManager.registerUiTestAutomationServiceLocked`]. 그러면 crewdroid 의 대체 경로, mobile-mcp 의 요소 목록(`uiautomator dump`), Maestro 드라이버(흐름 내내 쥔다)가 모두 막힌다.
+- T66 부터 도우미는 시작할 때 연결하지 않고, 요청 하나를 처리하는 동안만 잡았다가 바로 놓는다(`UiAutomation.destroy()`, 숨은 API 라 `--no-hidden-api-checks`; `-e idleMs N` 이면 예전처럼 N ms 더 쥔다). 그래서 `up` 직후 mobile-mcp 와 부딪히지 않는다.
+- 다른 클라이언트가 쥐고 있어 1 초 동안 못 잡으면 503 을 내고 스스로 끝난다(실패한 연결이 남긴 `Already connected` 상태를 푸는 유일한 방법이었다). 호스트는 503 을 "답하지 않음"으로 보고 셸 경로를 쓴 뒤 새 도우미를 띄운다. 그동안 `screen` 은 `nodes: []` 와 `busy`(이유)를, 대체 결과는 모두 `fallbackReason` 을 낸다. 비ASCII `type` 만 실패한다.
+- 호스트 포트는 에뮬레이터마다 고정(`6800 + port - 5554`, 쓰이고 있으면 아무 빈 포트). OS 임시 포트 범위 밖이라 Maestro 드라이버 포트와 겹치지 않는다 [추론 T66 run4 의 `Broken pipe` 줄].
+- 상세 원인·수치: `docs/measurements/coexist.md`. 공존 측정 60 회 중 56 회 통과(a·b·c·e 10/10, d·f 8/10)를 2026-10-29 사용자가 출시 상태로 받아들였다. 남은 4 회는 아래 한계다.
+- 남는 한계: API 31 클론(RAM 약 710 MB)에서 Maestro 흐름 약 3 %(T66 1차 네 번째 실행·마스터 확인·2차 탐색의 87 번 중 3 번; 1차 두 번째 실행은 더 잦았다)가 기기 메모리 부족으로 실패한다. 하나는 저메모리 킬러가 Maestro 드라이버를 죽이는 것, 다른 하나는 adbd 가 vsock 으로 호스트에 쓸 64 KB(order 4) 커널 메모리를 못 받아(`page allocation failure: order:4`, `host-14: connection terminated: write failed`) adb 연결이 끊기는 것("device offline")이다. 두 경우 모두 그 순간 crewdroid 명령은 돌지 않았고, 도우미를 끈 채로도 고차 여유 메모리는 같았다. 고치려면 API 31 클론의 RAM 이나 커널 메모리 설정(`up`·`KNOBS`)을 바꿔야 해 T66 범위 밖이다.
 
 ## 수치
 | 항목 | API 31 | API 34 | API 36 | 목표 |
@@ -35,7 +37,7 @@ Android 는 UiAutomation 클라이언트를 한 번에 하나만 받는다. 도�
 | 도우미 kill 뒤 `screen` (대체 경로) / 그다음 `screen` (재시작된 도우미) | 5084 / 1658 ms | 3154 / 706 ms | 4580 / 3517 ms | 둘 다 동작 |
 | 도우미 PSS (기기 RAM 중) | 18 / 710 MB | 18 / 842 MB | 18 / 839 MB | |
 
-3대 유휴 RAM(에뮬레이터+qemu working set, 30 초): 도우미 켬 2490·2162 MB, 끔 2314 MB → 켬 평균 기준 +0.5 % (≤ +5 %), `docs/measurements/features.md` T52 행 [확인함 `.ai-log/evidence/T52-1.txt`]. 켬→끔→켬 순서로 재 장시간 기동 에뮬레이터의 꾸준한 감소를 상쇄했다.
+3대 유휴 RAM(에뮬레이터+qemu working set, 30 초): 도우미 켬 2490·2162 MB, 끔 2314 MB → 켬 평균 기준 +0.5 % (≤ +5 %), `docs/measurements/features.md` T52 행. 켬→끔→켬 순서로 재 장시간 기동 에뮬레이터의 꾸준한 감소를 상쇄했다.
 
 ## 대체 경로와 재시작
 - 도우미가 연결 거부·빈 응답·serial 불일치(421)면 "답하지 않음"으로 보고 옛 경로를 쓴다. 프로세스당 한 번 `helper not answering on <serial> (<이유>); using uiautomator/input` 를 stderr 로 남긴다.

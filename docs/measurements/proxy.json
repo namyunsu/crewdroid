@@ -1,0 +1,230 @@
+{
+  "date": "2026-10-28T05:12:10.292Z",
+  "overhead": {
+    "requests": 400,
+    "bodyBytes": 1024,
+    "directMs": {
+      "p50": 0.65,
+      "p95": 0.81
+    },
+    "proxyMs": {
+      "p50": 1.02,
+      "p95": 1.26
+    },
+    "overheadMs": {
+      "p50": 0.37,
+      "p95": 0.45
+    }
+  },
+  "lifecycle": {
+    "setting": "10.0.2.2:5590",
+    "logged": [
+      "GET /export 200",
+      "POST /upload 200"
+    ],
+    "afterStop": ":0",
+    "directRead": true,
+    "freshClone": "null"
+  },
+  "runs": [
+    {
+      "buggy": true,
+      "seed": 1,
+      "runExit": 1,
+      "drained": true,
+      "judgeExit": 1,
+      "rules": {
+        "dupSuccess": 3,
+        "lostUpdate": 6,
+        "lostWrite": 0,
+        "idle": 0
+      },
+      "exportJudge": [
+        "unique(key)",
+        "noLostUpdate(id,baseVersion)"
+      ],
+      "devices": [
+        "emulator-5580",
+        "emulator-5582",
+        "emulator-5584"
+      ],
+      "requests": 65,
+      "writes": 51,
+      "cut": 3,
+      "failedNoAnswer": 0,
+      "systemPassThrough": 140,
+      "upstreamMs": {
+        "p50": 40,
+        "p95": 2148
+      },
+      "wallSeconds": 197,
+      "sample": [
+        "key 196987b5-6329-4f61-ba98-7d3434c7e02a: 2 2xx answers with 2 different bodies; the server applied one write more than once",
+        "key 1fdccf1c-975f-4698-b1a0-41a98fcad134: 2 2xx answers with 2 different bodies; the server applied one write more than once"
+      ]
+    },
+    {
+      "buggy": false,
+      "seed": 1,
+      "runExit": 0,
+      "drained": true,
+      "judgeExit": 0,
+      "rules": {
+        "dupSuccess": 0,
+        "lostUpdate": 0,
+        "lostWrite": 0,
+        "idle": 0
+      },
+      "exportJudge": [],
+      "devices": [
+        "emulator-5580",
+        "emulator-5582",
+        "emulator-5584"
+      ],
+      "requests": 66,
+      "writes": 51,
+      "cut": 3,
+      "failedNoAnswer": 0,
+      "systemPassThrough": 142,
+      "upstreamMs": {
+        "p50": 1,
+        "p95": 2113
+      },
+      "wallSeconds": 189,
+      "sample": []
+    },
+    {
+      "buggy": true,
+      "seed": 2,
+      "runExit": 1,
+      "drained": true,
+      "judgeExit": 1,
+      "rules": {
+        "dupSuccess": 2,
+        "lostUpdate": 6,
+        "lostWrite": 0,
+        "idle": 0
+      },
+      "exportJudge": [
+        "unique(key)",
+        "count(acks)",
+        "noLostUpdate(id,baseVersion)"
+      ],
+      "devices": [
+        "emulator-5580",
+        "emulator-5582",
+        "emulator-5584"
+      ],
+      "requests": 67,
+      "writes": 50,
+      "cut": 2,
+      "failedNoAnswer": 0,
+      "systemPassThrough": 125,
+      "upstreamMs": {
+        "p50": 41,
+        "p95": 2144
+      },
+      "wallSeconds": 184,
+      "sample": [
+        "key 85e0042d-cf22-4c7d-913b-68f4cd89e990: 2 2xx answers with 2 different bodies; the server applied one write more than once",
+        "key 243c55f9-34b3-4f5e-b93d-8a123c9cbba1: 2 2xx answers with 2 different bodies; the server applied one write more than once"
+      ]
+    },
+    {
+      "buggy": false,
+      "seed": 2,
+      "runExit": 0,
+      "drained": true,
+      "judgeExit": 0,
+      "rules": {
+        "dupSuccess": 0,
+        "lostUpdate": 0,
+        "lostWrite": 0,
+        "idle": 0
+      },
+      "exportJudge": [],
+      "devices": [
+        "emulator-5580",
+        "emulator-5582",
+        "emulator-5584"
+      ],
+      "requests": 68,
+      "writes": 52,
+      "cut": 2,
+      "failedNoAnswer": 0,
+      "systemPassThrough": 146,
+      "upstreamMs": {
+        "p50": 1,
+        "p95": 2113
+      },
+      "wallSeconds": 187,
+      "sample": []
+    },
+    {
+      "buggy": true,
+      "seed": 3,
+      "runExit": 1,
+      "drained": true,
+      "judgeExit": 1,
+      "rules": {
+        "dupSuccess": 3,
+        "lostUpdate": 8,
+        "lostWrite": 0,
+        "idle": 0
+      },
+      "exportJudge": [
+        "unique(key)",
+        "noLostUpdate(id,baseVersion)"
+      ],
+      "devices": [
+        "emulator-5580",
+        "emulator-5582",
+        "emulator-5584"
+      ],
+      "requests": 67,
+      "writes": 51,
+      "cut": 3,
+      "failedNoAnswer": 0,
+      "systemPassThrough": 131,
+      "upstreamMs": {
+        "p50": 42,
+        "p95": 1902
+      },
+      "wallSeconds": 206,
+      "sample": [
+        "key d6bdb7b8-60ba-4b1f-8d25-7f4919b2b81d: 2 2xx answers with 2 different bodies; the server applied one write more than once",
+        "key 72c9c43f-2426-4e72-b22f-27620ad2d872: 2 2xx answers with 2 different bodies; the server applied one write more than once"
+      ]
+    },
+    {
+      "buggy": false,
+      "seed": 3,
+      "runExit": 0,
+      "drained": true,
+      "judgeExit": 0,
+      "rules": {
+        "dupSuccess": 0,
+        "lostUpdate": 0,
+        "lostWrite": 0,
+        "idle": 0
+      },
+      "exportJudge": [],
+      "devices": [
+        "emulator-5580",
+        "emulator-5582",
+        "emulator-5584"
+      ],
+      "requests": 68,
+      "writes": 51,
+      "cut": 3,
+      "failedNoAnswer": 0,
+      "systemPassThrough": 128,
+      "upstreamMs": {
+        "p50": 1,
+        "p95": 2111
+      },
+      "wallSeconds": 194,
+      "sample": []
+    }
+  ]
+}

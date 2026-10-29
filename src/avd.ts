@@ -47,8 +47,8 @@ export async function installImage(image: string) {
 
 // RAM knobs (T16, docs/measurements/ram.md). CREWDROID_KNOBS (JSON) overrides them for the sweep in scripts/check-ram.mjs.
 // A changed knob changes slimSettings(), so up()/slim re-prepare the base snapshots.
-// AI NOTE: without -lowram the emulator raises hw.ramSize to 2048 (API 31) / 2560 MB (API 34/36). 768 MB failed the private-app
-// call and 832 MB broke makeDistinct's framework restart on API 36; API 31 is not in the private-app call and runs at 768.
+// AI NOTE: without -lowram the emulator raises hw.ramSize to 2048 (API 31) / 2560 MB (API 34/36). 768 MB failed a two-device video-call test
+// and 832 MB broke makeDistinct's framework restart on API 36; API 31 is not in that call test and runs at 768.
 // Disabling the host Vulkan feature saved ~170 MiB per emulator (T16).
 // "host" everywhere we measured; a Linux host with no display server (CI runner, headless server; /dev/dri may still exist) cannot start the host renderer
 // ("Could not start renderer"), so it falls back to software. CREWDROID_GPU overrides.

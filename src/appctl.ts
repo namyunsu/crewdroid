@@ -67,9 +67,36 @@ export function parseSince(s: string): number {
   return Number(m[1]) * (m[2] === "m" ? 60 : 1);
 }
 
-export async function logs(serial: string, pkg: string, o: { since?: string; level?: string; seconds?: number } = {}) {
+// Default view (T53): consecutive equal lines folded into one with `repeat`, and each stack trace (a run of "at ..." lines)
+// cut to its first 8 frames in the app's own package (first 8 frames when none is), followed by a "… N frames cut" line; messages over 200 characters are cut.
+export const TAIL = 40;
+export function shorten(lines: LogLine[], pkg: string): (LogLine & { repeat?: number })[] {
+  const out: (LogLine & { repeat?: number })[] = [];
+  const isFrame = (l: LogLine) => /^\s*at /.test(l.message);
+  for (let i = 0; i < lines.length;) {
+    const l = lines[i];
+    if (isFrame(l)) {
+      let j = i;
+      while (j < lines.length && isFrame(lines[j]) && lines[j].pid === l.pid) j++;
+      const run = lines.slice(i, j), app = run.filter((f) => f.message.trim().slice(3).startsWith(pkg + "."));
+      const keep = (app.length ? app : run).slice(0, 8);
+      out.push(...keep);
+      if (run.length > keep.length) out.push({ ...run[run.length - 1], message: `  … ${run.length - keep.length} frames cut` });
+      i = j;
+      continue;
+    }
+    const prev = out.at(-1), message = l.message.length > 200 ? `${l.message.slice(0, 199)}…` : l.message;
+    if (prev && prev.level === l.level && prev.tag === l.tag && prev.message === message && prev.pid === l.pid) { prev.repeat = (prev.repeat ?? 1) + 1; prev.time = l.time; }
+    else out.push({ ...l, message });
+    i++;
+  }
+  return out;
+}
+
+// all = everything of today's buffer at level V (the old default); otherwise level >= I, shortened, the last 40 lines
+export async function logs(serial: string, pkg: string, o: { since?: string; level?: string; seconds?: number; all?: boolean } = {}) {
   assertSerial(serial); pkgOf(pkg);
-  const level = (o.level ?? "V").toUpperCase();
+  const level = (o.level ?? (o.all ? "V" : "I")).toUpperCase();
   if (!/^[VDIWEF]$/.test(level)) throw new Error(`bad --level '${o.level}' (V D I W E)`);
   const cutoffSec = o.since ? parseSince(o.since) : 0;
   if (!(await sh(serial, `pm path ${pkg}`).catch(() => ""))) throw new Error(`${pkg} is not installed on ${serial}`);
@@ -87,12 +114,17 @@ export async function logs(serial: string, pkg: string, o: { since?: string; lev
     // follow for N s: the killed adb still hands over what it read
     raw = await adb(serial, ["logcat", "-v", "threadtime", ...(running ? [`--pid=${pid}`] : ["-b", "all"])], o.seconds * 1000, false).catch((e: any) => { if (e.killed) return String(e.stdout ?? ""); throw e; });
   } else raw = await sh(serial, running ? `logcat -d -v threadtime --pid=${pid}` : `logcat -b all -d -v threadtime | grep -E ' +${pid} +[0-9]+ [VDIWEF] '; true`, 60000);
-  const lines = parseLogs(raw).filter((l) => l.pid === pid && LEVELS.indexOf(l.level) >= LEVELS.indexOf(level) && l.time >= cutoff);
+  const all = parseLogs(raw).filter((l) => l.pid === pid && LEVELS.indexOf(l.level) >= LEVELS.indexOf(level) && l.time >= cutoff);
+  const short = o.all ? all : shorten(all, pkg), lines = o.all ? all : short.slice(-TAIL);
   return {
-    serial, pkg, pid, source: running ? "pid" : "last-pid", count: lines.length,
+    serial, pkg, pid, source: running ? "pid" : "last-pid", count: all.length, level, ...(o.all ? {} : { earlier: short.length - lines.length }),
     ...(running ? {} : { note: `${pkg} is not running; showing lines from its last pid ${pid} (logcat -b all)` }), lines,
   };
 }
+
+// one text line per log line (CLI default and MCP text): time without the date, level, tag, message, "(xN)" when folded
+export const logLine = (l: LogLine & { repeat?: number }) => `${l.time.slice(6)} ${l.level} ${l.tag}: ${l.message}${l.repeat ? ` (x${l.repeat})` : ""}`;
+export const logsHint = (r: { earlier?: number; count: number }) => (r.earlier ? `… ${r.earlier} earlier lines (all:true / --all for everything, level V)` : "");
 
 export const mcpTools: Tool[] = [
   {
@@ -106,8 +138,12 @@ export const mcpTools: Tool[] = [
     run: (a) => launch(a.serial, a.pkg, { activity: a.activity, restart: a.restart, extras: a.extras }),
   },
   {
-    name: "logs", description: "Use to see what the app printed or why it failed: one app's logcat lines only (its pid; its last pid when not running). Returns {lines:[{time, level, tag, message}]}, newest last, max 500; since:\"1m\" limits to recent lines.",
-    input: { serial: z.string().describe("emulator-<port>"), pkg: z.string(), since: z.string().optional().describe("60s | 90 | 2m"), level: z.enum(["V", "D", "I", "W", "E"]).default("V"), seconds: z.number().int().min(1).max(300).optional().describe("follow for N s") },
-    run: async (a) => { const r = await logs(a.serial, a.pkg, a); return { ...r, truncated: r.lines.length > 500, lines: r.lines.slice(-500) }; },
+    name: "logs", description: "Use to see what the app printed or why it failed: one app's logcat lines only (its pid; its last pid when not running). Default: the last 40 lines at level >= I, one text line each `HH:MM:SS.mmm L Tag: message`, equal lines in a row folded `(xN)`, stack traces cut to the top 8 app frames. all:true = today's whole output at level V (max 500 lines); since:\"1m\" limits to recent lines; format:\"json\" = {lines:[{time, level, tag, message}]}.",
+    input: { serial: z.string().describe("emulator-<port>"), pkg: z.string(), since: z.string().optional().describe("60s | 90 | 2m"), level: z.enum(["V", "D", "I", "W", "E"]).optional().describe("default I (V with all)"), all: z.boolean().default(false), seconds: z.number().int().min(1).max(300).optional().describe("follow for N s"), format: z.enum(["text", "json"]).default("text") },
+    run: async (a) => {
+      const r0 = await logs(a.serial, a.pkg, a), r = { ...r0, truncated: r0.lines.length > 500, lines: r0.lines.slice(-500) };
+      if (a.format === "json") return r;
+      return [...(r.note ? [r.note] : []), ...(logsHint(r) ? [logsHint(r)] : []), ...r.lines.map(logLine)].join("\n") || `no lines from ${a.pkg} (pid ${r.pid}) at level >= ${r.level}`;
+    },
   },
 ];

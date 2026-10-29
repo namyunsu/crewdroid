@@ -23,11 +23,15 @@ adb -s $SERIAL shell am start -W -n $PKG/.ProbeActivity --es check anr | grep 'S
 crewdroid screen $SERIAL --png screen.png | tee screen.txt
 grep -i 'probe button' screen.txt
 ```
-   - `focus: <pkg>/<activity>`: the window that gets input. If it is not your app (`NotificationShade`, `Application Not Responding: ...`,
-     a permission dialog `com.android.permissioncontroller/...`), that window is what the user sees.
-   - Each next line: `<indent><Class> "<text|desc|id>" [l,t,r,b] clickable`. Indent = nesting depth; layout-only nodes are dropped.
-   - `[l,t,r,b]` are real pixels of this device. Tap the centre: `adb -s $SERIAL shell input tap <(l+r)/2> <(t+b)/2>`.
-   - `--json` gives `nodes[]` as `{cls, text, desc, id, bounds, clickable, depth}`; `screen.png` is the screenshot.
+   - First line `<pkg>/<activity> <width>x<height>`: the window that gets input and the screen size. If it is not your app
+     (`NotificationShade`, `Application Not Responding: ...`, a permission dialog `com.android.permissioncontroller/...`), that
+     window is what the user sees.
+   - Each next line: `<indent>[n] <role> "<text>" "<desc>" #<id> @x,y <flags>`, e.g. `[35] btn "New note" #fab @819,2205`.
+     role = btn / edit / text / img / list / check; flags = `focused`, `checked`, `disabled`. A clickable card is one line with
+     all its texts. `#id` is left out when it is R8-obfuscated (`#a`). `… 3 more below (swipe up)` = nodes off the screen.
+   - `@x,y` is the centre in real pixels of this device: `crewdroid tap $SERIAL '[35]'` taps it (same window only), or
+     `crewdroid tap $SERIAL --text "New note"`. `--bounds` adds `[l,t,r,b]` to each line.
+   - `--json` gives the full tree `nodes[]` as `{cls, text, desc, id, bounds, clickable, depth, ...}`; `screen.png` is the screenshot.
 
 3. Compare against the device size (bounds outside it = off-screen / cut off; crewdroid profiles override the size).
 ```bash verify

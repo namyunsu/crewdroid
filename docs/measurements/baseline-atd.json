@@ -1,0 +1,415 @@
+{
+  "date": "2026-10-29T03:29:13.035Z",
+  "pc": {
+    "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "cores": 16,
+    "ramGB": 64,
+    "os": "win32 10.0.26300"
+  },
+  "emulatorVersion": "37.1.11.0",
+  "method": "WorkingSet64 (Get-Process)",
+  "idleSeconds": 60,
+  "flags": "-avd <name> -port <port> -no-window (nothing else)",
+  "device": "pixel_9 (avdmanager default RAM/cores)",
+  "diskTotalBytes": 35660606856,
+  "allocTotalBytes": 12686063283,
+  "ramTotalMB": 8482,
+  "cpuTotalPercent": 352.4,
+  "devices": [
+    {
+      "avd": "stock-atd-31",
+      "serial": "emulator-5580",
+      "image": "android-31/google_atd",
+      "api": 31,
+      "avdDirBytes": 13359440471,
+      "diskBytes": 17832089012,
+      "bootSeconds": 38.3,
+      "readySeconds": 38.3,
+      "ramMB": 2384,
+      "cpuPercent": 90.7,
+      "allocAvdBytes": 2695553623
+    },
+    {
+      "avd": "stock-atd-34",
+      "serial": "emulator-5582",
+      "image": "android-34/google_atd",
+      "api": 34,
+      "avdDirBytes": 3436211698,
+      "diskBytes": 12195001752,
+      "bootSeconds": 43.7,
+      "readySeconds": 43.7,
+      "ramMB": 2941,
+      "cpuPercent": 96.3,
+      "allocAvdBytes": 3372314098
+    },
+    {
+      "avd": "stock-atd-36",
+      "serial": "emulator-5584",
+      "image": "android-36/google_atd",
+      "api": 36,
+      "avdDirBytes": 3568906902,
+      "diskBytes": 5633516092,
+      "bootSeconds": 74.3,
+      "readySeconds": 74.3,
+      "ramMB": 3157,
+      "cpuPercent": 165.4,
+      "allocAvdBytes": 3503895190
+    }
+  ],
+  "rounds": [
+    {
+      "date": "2026-10-29T03:29:13.035Z",
+      "pc": {
+        "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+        "cores": 16,
+        "ramGB": 64,
+        "os": "win32 10.0.26300"
+      },
+      "emulatorVersion": "37.1.11.0",
+      "method": "WorkingSet64 (Get-Process)",
+      "idleSeconds": 60,
+      "flags": "-avd <name> -port <port> -no-window (nothing else)",
+      "device": "pixel_9 (avdmanager default RAM/cores)",
+      "diskTotalBytes": 35660606856,
+      "allocTotalBytes": 12686063283,
+      "ramTotalMB": 8482,
+      "cpuTotalPercent": 352.4,
+      "devices": [
+        {
+          "avd": "stock-atd-31",
+          "serial": "emulator-5580",
+          "image": "android-31/google_atd",
+          "api": 31,
+          "avdDirBytes": 13359440471,
+          "diskBytes": 17832089012,
+          "bootSeconds": 38.3,
+          "readySeconds": 38.3,
+          "ramMB": 2384,
+          "cpuPercent": 90.7,
+          "allocAvdBytes": 2695553623
+        },
+        {
+          "avd": "stock-atd-34",
+          "serial": "emulator-5582",
+          "image": "android-34/google_atd",
+          "api": 34,
+          "avdDirBytes": 3436211698,
+          "diskBytes": 12195001752,
+          "bootSeconds": 43.7,
+          "readySeconds": 43.7,
+          "ramMB": 2941,
+          "cpuPercent": 96.3,
+          "allocAvdBytes": 3372314098
+        },
+        {
+          "avd": "stock-atd-36",
+          "serial": "emulator-5584",
+          "image": "android-36/google_atd",
+          "api": 36,
+          "avdDirBytes": 3568906902,
+          "diskBytes": 5633516092,
+          "bootSeconds": 74.3,
+          "readySeconds": 74.3,
+          "ramMB": 3157,
+          "cpuPercent": 165.4,
+          "allocAvdBytes": 3503895190
+        }
+      ]
+    },
+    {
+      "date": "2026-10-29T03:31:58.686Z",
+      "pc": {
+        "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+        "cores": 16,
+        "ramGB": 64,
+        "os": "win32 10.0.26300"
+      },
+      "emulatorVersion": "37.1.11.0",
+      "method": "WorkingSet64 (Get-Process)",
+      "idleSeconds": 60,
+      "flags": "-avd <name> -port <port> -no-window (nothing else)",
+      "device": "pixel_9 (avdmanager default RAM/cores)",
+      "diskTotalBytes": 35670896007,
+      "allocTotalBytes": 12698056370,
+      "ramTotalMB": 8508,
+      "cpuTotalPercent": 247.7,
+      "devices": [
+        {
+          "avd": "stock-atd-31",
+          "serial": "emulator-5580",
+          "image": "android-31/google_atd",
+          "api": 31,
+          "avdDirBytes": 13369729623,
+          "diskBytes": 17842378164,
+          "bootSeconds": 39.3,
+          "readySeconds": 39.3,
+          "ramMB": 2430,
+          "cpuPercent": 23.5,
+          "allocAvdBytes": 2706760279
+        },
+        {
+          "avd": "stock-atd-34",
+          "serial": "emulator-5582",
+          "image": "android-34/google_atd",
+          "api": 34,
+          "avdDirBytes": 3435621874,
+          "diskBytes": 12194411928,
+          "bootSeconds": 40.4,
+          "readySeconds": 40.4,
+          "ramMB": 2924,
+          "cpuPercent": 61.7,
+          "allocAvdBytes": 3371462130
+        },
+        {
+          "avd": "stock-atd-36",
+          "serial": "emulator-5584",
+          "image": "android-36/google_atd",
+          "api": 36,
+          "avdDirBytes": 3569496725,
+          "diskBytes": 5634105915,
+          "bootSeconds": 79.5,
+          "readySeconds": 79.5,
+          "ramMB": 3154,
+          "cpuPercent": 162.5,
+          "allocAvdBytes": 3505533589
+        }
+      ]
+    },
+    {
+      "date": "2026-10-29T03:34:46.525Z",
+      "pc": {
+        "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+        "cores": 16,
+        "ramGB": 64,
+        "os": "win32 10.0.26300"
+      },
+      "emulatorVersion": "37.1.11.0",
+      "method": "WorkingSet64 (Get-Process)",
+      "idleSeconds": 60,
+      "flags": "-avd <name> -port <port> -no-window (nothing else)",
+      "device": "pixel_9 (avdmanager default RAM/cores)",
+      "diskTotalBytes": 35671158152,
+      "allocTotalBytes": 12702250675,
+      "ramTotalMB": 8684,
+      "cpuTotalPercent": 323.1,
+      "devices": [
+        {
+          "avd": "stock-atd-31",
+          "serial": "emulator-5580",
+          "image": "android-31/google_atd",
+          "api": 31,
+          "avdDirBytes": 13367960151,
+          "diskBytes": 17840608692,
+          "bootSeconds": 45.7,
+          "readySeconds": 45.7,
+          "ramMB": 2413,
+          "cpuPercent": 72.8,
+          "allocAvdBytes": 2708988503
+        },
+        {
+          "avd": "stock-atd-34",
+          "serial": "emulator-5582",
+          "image": "android-34/google_atd",
+          "api": 34,
+          "avdDirBytes": 3436277234,
+          "diskBytes": 12195067288,
+          "bootSeconds": 50.1,
+          "readySeconds": 50.1,
+          "ramMB": 3057,
+          "cpuPercent": 84.2,
+          "allocAvdBytes": 3372051954
+        },
+        {
+          "avd": "stock-atd-36",
+          "serial": "emulator-5584",
+          "image": "android-36/google_atd",
+          "api": 36,
+          "avdDirBytes": 3570872982,
+          "diskBytes": 5635482172,
+          "bootSeconds": 81.7,
+          "readySeconds": 81.7,
+          "ramMB": 3214,
+          "cpuPercent": 166.1,
+          "allocAvdBytes": 3506909846
+        }
+      ]
+    },
+    {
+      "date": "2026-10-29T03:37:25.870Z",
+      "pc": {
+        "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+        "cores": 16,
+        "ramGB": 64,
+        "os": "win32 10.0.26300"
+      },
+      "emulatorVersion": "37.1.11.0",
+      "method": "WorkingSet64 (Get-Process)",
+      "idleSeconds": 60,
+      "flags": "-avd <name> -port <port> -no-window (nothing else)",
+      "device": "pixel_9 (avdmanager default RAM/cores)",
+      "diskTotalBytes": 35675417992,
+      "allocTotalBytes": 12706313907,
+      "ramTotalMB": 8494,
+      "cpuTotalPercent": 346.6,
+      "devices": [
+        {
+          "avd": "stock-atd-31",
+          "serial": "emulator-5580",
+          "image": "android-31/google_atd",
+          "api": 31,
+          "avdDirBytes": 13370057303,
+          "diskBytes": 17842705844,
+          "bootSeconds": 43.6,
+          "readySeconds": 43.6,
+          "ramMB": 2359,
+          "cpuPercent": 76.4,
+          "allocAvdBytes": 2711413335
+        },
+        {
+          "avd": "stock-atd-34",
+          "serial": "emulator-5582",
+          "image": "android-34/google_atd",
+          "api": 34,
+          "avdDirBytes": 3439226354,
+          "diskBytes": 12198016408,
+          "bootSeconds": 43.7,
+          "readySeconds": 43.7,
+          "ramMB": 2973,
+          "cpuPercent": 104,
+          "allocAvdBytes": 3374804466
+        },
+        {
+          "avd": "stock-atd-36",
+          "serial": "emulator-5584",
+          "image": "android-36/google_atd",
+          "api": 36,
+          "avdDirBytes": 3570086550,
+          "diskBytes": 5634695740,
+          "bootSeconds": 73.2,
+          "readySeconds": 73.2,
+          "ramMB": 3162,
+          "cpuPercent": 166.2,
+          "allocAvdBytes": 3505795734
+        }
+      ]
+    },
+    {
+      "date": "2026-10-29T03:40:12.599Z",
+      "pc": {
+        "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+        "cores": 16,
+        "ramGB": 64,
+        "os": "win32 10.0.26300"
+      },
+      "emulatorVersion": "37.1.11.0",
+      "method": "WorkingSet64 (Get-Process)",
+      "idleSeconds": 60,
+      "flags": "-avd <name> -port <port> -no-window (nothing else)",
+      "device": "pixel_9 (avdmanager default RAM/cores)",
+      "diskTotalBytes": 35676532104,
+      "allocTotalBytes": 12698973875,
+      "ramTotalMB": 8716,
+      "cpuTotalPercent": 264.7,
+      "devices": [
+        {
+          "avd": "stock-atd-31",
+          "serial": "emulator-5580",
+          "image": "android-31/google_atd",
+          "api": 31,
+          "avdDirBytes": 13368812119,
+          "diskBytes": 17841460660,
+          "bootSeconds": 38.3,
+          "readySeconds": 38.3,
+          "ramMB": 2430,
+          "cpuPercent": 38.6,
+          "allocAvdBytes": 2710299223
+        },
+        {
+          "avd": "stock-atd-34",
+          "serial": "emulator-5582",
+          "image": "android-34/google_atd",
+          "api": 34,
+          "avdDirBytes": 3438243314,
+          "diskBytes": 12197033368,
+          "bootSeconds": 40.5,
+          "readySeconds": 40.5,
+          "ramMB": 3076,
+          "cpuPercent": 68.7,
+          "allocAvdBytes": 3374411250
+        },
+        {
+          "avd": "stock-atd-36",
+          "serial": "emulator-5584",
+          "image": "android-36/google_atd",
+          "api": 36,
+          "avdDirBytes": 3573428886,
+          "diskBytes": 5638038076,
+          "bootSeconds": 80.6,
+          "readySeconds": 80.6,
+          "ramMB": 3210,
+          "cpuPercent": 157.4,
+          "allocAvdBytes": 3499963030
+        }
+      ]
+    },
+    {
+      "date": "2026-10-29T03:42:56.279Z",
+      "pc": {
+        "cpuModel": "AMD Ryzen 7 5700X 8-Core Processor             ",
+        "cores": 16,
+        "ramGB": 64,
+        "os": "win32 10.0.26300"
+      },
+      "emulatorVersion": "37.1.11.0",
+      "method": "WorkingSet64 (Get-Process)",
+      "idleSeconds": 60,
+      "flags": "-avd <name> -port <port> -no-window (nothing else)",
+      "device": "pixel_9 (avdmanager default RAM/cores)",
+      "diskTotalBytes": 35672796552,
+      "allocTotalBytes": 12652181171,
+      "ramTotalMB": 8799,
+      "cpuTotalPercent": 305.4,
+      "devices": [
+        {
+          "avd": "stock-atd-31",
+          "serial": "emulator-5580",
+          "image": "android-31/google_atd",
+          "api": 31,
+          "avdDirBytes": 13368484439,
+          "diskBytes": 17841132980,
+          "bootSeconds": 38.4,
+          "readySeconds": 38.4,
+          "ramMB": 2493,
+          "cpuPercent": 24.2,
+          "allocAvdBytes": 2709250647
+        },
+        {
+          "avd": "stock-atd-34",
+          "serial": "emulator-5582",
+          "image": "android-34/google_atd",
+          "api": 34,
+          "avdDirBytes": 3437391346,
+          "diskBytes": 12196181400,
+          "bootSeconds": 38.5,
+          "readySeconds": 38.5,
+          "ramMB": 3083,
+          "cpuPercent": 123.9,
+          "allocAvdBytes": 3370348018
+        },
+        {
+          "avd": "stock-atd-36",
+          "serial": "emulator-5584",
+          "image": "android-36/google_atd",
+          "api": 36,
+          "avdDirBytes": 3570872982,
+          "diskBytes": 5635482172,
+          "bootSeconds": 77.5,
+          "readySeconds": 77.5,
+          "ramMB": 3223,
+          "cpuPercent": 157.3,
+          "allocAvdBytes": 3458282134
+        }
+      ]
+    }
+  ]
+}

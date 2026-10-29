@@ -8,7 +8,7 @@ import { adb, assertSerial } from "./adb.ts";
 // GET /tree, /size, /health and POST /tap, /swipe, /key, /text on the device's 127.0.0.1:DEVICE_PORT, reached through
 // `adb forward tcp:<free host port>`. screen/tap/type/swipe/key use it when it answers and fall back to uiautomator/input.
 export const HELPER_PKG = "dev.crewdroid.agent";
-export const HELPER_VERSION = 1; // = versionCode in agent-helper/build.gradle.kts
+export const HELPER_VERSION = 5; // = versionCode in agent-helper/build.gradle.kts
 export const DEVICE_PORT = 6790;
 export const helperApk = () => join(import.meta.dirname, "..", "agent-helper/build/outputs/apk/release/crewdroid-agent-release.apk");
 const RETRY_AFTER_MS = 5 * 60000; // a failed start is not retried on every command
@@ -43,7 +43,12 @@ async function request(serial: string, port: number, method: string, path: strin
 }
 
 // existing forward to the helper port, or a new one on a free host port (adb binds it to 127.0.0.1)
-const forward = async (serial: string) => forwardPort(await adb(serial, ["forward", "--list"]), serial) ?? Number(await adb(serial, ["forward", "tcp:0", `tcp:${DEVICE_PORT}`]));
+// AI NOTE (T66): a fixed host port per emulator below the OS ephemeral range (Windows 49152+, Linux 32768+), any free one only
+// if that is taken. Maestro takes its driver port from the ephemeral range (ServerSocket(0)); with our forward there too, its
+// driver polls reached the helper once (logcat "Broken pipe" every second while Maestro waited for its driver) [inferred].
+export const hostPort = (serial: string) => DEVICE_PORT + 10 + Number(assertSerial(serial).slice(9)) - 5554;
+const forward = async (serial: string) => forwardPort(await adb(serial, ["forward", "--list"]), serial) ??
+  await adb(serial, ["forward", `tcp:${hostPort(serial)}`, `tcp:${DEVICE_PORT}`]).then(() => hostPort(serial), async () => Number(await adb(serial, ["forward", "tcp:0", `tcp:${DEVICE_PORT}`])));
 
 // Forward, then /health. Throws when the helper does not answer.
 async function connect(serial: string): Promise<number> {
@@ -61,7 +66,11 @@ async function ready(serial: string, ms: number): Promise<number> {
   }
 }
 
-const unreachable = (e: any) => !(e instanceof HelperError) || e.status === 421; // 421: the port now forwards to another device
+// 421: the port now forwards to another device; 503: another automation client (a Maestro flow, uiautomator) holds UiAutomation
+const unreachable = (e: any) => !(e instanceof HelperError) || e.status === 421 || e.status === 503;
+const missed = new Map<string, string>();
+// why the last call() on this serial returned undefined ("busy: ..." while another tool holds UiAutomation), undefined after a success
+export const helperMiss = (serial: string) => missed.get(serial);
 
 // The helper's answer, or undefined when it is not reachable (the caller then uses today's path). Errors the helper
 // reports itself (bad key, no focused field) are thrown as HelperError.
@@ -82,11 +91,14 @@ export async function call<T = any>(serial: string, method: "GET" | "POST", path
   let reason = "";
   for (const known of cached ? [cached, undefined] : [undefined]) { // a cached port may be stale: then look it up once
     try {
-      return await request(serial, known ?? (await connect(serial)), method, path, body, timeoutMs);
+      const r = await request(serial, known ?? (await connect(serial)), method, path, body, timeoutMs);
+      missed.delete(serial);
+      return r;
     } catch (e: any) {
-      ports.delete(serial);
       // AI NOTE: a timed-out POST may have been carried out; running the fallback too could tap twice
       if (!unreachable(e) || (e.name === "TimeoutError" && method === "POST")) throw e;
+      if (e.status === 503) return note(serial, `busy: ${e.message}`); // the helper is fine; the port stays cached
+      ports.delete(serial);
       reason = e.cause?.code ?? e.message;
     }
   }
@@ -96,6 +108,7 @@ export async function call<T = any>(serial: string, method: "GET" | "POST", path
 function note(serial: string, reason: string): undefined {
   if (!warned.has(serial)) console.error(`helper not answering on ${serial} (${reason}); using uiautomator/input`);
   warned.add(serial);
+  missed.set(serial, reason);
   return undefined;
 }
 
@@ -128,12 +141,13 @@ export async function startHelper(serial: string, waitMs = 0): Promise<{ ok: boo
 // Fast path through the helper; when it is not reachable the old path, then a restart so the next command is fast again.
 // AI NOTE: the restart comes after `slow`: a helper holding UiAutomation makes `uiautomator dump` fail. `slow` may itself
 // have restarted it (tap's fallback runs screen()), hence the /health look first.
-export async function orFallback<T extends object>(serial: string, fast: () => Promise<T | undefined>, slow: () => Promise<T>): Promise<T & { via: "helper" | "fallback" }> {
+export async function orFallback<T extends object>(serial: string, fast: () => Promise<T | undefined>, slow: () => Promise<T>): Promise<T & { via: "helper" | "fallback"; fallbackReason?: string }> {
   const r = await fast();
   if (r !== undefined) return { ...r, via: "helper" };
+  const fallbackReason = helperMiss(serial);
   const out = await slow();
   if ((await call(serial, "GET", "/health")) === undefined && !readState(serial).failedAt) await startHelper(serial);
-  return { ...out, via: "fallback" };
+  return { ...out, via: "fallback", fallbackReason };
 }
 
 // Builds agent-helper/ with the probe's Gradle wrapper (npm prepack, check-helper).

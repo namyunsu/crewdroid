@@ -12,3 +12,5 @@
 | docs/source/critique-2026-10-27.md | 2026-10-27 | 외부 비평: run 이 샘플 앱 전용, 벤치 반박, ready 과장, CPU, 한글, CI, 크로스플랫폼, 공개 로그, 버전, 커밋 이력 |
 | docs/source/direction-2026-10-27.md | 2026-10-27 | 개발 방향: 핵심 메시지, 원칙 6개, Phase 0~4, 보류 목록, 성공 지표 |
 | docs/source/research-oss-app.md | 2026-10-27 | 공개 시험 대상 앱 조사(Tasks.org·wallabag·Fossify Notes 외 15개, 빌드 설정 원문 확인) |
+- `docs/source/request-2026-10-27.md` — 개선 요청서(작업 1~5 + 정리). 반영: T53·T54·T55·T67~T70, FR-45·FR-46
+- `docs/source/feedback-2026-10-29.md` — 외부 사용 평가(Mac): run 샘플 전용·벤치 반대·ATD 한계·시나리오 직접 작성. 원인은 main/npm 이 10-26~27 에 멈춘 것. 반영: T71 제외, T76~T78, T40 대체

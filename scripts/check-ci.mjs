@@ -75,5 +75,20 @@ claim(readme.includes("actions/workflows/ci.yml/badge.svg"), "README has the CI 
 // Linux/macOS runners execute ./gradlew straight from the checkout, so git must store it as executable.
 claim(execFileSync("git", ["ls-files", "-s", "probe-app/gradlew"], { cwd: root, encoding: "utf8" }).startsWith("100755"), "probe-app/gradlew is stored executable (100755)");
 
+// T68: ci checks versions and skill files; release.yml is tag-only, OIDC, no token secret
+claim(runs(jobs.test).includes("node scripts/check-versions.mjs"), "test job runs check-versions");
+claim(jobs.skills?.if === "github.repository == 'namyunsu/crewdroid'" && runs(jobs.skills).includes("scripts/check-agent-files.mjs"), "skills job runs check-agent-files");
+const relText = readFileSync(join(root, ".github", "workflows", "release.yml"), "utf8");
+const rel = parse(relText);
+claim(Object.keys(rel.on ?? {}).join() === "push" && String(rel.on.push?.tags) === "v*", `release triggers only on push of tags v*: ${Object.keys(rel.on ?? {})}`);
+claim(!/schedule|workflow_dispatch/.test(relText), "release has no schedule or manual trigger");
+claim(rel.jobs?.publish?.if === "github.repository == 'namyunsu/crewdroid'", "release job has the repository guard");
+claim(String(rel.jobs?.publish?.permissions?.["id-token"]) === "write", "release has id-token: write");
+claim(!/secrets\.|NODE_AUTH_TOKEN|NPM_TOKEN/.test(relText), "release uses no token secret");
+const relRun = runs(rel.jobs?.publish);
+const at = (s) => relRun.indexOf(s);
+claim([at("check-versions.mjs --tag"), at("npm ci"), at("tsc --noEmit"), at("npm test"), at("npm publish --provenance --access public"), at("login github-oidc"), at("mcp-publisher publish")].every((x, i, a) => x >= 0 && (i === 0 || x > a[i - 1])), "release steps in order: check-versions --tag, npm ci, tsc, test, publish --provenance, github-oidc login, mcp-publisher publish");
+claim(/MCP_PUBLISHER_VERSION: \d+\.\d+\.\d+/.test(relText), "mcp-publisher version is pinned");
+
 if (errs.length) { console.log(`FAIL: ${errs.length} claims failed`); process.exit(1); }
 console.log("OK: ci workflow claims hold");

@@ -8,6 +8,7 @@ import { pipeline } from "node:stream/promises";
 import { z } from "zod";
 import { imageAbi } from "./platform.ts";
 import { defaultSdk } from "./sdk.ts";
+import { compatWarning } from "./compat.ts";
 import type { Tool } from "./mcp.ts";
 
 export const STEPS = ["jdk", "cmdline-tools", "platform-tools", "emulator", "images"] as const;
@@ -215,6 +216,8 @@ export async function setup(o: SetupOpts = {}) {
     }
   }
   result.host = hostChecks(sdk);
+  const compat = compatWarning(sdk);
+  if (compat) console.error(compat);
   if (!envSdk || envSdk !== sdk) result.envLine = `ANDROID_SDK_ROOT=${sdk}`;
   return result;
 }

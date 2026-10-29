@@ -61,7 +61,14 @@ class MainActivity : AppCompatActivity() {
             val t0 = System.currentTimeMillis()
             Notes.refresh { refresh.postDelayed({ refresh.isRefreshing = false }, maxOf(0, 700 - (System.currentTimeMillis() - t0))) }
         }
-        findViewById<View>(R.id.fab).setOnClickListener { editor() }
+        val fab = findViewById<View>(R.id.fab)
+        fab.setOnClickListener { editor() }
+        // T54: list bottom padding = FAB height + its margin below + the same gap above, so the last card scrolls clear of the
+        // FAB at every font scale (the FAB grows with the label); clipToPadding=false keeps cards drawn under it while scrolling.
+        fab.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            val want = v.height + 2 * (v.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+            if (list.paddingBottom != want) list.setPadding(list.paddingLeft, list.paddingTop, list.paddingRight, want)
+        }
         Notes.listener = { render() }
         render()
         if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) logLayout()

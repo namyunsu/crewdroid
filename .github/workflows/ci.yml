@@ -4,9 +4,9 @@ name: ci
 on:
   push:
     branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', '.ai-log/**']
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
-    paths-ignore: ['docs/**', '**/*.md', '.ai-log/**']
+    paths-ignore: ['docs/**', '**/*.md']
 
 jobs:
   test:
@@ -25,7 +25,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: node scripts/check-versions.mjs
       - run: npm test
+
+  skills:
+    if: github.repository == 'namyunsu/crewdroid'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Skill files have valid front matter (name, description)
+        run: node scripts/check-agent-files.mjs
 
   emulator-smoke:
     if: github.repository == 'namyunsu/crewdroid'

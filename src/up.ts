@@ -6,10 +6,13 @@ import { join } from "node:path";
 import { adb } from "./adb.ts";
 import { avdHome, avdName, checkSpec, coresOf, ramMB } from "./avd.ts";
 import { startHelper } from "./helper.ts";
+import { checkLevel, setLoad } from "./load.ts";
 import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
 import { CREW_RE, killTree, listProcesses, ramMethod } from "./platform.ts";
-import { emulatorPath } from "./sdk.ts";
+import { proxyStop } from "./proxy.ts";
+import { emulatorPath, sdkRoot } from "./sdk.ts";
+import { compatWarning } from "./compat.ts";
 import { assign, atdImages, loadProfiles, loadProfilesFile, parseScreen, relaunchBlackApis } from "./profiles.ts";
 import { prepare, sleep, start } from "./snapshot.ts";
 import { avdSlim } from "./slim.ts";
@@ -22,6 +25,7 @@ export interface UpDevice {
   wmSize: string; wmDensity: string; bootSeconds: number; readySeconds: number; distinctNotes: string[]; relaunchBlack: boolean;
   phases: Record<string, number>; // seconds since launch at the end of each step (T42)
   helper: Awaited<ReturnType<typeof startHelper>>;
+  load?: Awaited<ReturnType<typeof setLoad>>; // up --load <level> (T62)
 }
 
 // One crewdroid run drives the emulators at a time. down() kills every crew-* instance, so a second run started meanwhile
@@ -70,7 +74,7 @@ function pickImages(api?: number | "latest") {
   return hit;
 }
 
-export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest"; cores?: number; ramMB?: number } = {}) {
+export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest"; cores?: number; ramMB?: number; load?: string } = {}) {
   // Validate every input before taking the lock or launching anything.
   const screens = (custom.screens ?? []).map(parseScreen);
   const all = [...loadProfiles(), ...(custom.profilesFile ? loadProfilesFile(custom.profilesFile) : [])];
@@ -78,6 +82,7 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   // --screen alone -> only those screens; with --profiles -> named profiles then screens; --profiles-file alone -> its profiles.
   const profiles = [...(named ?? (screens.length ? [] : custom.profilesFile ? loadProfilesFile(custom.profilesFile) : all)), ...screens];
   const images = pickImages(custom.api);
+  if (custom.load !== undefined) checkLevel(custom.load);
   const slots = assign(count, profiles, images).map((s) => {
     const spec = { ramMB: custom.ramMB ?? s.profile.ramMB, cores: custom.cores ?? s.profile.cores };
     checkSpec(s.image, spec, { cpus: cpus().length, freeMB: freemem() / 2 ** 20 });
@@ -143,6 +148,9 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
         relaunchBlack: relaunchBlackApis().includes(s.api), phases, helper: helperStart,
       };
     }));
+    if (custom.load && custom.load !== "off") await Promise.all(devices.map(async (d) => { d.load = await setLoad(d.serial, custom.load!); }));
+    const compat = compatWarning(sdkRoot());
+    if (compat) console.error(compat);
     for (const d of devices.filter((x) => x.relaunchBlack)) {
       console.error(`WARN ${d.serial} API ${d.api}: screen can stay black after am start -S / force-stop + immediate start; wait 2 s between stop and start (ADR 0005)`);
     }
@@ -198,5 +206,6 @@ export async function down(): Promise<{ killed: number[]; ports: number[] }> {
   for (const p of ports) await adb(`emulator-${p}`, ["emu", "kill"], 10000).catch(() => {});
   if (ports.length) await sleep(5000);
   await killTree((await list()).map((p) => p.pid));
+  await proxyStop({ clearDevices: false }); // T69: a `proxy start` worker would outlive its devices
   return { killed: procs.map((p) => p.pid), ports };
 }

@@ -1,0 +1,9 @@
+# DAVx5 shows its intro pages on every launch until each hint is ticked; page through them.
+appId: at.bitfire.davdroid
+---
+- repeat:
+    while:
+      visible: "Next"
+    times: 8
+    commands:
+      - tapOn: "Next"

@@ -15,9 +15,20 @@ Local e2e: 해당 없음 — 에뮬레이터 시험은 각 Todo 의 verify 스�
 - `emulator-smoke`: ubuntu + KVM(udev 규칙), 러너 SDK 로 probe·helper APK 를 gradle 로 빌드한 뒤 `.crewdroid-sdk` 를 캐시하고 `node scripts/ci-smoke.mjs`(setup → up → shot → screen → install → launch → logs → down). 스크린샷은 artifact.
 - 로컬: `node scripts/check-ci.mjs`(정적) · `node scripts/ci-smoke.mjs`(에뮬레이터 1대, 같은 흐름).
 - `[manual]` 첫 `release-public.mjs --push` 뒤 Actions 탭에서 전 작업 초록 확인 — Linux 증거.
+- `test` 에 `node scripts/check-versions.mjs` 한 단계, 별도 `skills` 작업이 `check-agent-files.mjs`(스킬 front matter name·description 검사; `claude` CLI 가 없으면 plugin validate 만 건너뜀).
 
-## 저장소
-- GitHub `namyunsu/crewdroid` (공개). 직접 개발한다(위 2026-10-27 방향).
+## 릴리스 (T68, FR-46)
+- 버전은 `package.json` 한 곳이 기준. `.claude-plugin/plugin.json`, `server.json`(두 곳)이 같아야 하고 `node scripts/check-versions.mjs [--tag vX.Y.Z]` 가 아니면 exit 1. `crewdroid --version` 도 `package.json` 값을 찍는다.
+- 올릴 때: 네 파일 버전을 함께 올리고 커밋 → push → `git tag vX.Y.Z && git push origin vX.Y.Z`. 태그 push 만 `.github/workflows/release.yml` 을 돌린다(schedule·수동 트리거 없음).
+- release.yml 순서: check-versions `--tag` → `npm ci` → `tsc --noEmit` → `npm test` → `npm publish --provenance --access public` → `mcp-publisher login github-oidc` → `mcp-publisher publish`(버전 `MCP_PUBLISHER_VERSION` 고정). npm trusted publishing(OIDC, `id-token: write`)이라 토큰 secret 은 없다. `prepack` 이 helper APK 를 러너 SDK 로 빌드하므로 setup-java 17 을 쓴다.
+- `[manual]` 최초 1회: npmjs.com 의 crewdroid 패키지 → Settings → Trusted publishing → GitHub, `namyunsu/crewdroid`, `release.yml`. 첫 태그를 push 하고 `npx crewdroid@latest --version` 이 같은지 확인.
+- 검증한 에뮬레이터·이미지 버전은 `docs/compat.md`; 다르면 `setup`·`up` 이 WARN 한 줄(오류 아님).
+
+## 저장소 (두 저장소, T59)
+- `origin` = 비공개 개발 저장소. autopilot 대상 `ai/work`. `.ai-log/`, `docs/prd.md`, `docs/todo*.md`, `docs/source/` 는 여기에만 있다.
+- `public` = 공개 미러 `namyunsu/crewdroid`. `node scripts/release-public.mjs` 가 `public-files.json` 허용 목록만 내보낸다. 에이전트는 `public` 에 push 하지 않는다 (사람이 찍힌 `git push` 줄을 실행).
+- GitHub Actions 는 공개 미러에서만 돈다 (`ci.yml` 의 `github.repository == 'namyunsu/crewdroid'`); 비공개 저장소는 Actions 분을 쓰지 않는다.
+- (옛 기록) 2026-10-27 방향 문서의 "공개 저장소에서 직접 개발" 은 이 구조로 대체됐다.
 - autopilot 은 `ai/work` 에 커밋·push 만. 일정 작업량이 쌓이면 `autopilot.ps1` 이 `main` 에 병합.
 
 ## 이 PC 자원 (2026-10-23)

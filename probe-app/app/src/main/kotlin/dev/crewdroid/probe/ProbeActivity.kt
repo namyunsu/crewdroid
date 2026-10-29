@@ -18,7 +18,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank|surface|env|form [--es url URL] [--es file PATH]
+// Plain launch shows the sample app (Sample.kt). Probe checks are driven by: adb shell am start -n dev.crewdroid.probe/.ProbeActivity --es check camera|picker|upload|id|crash|anr|jank|surface|env|form|layout-bad|layout-ok|transport [--es url URL] [--es file PATH]
 // upload extras: --ei size N (N zero-ish bytes instead of a file), --es key IDEMPOTENCY_KEY, --es client X_CLIENT_ID
 // Each check logs exactly one result line to logcat tag CrewProbe: "<CHECK> ok|fail <detail>".
 class ProbeActivity : Activity() {
@@ -69,6 +69,13 @@ class ProbeActivity : Activity() {
             // form (T38): EditText id `name` + Button `Send` -> "FORM <text>"; below them a 3-screen-tall ScrollView whose bottom
             // TextView `END` logs "SCROLL END" once it is on screen.
             "form" -> form()
+            // layout-bad / layout-ok (T67): fixtures for `crewdroid layout`. bad = one of each finding kind (wrapped button +
+            // ellipsized label, a button below a non-scrolling screen, two overlapping buttons, a 24 dp target); ok = the same
+            // controls laid out right. No result line: the layout command reads the screen.
+            "layout-bad" -> layoutFixture(bad = true)
+            "layout-ok" -> layoutFixture(bad = false)
+            // transport (T63): what the app sees as its default network: "TRANSPORT wifi|cellular|ethernet|none metered=<bool>"
+            "transport" -> { report("TRANSPORT", transport()); finish() }
             else -> { report(check.uppercase(), "fail unknown check"); finish() }
         }
     }
@@ -160,13 +167,58 @@ class ProbeActivity : Activity() {
         })
     }
 
+    private fun layoutFixture(bad: Boolean) {
+        actionBar?.hide() // the app label in the action bar would itself be judged on narrow screens
+        val dp = resources.displayMetrics.density
+        fun px(v: Int) = (v * dp).toInt()
+        fun button(t: String) = android.widget.Button(this).apply { text = t; isAllCaps = false; setOnClickListener { } }
+        fun lp(w: Int, h: Int = -2) = android.widget.LinearLayout.LayoutParams(w, h)
+        val col = android.widget.LinearLayout(this).apply { orientation = android.widget.LinearLayout.VERTICAL; setPadding(px(16), px(16), px(16), px(16)) }
+        col.addView(android.widget.TextView(this).apply { text = "Layout check"; textSize = 22f })
+        if (bad) {
+            // (c) "Right" starts at the middle of "Left"
+            col.addView(android.widget.FrameLayout(this).apply {
+                addView(button("Left"), android.widget.FrameLayout.LayoutParams(px(140), -2))
+                addView(button("Right"), android.widget.FrameLayout.LayoutParams(px(140), -2).apply { leftMargin = px(70) })
+            })
+            col.addView(button("Synchronize all field notes now"), lp(px(150))) // (a) wraps in a 150 dp button
+            col.addView(android.widget.TextView(this).apply { // (a) one line, cut with an ellipsis
+                text = "Pending upload for North field pump house"; isSingleLine = true; ellipsize = android.text.TextUtils.TruncateAt.END; textSize = 16f
+            }, lp(px(140)))
+            col.addView(android.widget.ImageButton(this).apply { contentDescription = "tiny"; setOnClickListener { } }, lp(px(24), px(24))) // (d)
+            col.addView(android.view.View(this), lp(1, 3 * resources.displayMetrics.heightPixels)) // pushes the next button off screen
+            col.addView(button("Unreachable"), lp(-2)) // (b) no scroll container above it
+            setContentView(col)
+        } else {
+            col.addView(button("Left"), lp(-1)); col.addView(button("Right"), lp(-1))
+            col.addView(button("Sync now"), lp(-1))
+            col.addView(android.widget.TextView(this).apply { text = "Pending upload for North field pump house"; textSize = 16f }, lp(-1))
+            col.addView(android.widget.ImageButton(this).apply { contentDescription = "tiny"; setOnClickListener { } }, lp(px(48), px(48)))
+            col.addView(android.view.View(this), lp(1, 3 * resources.displayMetrics.heightPixels))
+            col.addView(button("Reachable"), lp(-2))
+            setContentView(android.widget.ScrollView(this).apply { addView(col) })
+        }
+    }
+
+    private fun transport(): String {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val caps = cm.activeNetwork?.let { cm.getNetworkCapabilities(it) } ?: return "none metered=false"
+        val t = when {
+            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
+            else -> "other"
+        }
+        return "$t metered=${cm.isActiveNetworkMetered}"
+    }
+
     // T21: `crewdroid app trim` is confirmed by this line ("TRIM 80" = TRIM_MEMORY_COMPLETE)
     override fun onTrimMemory(level: Int) { super.onTrimMemory(level); report("TRIM", level.toString()) }
 
     private fun report(name: String, result: String) { Log.i(tag, "$name $result") }
 
     // --es mode canvas (lockCanvas, CPU) | gl (GLSurfaceView, GLES2 clear + scissor); --ez pip true adds a second small
-    // SurfaceView with setZOrderMediaOverlay (the private-app call screen layout). SURFACE bounds are the main view's.
+    // SurfaceView with setZOrderMediaOverlay (a video-call screen layout). SURFACE bounds are the main view's.
     private fun surface() {
         val gl = intent.getStringExtra("mode") == "gl"
         val sv = if (gl) android.opengl.GLSurfaceView(this).apply {

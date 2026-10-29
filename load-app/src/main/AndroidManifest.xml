@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Load app (T62, src/load.ts): makes the device look like a used phone. Start = trampoline that starts LoadService as a
+     foreground service (allowed because an activity is on top); LoadService holds the memory ballast, runs the CPU workers,
+     starts the Procs$Pn services (one process each) and keeps alarms/jobs firing. `am force-stop` undoes all of it. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <application android:label="crewdroid load">
+        <activity android:name=".Start" android:exported="true" android:theme="@android:style/Theme.NoDisplay" android:excludeFromRecents="true" android:noHistory="true" />
+        <service android:name=".LoadService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="test device background load" />
+        </service>
+        <service android:name=".Churn" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE" />
+        <receiver android:name=".Tick" android:exported="false" />
+        <service android:name=".Procs$P1" android:process=":p1" android:exported="false" />
+        <service android:name=".Procs$P2" android:process=":p2" android:exported="false" />
+        <service android:name=".Procs$P3" android:process=":p3" android:exported="false" />
+        <service android:name=".Procs$P4" android:process=":p4" android:exported="false" />
+        <service android:name=".Procs$P5" android:process=":p5" android:exported="false" />
+        <service android:name=".Procs$P6" android:process=":p6" android:exported="false" />
+        <service android:name=".Procs$P7" android:process=":p7" android:exported="false" />
+        <service android:name=".Procs$P8" android:process=":p8" android:exported="false" />
+        <service android:name=".Procs$P9" android:process=":p9" android:exported="false" />
+        <service android:name=".Procs$P10" android:process=":p10" android:exported="false" />
+        <service android:name=".Procs$P11" android:process=":p11" android:exported="false" />
+        <service android:name=".Procs$P12" android:process=":p12" android:exported="false" />
+        <service android:name=".Procs$P13" android:process=":p13" android:exported="false" />
+        <service android:name=".Procs$P14" android:process=":p14" android:exported="false" />
+        <service android:name=".Procs$P15" android:process=":p15" android:exported="false" />
+        <service android:name=".Procs$P16" android:process=":p16" android:exported="false" />
+        <service android:name=".Procs$P17" android:process=":p17" android:exported="false" />
+        <service android:name=".Procs$P18" android:process=":p18" android:exported="false" />
+        <service android:name=".Procs$P19" android:process=":p19" android:exported="false" />
+        <service android:name=".Procs$P20" android:process=":p20" android:exported="false" />
+        <service android:name=".Procs$P21" android:process=":p21" android:exported="false" />
+        <service android:name=".Procs$P22" android:process=":p22" android:exported="false" />
+        <service android:name=".Procs$P23" android:process=":p23" android:exported="false" />
+        <service android:name=".Procs$P24" android:process=":p24" android:exported="false" />
+        <service android:name=".Procs$P25" android:process=":p25" android:exported="false" />
+        <service android:name=".Procs$P26" android:process=":p26" android:exported="false" />
+        <service android:name=".Procs$P27" android:process=":p27" android:exported="false" />
+        <service android:name=".Procs$P28" android:process=":p28" android:exported="false" />
+        <service android:name=".Procs$P29" android:process=":p29" android:exported="false" />
+        <service android:name=".Procs$P30" android:process=":p30" android:exported="false" />
+    </application>
+</manifest>

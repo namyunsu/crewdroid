@@ -1,0 +1,76 @@
+{
+  "name": "davx5-contacts",
+  "about": "Non-demo app (T55): DAVx5 4.5.21-ose (F-Droid release APK) syncing one shared CardDAV address book on a local Radicale server. Each device adds contacts through the Android contacts provider (adb) and presses Sync (Maestro) while its network drops; the proxy log is judged. scripts/check-run-app.mjs downloads the APK to .cache/ and starts Radicale. Profiles skip API 31: there the Maestro driver died mid-flow (device server died / adb device not found), the known API 31 low-memory limit in docs/adr/0007-agent-helper.md.",
+  "app": {
+    "apk": "../.cache/davx5.apk",
+    "package": "at.bitfire.davdroid"
+  },
+  "devices": {
+    "count": 3,
+    "profiles": [
+      "s24ultra",
+      "fold5-main",
+      "s26ultra"
+    ]
+  },
+  "repeat": 4,
+  "delayMs": [
+    1000,
+    4000
+  ],
+  "network": {
+    "states": [
+      "airplane",
+      "nodata",
+      "slow",
+      "flaky"
+    ],
+    "badMs": [
+      5000,
+      12000
+    ],
+    "onlineMs": [
+      2000,
+      6000
+    ]
+  },
+  "server": {
+    "target": "http://127.0.0.1:5597"
+  },
+  "setup": [
+    {
+      "intent": {
+        "component": "at.bitfire.davdroid/.ui.AccountsActivity"
+      }
+    },
+    {
+      "maestro": "../flows/davx5/login.yaml",
+      "env": {
+        "URL": "http://10.0.2.2:5597/",
+        "USER": "crew",
+        "PASSWORD": "crew"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "adb": [
+        "shell",
+        "content insert --uri content://com.android.contacts/raw_contacts --bind account_type:s:at.bitfire.davdroid.address_book --bind 'account_name:s:crew (crew) #1' && id=$(content query --uri content://com.android.contacts/raw_contacts --projection _id --where 'display_name IS NULL' --sort '_id DESC' | head -1 | sed 's/.*_id=//') && content insert --uri content://com.android.contacts/data --bind raw_contact_id:i:$id --bind mimetype:s:vnd.android.cursor.item/name --bind 'data1:s:{serial} c{iter}'"
+      ]
+    },
+    {
+      "intent": {
+        "component": "at.bitfire.davdroid/.ui.AccountsActivity"
+      }
+    },
+    {
+      "maestro": "../flows/davx5/sync.yaml"
+    }
+  ],
+  "drain": {
+    "idleSeconds": 45,
+    "timeoutSeconds": 300
+  },
+  "rules": "../judge/carddav.rules.json"
+}

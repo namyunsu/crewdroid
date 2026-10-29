@@ -1,0 +1,16 @@
+# Adds one note in the bundled Field Notes demo app (demo-app/) and saves it.
+# Run by run.mjs on two devices; run.mjs cuts one device's network while this flow runs.
+appId: dev.crewdroid.demo
+env:
+  SERVER: http://10.0.2.2:5599
+---
+- launchApp:
+    clearState: true
+    arguments:
+      server: ${SERVER}
+- tapOn: "New note"
+- inputText: "Fix pump #3"
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: "Fix pump #3"
+    timeout: 10000

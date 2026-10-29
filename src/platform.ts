@@ -22,7 +22,7 @@ export const ntfs = (p: string = process.platform) => win(p);
 // What ramMB / ws means on this OS (measurement JSON `method`).
 export const ramMethod = (p: string = process.platform) => (win(p) ? "WorkingSet64 (Get-Process)" : "RSS from ps (shared pages not split between clones)");
 
-// Emulator launch. Windows: Start-Process -WindowStyle Hidden (same as private-app avd-up.ps1); Node's detached spawn left
+// Emulator launch. Windows: Start-Process -WindowStyle Hidden (same as the old launcher script); Node's detached spawn left
 // the grandchild qemu-system-*-headless.exe with a visible console window (2026-10-23).
 // AI NOTE: powershell's stdout/stderr are ignored and the PID goes through a file. With execFile, the emulator
 // inherited the pipe and the promise never resolved (up hung after launch).
