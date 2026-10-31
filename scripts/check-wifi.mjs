@@ -1,5 +1,7 @@
-// T63 verify: node scripts/check-wifi.mjs [--api 36] [--server-port 5599] [--out file]
-// Boots 1 emulator and proves the Wi-Fi / cellular / handover / metered claims with what the probe app sees
+// T63 verify: node scripts/check-wifi.mjs [--api 36] [--count N] [--server-port 5599] [--out file]
+// T74: --count N (> 1) boots N mixed devices (`up --count N`) and only checks that `net <serial> wifi` gets Wi-Fi on every
+// one of them (readback + probe); ADR 0009.
+// Default (1 device): boots 1 emulator and proves the Wi-Fi / cellular / handover / metered claims with what the probe app sees
 // (ConnectivityManager: "CrewProbe TRANSPORT wifi|cellular|none metered=<bool>") and a 2 MB upload to the sample server.
 // Exit 0 only if every claim holds; always kills its emulator (down) at the end.
 import { execFile } from "node:child_process";
@@ -12,8 +14,8 @@ import { down, up, upDefaults } from "../src/up.ts";
 import { PKG, probeApk, sleep } from "../src/snapshot.ts";
 import { startApp } from "../sample/server/app.ts";
 
-const { values: v } = parseArgs({ options: { api: { type: "string" }, "server-port": { type: "string", default: "5599" }, out: { type: "string" } } });
-const sport = Number(v["server-port"]), SIZE = 2 * 1048576;
+const { values: v } = parseArgs({ options: { api: { type: "string" }, count: { type: "string", default: "1" }, "server-port": { type: "string", default: "5599" }, out: { type: "string" } } });
+const sport = Number(v["server-port"]), count = Number(v.count), SIZE = 2 * 1048576;
 const cli = join(import.meta.dirname, "..", "src", "cli.ts");
 const lines = [], errs = [];
 const say = (s) => { lines.push(s); console.log(s); };
@@ -35,16 +37,8 @@ async function seen(serial) {
   return probeLine(serial, /TRANSPORT /, 20);
 }
 
-let server;
-try {
-  await down();
-  server = await startApp({ port: sport, dir: mkdtempSync(join(tmpdir(), "crewwifi-")) });
-  const d = upDefaults({ api: v.api ? Number(v.api) : undefined }); // same device as plain `crewdroid up [--api N]`
-  const r = await up(d.count, 5580, d.names, false, { api: d.api });
-  const s = r.devices[0].serial;
-  say(`device ${s} API ${r.devices[0].api}`);
-  await adb(s, ["install", "-r", probeApk()], 120000);
-
+// T63: every single-device claim on one device
+async function single(s) {
   const w = await net(s, "wifi");
   const tw = await seen(s);
   claim(w.transport.default === "wifi" && tw === "TRANSPORT wifi metered=false", `net wifi: readback ${JSON.stringify(w.transport)}, probe "${tw}"`);
@@ -92,6 +86,26 @@ try {
   const badMs = await net(s, "handover", "--during", "abc").then(() => "exit 0", (e) => `exit 1: ${e.message.trim().split("\n").pop()}`);
   claim(badMs.startsWith("exit 1") && /--during/.test(badMs), `handover --during abc is refused: ${badMs}`);
   await net(s, "online");
+}
+
+let server;
+try {
+  await down();
+  server = await startApp({ port: sport, dir: mkdtempSync(join(tmpdir(), "crewwifi-")) });
+  if (!(count >= 1)) throw new Error(`--count must be a number >= 1 (got ${v.count})`);
+  // same devices as plain `crewdroid up [--api N]` / `up --count N [--api N]`
+  const d = upDefaults({ api: v.api ? Number(v.api) : undefined, count: count > 1 ? count : undefined });
+  const r = await up(d.count, 5580, d.names, false, { api: d.api });
+  for (const x of r.devices) say(`device ${x.serial} API ${x.api} ${x.profile}`);
+  await Promise.all(r.devices.map((x) => adb(x.serial, ["install", "-r", probeApk()], 120000)));
+  if (count > 1) {
+    // all at once, like an agent switching every device to Wi-Fi; each must get its own address
+    const ws = await Promise.all(r.devices.map((x) => net(x.serial, "wifi").catch((e) => ({ error: e.message.trim().split("\n").pop() }))));
+    for (const [i, x] of r.devices.entries()) {
+      const tw = ws[i].error ? "(not checked)" : await seen(x.serial);
+      claim(ws[i].transport?.default === "wifi" && tw === "TRANSPORT wifi metered=false", `${x.serial} API ${x.api} net wifi: ${ws[i].error ?? `readback ${JSON.stringify(ws[i].transport)}`}, probe "${tw}"`);
+    }
+  } else await single(r.devices[0].serial);
 } catch (e) {
   claim(false, `error: ${e.stack ?? e}`);
 } finally {

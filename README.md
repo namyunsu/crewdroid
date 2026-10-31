@@ -2,13 +2,17 @@
 
 [![ci](https://github.com/namyunsu/crewdroid/actions/workflows/ci.yml/badge.svg)](https://github.com/namyunsu/crewdroid/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/crewdroid)](https://www.npmjs.com/package/crewdroid) [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.namyunsu%2Fcrewdroid-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=crewdroid) [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Maestro and mobile-mcp drive your Android app. crewdroid makes the conditions and judges the result.**
+**An Android emulator your AI agent drives on under half the RAM of Android Studio's, with the phone's conditions set per device: network, battery, location, screen, font, Android version.**
 
 crewdroid is for the build-and-check loop while you develop an app; a real phone is still where you test push notifications, Play services, Google sign-in and the camera app ([Limits](#limits-when-to-use-a-real-phone)).
 
 [![15 s demo: crewdroid boots S24, Fold5 and Flip7 emulators on Android 14 and 16, cuts one phone's network while a note waits offline and syncs back, judges the server data (FAIL: 7 violations), then folds a device and turns on dark mode](docs/demo/hero.gif)](docs/demo/hero.mp4)
 
-Your AI agent can already tap through an app. What it cannot see is what happened behind the screen: the upload that went through twice when the network dropped, the record that vanished in airplane mode, the edit another user silently overwrote. crewdroid gives the agent the devices and the conditions that cause those bugs, and a verdict it can act on.
+- **Light.** 1426 MB of host RAM and 2.09 GiB of disk per device, against 3479 MB and 6.78 GiB for Android Studio's default AVD; cold boot 23.7 s against 39.3 s ([table](#one-device-against-android-studios-default-emulator)).
+- **Made for an agent.** `screen` returns a text outline (`[3] btn "Send" #send @540,1210`) in about a third of a screenshot's tokens (1882 vs 6183 per task), `tap --text Send` taps by name on any screen size, and every command is both a CLI with `--json` and an MCP tool.
+- **Conditions on demand.** Per device: `net airplane|nodata|slow|flaky`, `env` battery / location / dark mode / font size / locale / rotation, Galaxy S24 · Fold · Flip screens with fold / unfold, Android 12 / 14 / 16, a used-phone `load`.
+
+Also in the box: judging your server's data for duplicate, missing and silently overwritten records after a multi-device run, a layout sweep across screens and fonts, crash / ANR triage.
 
 ## One device, against Android Studio's default emulator
 
@@ -179,6 +183,7 @@ crewdroid runs Google's `google_atd` images (chosen for lightness). Measured on 
 
 - Android SDK with command-line tools and emulator >= 36.4 (`ANDROID_SDK_ROOT` or `ANDROID_HOME` must point at it, or `~/.crewdroid/android-sdk` must exist). No SDK yet: `npx crewdroid setup --yes` installs JDK 17 (for sdkmanager only), command-line tools, platform-tools, emulator and the `google_atd` image (`--images 34,31,36`, `--dry-run` lists sizes first); crewdroid downloads the `google_atd` images it needs for the host CPU (x86_64, or arm64-v8a on Apple Silicon / ARM Linux; API 31/34/36, ~0.9 GB each) and shrinks them with `slim`
 - Node >= 22
+- From a git checkout instead of npm: run `npm ci && npm run prepack` once. It builds the on-device helper APK (JDK 17) that the npm package already ships; without it `screen`/`tap` fall back to `uiautomator` and `type` takes ASCII only
 - Windows 10/11 x64, macOS on Apple Silicon, or Linux x64/arm64
 - Hardware acceleration: WHPX (Windows), Hypervisor.framework (macOS) or KVM (Linux, `/dev/kvm`); `setup` reports `emulator -accel-check`
 - Image limits (`google_atd`, chosen for lightness): see [Limits](#limits-when-to-use-a-real-phone); also no Messages or Dialer (SMS and calls change telephony state only) and no GPU (frame numbers compare runs, not phones). Supported despite the image: any Unicode text input incl. Korean (on-device helper), and the API 31 black-screen-after-relaunch is detected and recovered (`blackRelaunch`)

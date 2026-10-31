@@ -1,7 +1,7 @@
 {
   "name": "crewdroid",
   "version": "0.2.0",
-  "description": "Lightweight multi-user Android field lab: N headless emulators, per-device network states, concurrency judging, driven by an AI agent.",
+  "description": "Android emulator for AI agents: light (1.4 GB RAM per device), a text screen outline instead of screenshots, per-device network, battery, location, screen and Android version. CLI + MCP server.",
   "type": "module",
   "bin": { "crewdroid": "bin/crewdroid.mjs" },
   "files": ["bin", "src", "profiles", "judge", "scenarios", "sample/server", "agent-helper/build/outputs/apk/release/crewdroid-agent-release.apk", "LICENSE", "README.md", "README.ko.md", "server.json"],

@@ -25,8 +25,8 @@ img { display: block; height: 370px; border-radius: 22px; border: 3px solid #2b3
 figcaption { margin-top: 14px; font-size: 24px; color: #b8c4d9; }
 </style><body>
 <div class="text"><h1>crewdroid</h1>
-<p>Maestro and mobile-mcp drive the app. crewdroid makes the conditions and judges the result.</p>
-<div class="sub">Mixed Android emulators, per-device network, server-side judge.</div></div>
+<p>The Android emulator your AI agent drives on half the RAM.</p>
+<div class="sub">Network, battery, location, screen and Android version, set per device.</div></div>
 <div class="devices">${devices.map(([f, n]) => `<figure><img src="${shot(f)}"><figcaption>${n}</figcaption></figure>`).join("")}</div>`;
 
 const browser = await chromium.launch();
