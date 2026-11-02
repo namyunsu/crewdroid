@@ -16,6 +16,7 @@ import { compatWarning } from "./compat.ts";
 import { assign, atdImages, loadProfiles, loadProfilesFile, parseScreen, relaunchBlackApis } from "./profiles.ts";
 import { prepare, sleep, start } from "./snapshot.ts";
 import { avdSlim } from "./slim.ts";
+import { startTray, trayClear, trayState } from "./tray.ts";
 
 const run = promisify(execFile);
 
@@ -93,16 +94,18 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   for (const p of ports) {
     if (await adb(`emulator-${p}`, ["get-state"], 5000, false).then(() => true, () => false)) throw new Error(`emulator-${p} already running (crewdroid down?)`);
   }
-  // Each (image, spec) needs a base AVD with a quickboot snapshot saved with the current knobs (avd.ts KNOBS); prepare() makes it
-  // (boots writable on basePort) on first use and after a knob change.
-  for (const s of new Map(slots.map((s) => [s.avd, s])).values()) {
-    if (!avdSlim(join(avdHome(), `${s.avd}.avd`))) {
-      console.error(`preparing ${s.avd} (first use or changed settings)`);
-      await prepare(s.image, basePort, 3, s.spec);
-    }
-  }
   const serials = ports.map((p) => `emulator-${p}`);
+  trayState("starting", slots.map((s, i) => ({ serial: serials[i], port: ports[i], profile: s.profile.name, api: s.api })));
+  startTray();
   try {
+    // Each (image, spec) needs a base AVD with a quickboot snapshot saved with the current knobs (avd.ts KNOBS); prepare() makes it
+    // (boots writable on basePort) on first use and after a knob change.
+    for (const s of new Map(slots.map((s) => [s.avd, s])).values()) {
+      if (!avdSlim(join(avdHome(), `${s.avd}.avd`))) {
+        console.error(`preparing ${s.avd} (first use or changed settings)`);
+        await prepare(s.image, basePort, 3, s.spec);
+      }
+    }
     const t0s: number[] = [];
     for (const [i, s] of slots.entries()) {
       await start(s.avd, ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window, custom.wifi);
@@ -156,6 +159,7 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
     for (const d of devices.filter((x) => x.relaunchBlack)) {
       console.error(`WARN ${d.serial} API ${d.api}: screen can stay black after am start -S / force-stop + immediate start; wait 2 s between stop and start (ADR 0005)`);
     }
+    trayState("ready", devices.map((d) => ({ serial: d.serial, port: d.port, profile: d.profile, api: d.api })));
     return { date: new Date().toISOString(), count, devices };
   } catch (e) {
     await down();
@@ -209,5 +213,6 @@ export async function down(): Promise<{ killed: number[]; ports: number[] }> {
   if (ports.length) await sleep(5000);
   await killTree((await list()).map((p) => p.pid));
   await proxyStop({ clearDevices: false }); // T69: a `proxy start` worker would outlive its devices
+  trayClear();
   return { killed: procs.map((p) => p.pid), ports };
 }

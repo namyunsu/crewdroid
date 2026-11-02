@@ -36,5 +36,7 @@ jobs:
       - name: Publish to the MCP Registry
         run: |
           curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          # the Registry looks the version up on npm, which took 3 to 5 min to serve 0.2.1
+          for i in $(seq 1 40); do curl -fs -o /dev/null "https://registry.npmjs.org/crewdroid/${GITHUB_REF_NAME#v}" && break; sleep 15; done
           ./mcp-publisher login github-oidc
           ./mcp-publisher publish

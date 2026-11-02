@@ -12,6 +12,7 @@ import { CREW_RE, listProcesses } from "./platform.ts";
 import { loadProfiles } from "./profiles.ts";
 import { runScenario } from "./scenario.ts";
 import { flagScenario } from "./scenario-actions.ts";
+import { trayAction } from "./tray.ts";
 import { down, up, upDefaults } from "./up.ts";
 
 // A feature module adds MCP tools by exporting `mcpTools: Tool[]`; serve() picks up every src/*.ts that does.
@@ -114,6 +115,7 @@ export async function serve() {
     server.registerTool(t.name, { description: t.description, inputSchema: input }, async (a: any) => {
       let timer: NodeJS.Timeout | undefined;
       try {
+        trayAction(t.name, a.serial);
         const work = t.run(a);
         const r = t.long
           ? await Promise.race([work, new Promise((_, no) => { timer = setTimeout(() => no(new Error(`${t.name} timed out after ${a.timeoutSec}s (emulators may still run; call down)`)), a.timeoutSec * 1000); })])

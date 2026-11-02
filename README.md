@@ -104,7 +104,7 @@ No barrier, by design. Real concurrency bugs come from retries, offline queues a
 
 ## 60-second tour
 
-Boot a mixed fleet (headless, nothing appears on screen):
+Boot a mixed fleet (headless, no emulator windows; on Windows a tray icon shows what runs):
 
 ```bash
 $ crewdroid up --count 3 --json
@@ -327,7 +327,9 @@ Any size without editing that file: `crewdroid up --count 2 --screen 1920x720@16
 
 ## How it stays light
 
-Clones of one base AVD (`-read-only`), system images rewritten sparse + NTFS-compressed, quickboot RAM image zero-filled before the snapshot, `-lowram` with 896 MB guest RAM, host Vulkan off, no audio, no window. Every knob was measured one at a time: [`docs/measurements/slim.md`](docs/measurements/slim.md) (disk), [`ram.md`](docs/measurements/ram.md) (RAM), [`features.md`](docs/measurements/features.md) (each runtime feature's idle cost — none adds a daemon).
+Clones of one base AVD (`-read-only`), system images rewritten sparse + NTFS-compressed, quickboot RAM image zero-filled before the snapshot, `-lowram` with 896 MB guest RAM, host Vulkan off, no audio, no window. Every knob was measured one at a time: [`docs/measurements/slim.md`](docs/measurements/slim.md) (disk), [`ram.md`](docs/measurements/ram.md) (RAM), [`features.md`](docs/measurements/features.md) (each runtime feature's idle cost).
+
+Hidden emulators leave nothing in the taskbar, so on Windows `up` adds one tray icon: a badge with the device count, green when ready. Click it for each device and the last command (command and serial only, never typed text). It holds 51 MB and 0.17 % of one core while devices run, and exits on `down` or when the emulators die, so nothing stays behind. `CREWDROID_NO_TRAY=1` turns it off.
 
 Korean docs: [README.ko.md](README.ko.md) · License: MIT
 

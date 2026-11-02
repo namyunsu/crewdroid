@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import type { NetCommand, Transport } from "./net.ts";
 import type { StepName } from "./setup.ts";
+import { trayAction } from "./tray.ts";
 // NOTE (T79): each command imports its own module inside its branch; a top-level import of every module cost ~190 ms per call.
 
 // NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
@@ -38,6 +39,7 @@ async function main() {
     const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
     return console.log(values.json ? JSON.stringify({ version }) : version);
   }
+  if (cmd) trayAction(cmd, envArgs?.[0] ?? positionals[1]);
   if (cmd === "measure") {
     const [{ measure }, { measureUp }] = await Promise.all([import("./measure.ts"), import("./up.ts")]);
     if (!values.avd && !values.up) throw new Error("--avd a,b,c or --up N required");

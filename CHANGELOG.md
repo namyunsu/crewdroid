@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.2] - 2026-11-02
+
+### Added
+- Windows tray icon while devices run: a badge with the device count, click for each device and the last command. 51 MB and 0.17 % of one core; exits on `down` or when the emulators die. `CREWDROID_NO_TRAY=1` turns it off. Launch flags are unchanged.
+
+### Changed
+- `up` runs base-image preparation inside its failure path: a failed first-time prepare now stops what it started.
+
 ## [0.2.1] - 2026-11-02
 
 ### Added
