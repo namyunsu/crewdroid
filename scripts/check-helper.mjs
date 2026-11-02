@@ -105,7 +105,7 @@ try {
 
     await parity(s, `${tag} parity on the Field Notes list`);
 
-    let x = await crew("tap", s, "--text", "New note");
+    let x = await crew("tap", s, "--text", "New note", "--no-screen"); // T81: the tap alone, as T52 measured it; default tap also returns the screen (~2-3 s, no gate)
     const open = await shows(s, "Save");
     claim(x.code === 0 && x.json?.via === "helper" && x.ms <= 1500 && open, `${tag} CLI tap --text "New note": ${x.ms} ms end to end (<= 1500), via ${x.json?.via}, editor open ${open} ${x.err}`);
 

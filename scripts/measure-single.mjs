@@ -3,7 +3,8 @@
 // Baseline: AVD `crewbench-pixel` (avdmanager, pixel_9, google_apis_playstore, newest installed API <= 36, default RAM/cores,
 // quickboot on, window on, -gpu auto) on port 5560. crewdroid: base AVD + `up` defaults on port 5580. Never run side by side.
 // Per side, per rep: cold boot -> kill (Studio saves its quickboot snapshot) -> start from the snapshot -> idle 60 s -> 10 screen
-// reads -> 10 screenshots. RAM/CPU/calls are measured on the snapshot-started instance. Writes
+// reads -> 10 screenshots. crewdroid starts from the snapshot twice per rep: `crewdroid up` CLI + stock dump, then (T79) MCP `up` +
+// MCP `screen` on one kept-running `crewdroid mcp` server. RAM/CPU/calls are measured on the snapshot-started instance. Writes
 // docs/measurements/single-vs-studio.{json,md}; deletes the crewbench AVD and runs `down` at the end.
 import { execFile, spawn, spawnSync } from "node:child_process";
 import { closeSync, existsSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -20,6 +21,8 @@ import { screen } from "../src/screen.ts";
 import { adbPath, emulatorPath, sdkRoot } from "../src/sdk.ts";
 import { shot } from "../src/shot.ts";
 import { killAll, sleep, start } from "../src/snapshot.ts";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { claimEmulators } from "../src/up.ts";
 
 const { values: v } = parseArgs({ options: { reps: { type: "string", default: "3" }, "idle-seconds": { type: "string", default: "60" }, calls: { type: "string", default: "10" } } });
@@ -42,7 +45,16 @@ const median = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 
 const r1 = (x) => Math.round(x * 10) / 10;
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const bat = (n) => join(sdkRoot(), "cmdline-tools", "latest", "bin", process.platform === "win32" ? `${n}.bat` : n);
-const crewCli = (...a) => { const r = spawnSync("npx", ["tsx", "src/cli.ts", ...a, "--json"], { cwd: root, encoding: "utf8", shell: true, maxBuffer: 2 ** 26 }); return { code: r.status, out: r.stdout, err: r.stderr }; };
+// T79: the installed path (`crewdroid` = node bin/crewdroid.mjs), not `npx tsx src/cli.ts` (npx alone adds ~0.6 s per call)
+const crewCli = (...a) => { const r = spawnSync(process.execPath, [join(root, "bin", "crewdroid.mjs"), ...a, "--json"], { cwd: root, encoding: "utf8", maxBuffer: 2 ** 26 }); return { code: r.status, out: r.stdout, err: r.stderr }; };
+// T79: one real MCP server process (`crewdroid mcp`) kept running for the whole crewdroid side, as an agent's client keeps it
+let mcp;
+async function mcpCall(name, args) {
+  const r = await mcp.callTool({ name, arguments: args }, undefined, { timeout: 600000 });
+  const text = r.content.find((c) => c.type === "text")?.text ?? "";
+  if (r.isError) throw new Error(`mcp ${name}: ${text}`);
+  return text;
+}
 
 const hasHierarchy = (s) => s.includes("<hierarchy");
 async function stockDump(serial) {
@@ -160,6 +172,8 @@ try {
 
   // ---- crewdroid ----
   const cDir = join(avdHome(), `${C_AVD}.avd`);
+  mcp = new Client({ name: "measure-single", version: "0.0.1" });
+  await mcp.connect(new StdioClientTransport({ command: process.execPath, args: [join(root, "bin", "crewdroid.mjs"), "mcp"], cwd: root, env: process.env, stderr: "ignore" }));
   for (let i = 0; i < REPS; i++) {
     crewCli("down");
     console.error(`crewdroid rep ${i + 1}/${REPS}: cold boot (same launch args as up, minus snapshot load)`);
@@ -176,20 +190,36 @@ try {
     if (up.code !== 0) throw new Error(`up exited ${up.code}: ${up.err || up.out}`);
     const d = JSON.parse(up.out).devices[0];
     want(d.serial === C_SERIAL && d.api === api, `crewdroid rep ${i + 1}: got ${d.serial} API ${d.api}`);
-    const snapReady = wall + (await readyDump(C_SERIAL, Date.now()));
+    const firstDump = await readyDump(C_SERIAL, Date.now());
+    const snapReady = wall + firstDump;
+    crewCli("down");
+
+    console.error(`crewdroid rep ${i + 1}/${REPS}: up + screen through the running MCP server`);
+    t0 = Date.now();
+    const mu = JSON.parse(await mcpCall("up", {})).devices[0];
+    const mcpUp = (Date.now() - t0) / 1000;
+    want(mu.serial === C_SERIAL, `crewdroid rep ${i + 1}: MCP up gave ${mu.serial}`);
+    const ts = Date.now();
+    const firstScreen = await mcpCall("screen", { serial: C_SERIAL });
+    want(/^\S+\/\S+ \d+x\d+/.test(firstScreen), `crewdroid rep ${i + 1}: MCP screen gave no focus line: ${firstScreen.slice(0, 120)}`); // ATD home has no elements, only the focus line
+    const mcpScreenFirst = (Date.now() - ts) / 1000;
+    const mcpReady = (Date.now() - t0) / 1000;
     const idle = await idleStats(`-port ${C_PORT}([ "]|$)`);
     const dumps = await times(CALLS, () => stockDump(C_SERIAL));
     const shots = await times(CALLS, () => stockShot(C_SERIAL));
     const cliScreen = await times(CALLS, async () => { const t = performance.now(); const r = crewCli("screen", C_SERIAL); if (r.code !== 0) throw new Error(`screen: ${r.err || r.out}`); return performance.now() - t; });
     const png = join(tmpdir(), "crewbench-shot.png");
     const cliShot = await times(CALLS, async () => { const t = performance.now(); const r = crewCli("shot", C_SERIAL, png); if (r.code !== 0) throw new Error(`shot: ${r.err || r.out}`); return performance.now() - t; });
+    const mcpScreen = await times(CALLS, async () => { const t = performance.now(); await mcpCall("screen", { serial: C_SERIAL }); return performance.now() - t; });
+    const mcpShot = await times(CALLS, async () => { const t = performance.now(); await mcpCall("shot", { serial: C_SERIAL, file: png }); return performance.now() - t; });
     const apiScreen = await times(CALLS, async () => { const t = performance.now(); await screen(C_SERIAL); return performance.now() - t; });
     const apiShot = await times(CALLS, async () => { const t = performance.now(); await shot(C_SERIAL, png); return performance.now() - t; });
     rmSync(png, { force: true });
     crew.reps.push({
-      coldBoot: r1(coldBoot), coldReady: r1(coldReady), snapBoot: r1(d.bootSeconds), upReady: d.readySeconds, upWall: r1(wall), snapReady: r1(snapReady), ...idle,
+      coldBoot: r1(coldBoot), coldReady: r1(coldReady), snapBoot: r1(d.bootSeconds), upReady: d.readySeconds, upWall: r1(wall), cliStart: r1(wall - d.readySeconds), firstStockDump: r1(firstDump), snapReady: r1(snapReady),
+      upPhases: d.phases, mcpUp: r1(mcpUp), mcpUpReady: mu.readySeconds, mcpUpPhases: mu.phases, mcpScreenFirst: r1(mcpScreenFirst), mcpReady: r1(mcpReady), ...idle,
       stockScreenMs: r1(median(dumps)), stockShotMs: r1(median(shots)),
-      screenMs: r1(median(cliScreen)), shotMs: r1(median(cliShot)), inProcessScreenMs: r1(median(apiScreen)), inProcessShotMs: r1(median(apiShot)),
+      screenMs: r1(median(cliScreen)), shotMs: r1(median(cliShot)), inProcessScreenMs: r1(median(apiScreen)), inProcessShotMs: r1(median(apiShot)), mcpScreenMs: r1(median(mcpScreen)), mcpShotMs: r1(median(mcpShot)),
     });
     crewCli("down");
   }
@@ -208,15 +238,19 @@ try {
   result.studio = { ...studio, avd: NAME, device: DEVICE, image: studioPkg, api, imageAllocBytes: imageSizeBytes, launch: "visible window, -gpu auto, quickboot (snapshot saved on exit)",
     median: { coldBoot: col(studio, "coldBoot"), coldReady: col(studio, "coldReady"), snapBoot: col(studio, "snapBoot"), snapReady: col(studio, "snapReady"), ramMB: colN(studio, "ramMB", 0), cpuPercent: col(studio, "cpuPercent"), screenMs: col(studio, "screenMs"), shotMs: col(studio, "shotMs") } };
   result.crewdroid = { ...crew, avd: C_AVD, image: crewImage.image, api, launch: "crewdroid up (no flags): headless, -gpu host, snapshot, 2 cores",
-    median: { coldBoot: col(crew, "coldBoot"), coldReady: col(crew, "coldReady"), snapBoot: col(crew, "snapBoot"), snapReady: col(crew, "snapReady"), upReady: col(crew, "upReady"), ramMB: colN(crew, "ramMB", 0), cpuPercent: col(crew, "cpuPercent"), screenMs: col(crew, "screenMs"), shotMs: col(crew, "shotMs"), stockScreenMs: col(crew, "stockScreenMs"), stockShotMs: col(crew, "stockShotMs"), inProcessScreenMs: col(crew, "inProcessScreenMs"), inProcessShotMs: col(crew, "inProcessShotMs") } };
+    median: { coldBoot: col(crew, "coldBoot"), coldReady: col(crew, "coldReady"), snapBoot: col(crew, "snapBoot"), snapReady: col(crew, "snapReady"), upReady: col(crew, "upReady"), ramMB: colN(crew, "ramMB", 0), cpuPercent: col(crew, "cpuPercent"), screenMs: col(crew, "screenMs"), shotMs: col(crew, "shotMs"), stockScreenMs: col(crew, "stockScreenMs"), stockShotMs: col(crew, "stockShotMs"), inProcessScreenMs: col(crew, "inProcessScreenMs"), inProcessShotMs: col(crew, "inProcessShotMs"),
+      mcpScreenMs: col(crew, "mcpScreenMs"), mcpShotMs: col(crew, "mcpShotMs"), mcpReady: col(crew, "mcpReady"), mcpUp: col(crew, "mcpUp"), mcpScreenFirst: col(crew, "mcpScreenFirst"),
+      upWall: col(crew, "upWall"), cliStart: col(crew, "cliStart"), firstStockDump: col(crew, "firstStockDump"),
+      upPhases: Object.fromEntries(Object.keys(crew.reps[0].upPhases).map((k) => [k, r1(median(crew.reps.map((x) => x.upPhases[k])))])) } };
   result.method = {
     boot: "seconds from launch to sys.boot_completed=1 (adb getprop poll, 1 s)",
     ready: "seconds from launch to the first successful `adb exec-out uiautomator dump /dev/tty`; crewdroid snapshot start = wall time of `crewdroid up` (incl. node start) + that first dump",
+    mcpReady: "crewdroid only: one `crewdroid mcp` server process kept running; seconds from sending the MCP `up` call (no args) until the MCP `screen` call on its device returns the outline",
     cold: "Studio: -no-snapshot-load. crewdroid: the `up` launch args plus -no-snapshot-load (up itself never cold boots)",
     snapshot: "Studio: quickboot snapshot saved on the previous exit. crewdroid: `crewdroid up` (default_boot of the base AVD)",
     ram: `${ramMethod()}, emulator + qemu processes of the instance, taken at the end of the ${IDLE} s idle window`,
     cpu: `cumulative CPU seconds of those processes over ${IDLE} s idle, 100 % = 1 core`,
-    calls: `median of ${CALLS} calls per rep, then median of the ${REPS} reps. Studio and crewdroid-stock: adb exec-out uiautomator dump /dev/tty and screencap -p. crewdroid: wall time of 'npx tsx src/cli.ts screen|shot' (incl. node start) and, in-process, of the same functions the MCP server calls`,
+    calls: `median of ${CALLS} calls per rep, then median of the ${REPS} reps. Studio and crewdroid-stock: adb exec-out uiautomator dump /dev/tty and screencap -p. crewdroid: wall time of 'crewdroid screen|shot' as installed (node bin/crewdroid.mjs, a new node process per call), of the MCP screen/shot tools on the running server, and in-process`,
     disk: "bytes actually allocated (NTFS compression and sparse holes excluded) of the AVD dir + its system image dir",
   };
   writeFileSync(join(out, "single-vs-studio.json"), JSON.stringify(result, null, 2) + "\n");
@@ -229,6 +263,7 @@ try {
   const del = spawnSync(`"${bat("avdmanager")}"`, ["delete", "avd", "-n", NAME], { shell: true, encoding: "utf8" });
   console.error(`avdmanager delete ${NAME}: exit ${del.status}`);
   crewCli("down");
+  await mcp?.close().catch(() => {});
 }
 
 function md(r) {
@@ -246,14 +281,20 @@ Date: ${r.date.slice(0, 10)}. Host: ${r.pc.cpuModel}, ${r.pc.cores} threads, ${r
 ${row("Cold boot to sys.boot_completed", s.coldBoot, c.coldBoot, "s")}
 ${row("Cold boot to first screen read", s.coldReady, c.coldReady, "s")}
 ${row("Start from snapshot to sys.boot_completed", s.snapBoot, c.snapBoot, "s")}
-${row("Start from snapshot to first screen read", s.snapReady, c.snapReady, "s")}
+${row("Start from snapshot to first screen read", s.snapReady + " (adb uiautomator dump)", c.snapReady + " (`crewdroid up` CLI, then adb uiautomator dump)", "s")}
+${row("Start from snapshot to first screen read, crewdroid through its MCP server", s.snapReady + " (adb uiautomator dump)", c.mcpReady + " (MCP `up`, then MCP `screen`)", "s")}
 ${row("Host RAM after ready (" + r.idleSeconds + " s idle)", s.ramMB, c.ramMB, "MB")}
 ${row("Idle CPU over " + r.idleSeconds + " s (100 % = 1 core)", s.cpuPercent, c.cpuPercent, "%")}
 ${row("Disk (AVD + system image)", GB(r.studio.diskBytes), GB(r.crewdroid.diskBytes), "GiB")}
 ${row("Screen read, median of " + r.calls, s.screenMs + " (adb uiautomator dump)", c.screenMs + " (\`crewdroid screen\` CLI)", "ms")}
 ${row("Screenshot, median of " + r.calls, s.shotMs + " (adb screencap)", c.shotMs + " (\`crewdroid shot\` CLI)", "ms")}
 
-Extra crewdroid rows: stock \`adb\` calls on the crewdroid device ${c.stockScreenMs} ms (dump) and ${c.stockShotMs} ms (screencap); the same \`screen\` / \`shot\` functions in-process (what the MCP server runs) ${c.inProcessScreenMs} ms and ${c.inProcessShotMs} ms. \`up\` itself reports ready after ${c.upReady} s.
+Extra crewdroid rows: stock \`adb\` calls on the crewdroid device ${c.stockScreenMs} ms (dump) and ${c.stockShotMs} ms (screencap); MCP \`screen\` / \`shot\` on the running server ${c.mcpScreenMs} ms and ${c.mcpShotMs} ms; the same functions in-process ${c.inProcessScreenMs} ms and ${c.inProcessShotMs} ms.
+
+## Where crewdroid's start from snapshot goes (median)
+- \`crewdroid up\` CLI wall ${c.upWall} s = node start, input checks, emulator launch call and exit ${c.cliStart} s +\`up\` ready ${c.upReady} s. \`up\` phases, seconds from launch: ${Object.entries(c.upPhases).map(([k, t]) => `${k} ${t}`).join(", ")}.
+- Then the first stock \`adb uiautomator dump\` ${c.firstStockDump} s; row 4 is the two added.
+- MCP path: \`up\` ${c.mcpUp} s, first \`screen\` ${c.mcpScreenFirst} s (on-device helper, no uiautomator), ${c.mcpReady} s in all.
 
 System image on disk (already included in the Studio disk row above; it can stay installed): ${GB(r.studio.imageAllocBytes)} GiB.
 

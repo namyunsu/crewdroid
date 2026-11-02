@@ -18,6 +18,12 @@ test("findNodes: exact first, then case-insensitive contains; id full or short; 
   assert.equal(findNodes(nodes, "Nothing", "text").length, 0);
 });
 
+test("findNodes: any prefers the editable node over a label with the same text; text keeps both", () => {
+  const field = [{ ...node("Name"), editable: false }, { ...node("Name"), editable: true }];
+  assert.deepEqual(findNodes(field, "Name", "any"), [field[1]]);
+  assert.equal(findNodes(field, "Name", "text").length, 2);
+});
+
 test("pickNode: one match, --index, several or none fail listing candidates", () => {
   assert.equal(pickNode([nodes[0]], nodes, "x").text, "Send");
   assert.equal(pickNode(nodes.slice(0, 2), nodes, "x", 1).text, "Send later");

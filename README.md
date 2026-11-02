@@ -8,11 +8,28 @@ crewdroid is for the build-and-check loop while you develop an app; a real phone
 
 [![15 s demo: crewdroid boots S24, Fold5 and Flip7 emulators on Android 14 and 16, cuts one phone's network while a note waits offline and syncs back, judges the server data (FAIL: 7 violations), then folds a device and turns on dark mode](docs/demo/hero.gif)](docs/demo/hero.mp4)
 
-- **Light.** 1426 MB of host RAM and 2.09 GiB of disk per device, against 3479 MB and 6.78 GiB for Android Studio's default AVD; cold boot 23.7 s against 39.3 s ([table](#one-device-against-android-studios-default-emulator)).
+- **Faster to a tested app.** In one run per side, an AI agent built and 3-device tested the same app in 13 min 42 s on crewdroid and 40 min 30 s on Android Studio's default AVD, at about the same cost and with the same result ([details](#one-app-built-by-an-agent-on-both)).
+- **Light.** 1472 MB of host RAM and 2.09 GiB of disk per device, against 3388 MB and 7.29 GiB for Android Studio's default AVD; a screen read through the CLI takes 370.7 ms against 2074.1 ms ([table](#one-device-against-android-studios-default-emulator)).
 - **Made for an agent.** `screen` returns a text outline (`[3] btn "Send" #send @540,1210`) in about a third of a screenshot's tokens (1882 vs 6183 per task), `tap --text Send` taps by name on any screen size, and every command is both a CLI with `--json` and an MCP tool.
 - **Conditions on demand.** Per device: `net airplane|nodata|slow|flaky`, `env` battery / location / dark mode / font size / locale / rotation, Galaxy S24 · Fold · Flip screens with fold / unfold, Android 12 / 14 / 16, a used-phone `load`.
 
 Also in the box: judging your server's data for duplicate, missing and silently overwritten records after a multi-device run, a layout sweep across screens and fonts, crash / ANR triage.
+
+## One app, built by an agent on both
+
+We gave an AI agent the same empty project, spec and buggy server twice: build a designated-driver app, check every feature on screen, fix what breaks, then test 3 drivers against the server. Same model, no human. One run per side, 2026-11-02 ([method and limits](docs/measurements/daeri-trial.md), [files to repeat it](examples/daeri/)).
+
+| | Android Studio default AVD + adb + mobile-mcp | crewdroid |
+|---|---|---|
+| Empty project to finished 3-device test | 40 min 30 s | **13 min 42 s** |
+| Bringing up 3 devices | 759 s | **41 s** |
+| Cost | 3.00 USD | 3.15 USD |
+| Server bugs found | 4 | 4 |
+| Finished app, same scored run | passed | passed |
+
+Same result, about a third of the time, about the same cost. Boot explains nearly half of the gap: without those 759 s the Studio side takes about 28 minutes, and an agent reusing a running emulator would not pay all of it. This is one run per side, not a benchmark.
+
+The `run` command then took about 5 minutes for 3 devices x 5 rounds with network faults. It failed the buggy server 2 of 2 times and passed the fixed server 2 of 2 times.
 
 ## One device, against Android Studio's default emulator
 
@@ -20,14 +37,19 @@ If you found crewdroid because an AI agent on the stock emulator is slow, start 
 
 | | Android Studio default AVD | crewdroid `up` |
 |---|---|---|
-| Cold boot to `sys.boot_completed` | 39.3 s | 23.7 s |
-| Start from snapshot to `sys.boot_completed` | 5.4 s | 5.6 s (not better) |
-| Start from snapshot to first screen read | 10 s | 14.4 s (not better: includes starting the CLI) |
-| Host RAM after ready | 3479 MB | 1426 MB |
-| Idle CPU, 60 s (100 % = 1 core) | 215.1 % (runs: 48.4 to 362.2) | 170 % |
-| Disk (AVD + system image) | 6.78 GiB | 2.09 GiB |
-| Screen read (`adb uiautomator dump` vs `crewdroid screen`) | 2137.5 ms | 947.1 ms via CLI, 176.6 ms in the MCP server |
-| Screenshot (`adb screencap` vs `crewdroid shot`) | 814.1 ms | 1041.4 ms via CLI (not better), 290.3 ms in the MCP server |
+| Disk (AVD + system image) | 7.29 GiB | **2.09 GiB** |
+| Host RAM after ready | 3388 MB | **1472 MB** |
+| Screen read in the MCP server (Studio side: `adb uiautomator dump`) | 2074.1 ms | **175.2 ms** |
+| Screen read through the CLI | 2074.1 ms | **370.7 ms** |
+| Screenshot in the MCP server (Studio side: `adb screencap`) | 723.7 ms | **286.3 ms** |
+| Screenshot through the CLI | 723.7 ms | **445.6 ms** |
+| Cold boot to `sys.boot_completed` | 25.1 s | 24.6 s |
+| Idle CPU, 60 s (100 % = 1 core) | 200.5 % (runs: 42.5 to 383.1) | 213.3 % |
+| Start from snapshot to `sys.boot_completed` | 5.3 s | 5.5 s |
+| Start from snapshot to first screen read through the CLI (`up`, then `adb uiautomator dump`) | 8.7 s | 12.7 s |
+| Start from snapshot to first screen read through the MCP server (`up`, then `screen`) | 8.7 s | 13.7 s |
+
+Bold = crewdroid clearly ahead. Cold boot and snapshot boot are a tie, idle CPU varies too much between runs to call, and crewdroid is behind in the last two rows. The CLI rows time the installed `crewdroid` command (`node bin/crewdroid.mjs`, a new node process per call; it starts in 79 ms, `--version`); the MCP rows time calls to one `crewdroid mcp` server kept running. `npx crewdroid` adds about 0.4 s to every call ([`cli-speed.json`](docs/measurements/cli-speed.json)), so install it once (`npm i -g crewdroid`) or use the MCP server. The first screen read is slow because the on-device helper that `screen` uses starts after boot and needs about 6 s to answer right after a snapshot start (1.2 to 1.5 s on a settled device); per-phase numbers in [`single-vs-studio.md`](docs/measurements/single-vs-studio.md).
 
 An AI agent driving one device (Field Notes demo app, "add a note and confirm it", 5 runs per path, API 34, s24ultra; raw in [`docs/measurements/agent-bench.json`](docs/measurements/agent-bench.json)): path A reads crewdroid's text outline and taps by text, path B reads a screenshot after every action and taps by x,y.
 
@@ -39,7 +61,7 @@ An AI agent driving one device (Field Notes demo app, "add a note and confirm it
 
 What crewdroid adds over mobile-mcp + the stock emulator: a lighter device (table above, [`single-vs-studio.json`](docs/measurements/single-vs-studio.json)), per-device network faults (`net`), layout checks across screens and fonts ([`layout.md`](docs/measurements/layout.md)) and judging the server's data ([`run-app.json`](docs/measurements/run-app.json)). What it does not add: tap / type speed, which is the same ([`agent-bench.json`](docs/measurements/agent-bench.json); mobile-mcp itself was not benchmarked, path B stands in for screenshot-driven agents).
 
-Setup: Android 16 (API 36); the Studio side is a `pixel_9` AVD from `google_apis_playstore` with default 2 GB RAM and 4 cores, window on, `-gpu auto`, quickboot; the crewdroid side is `up` with no flags (headless, 2 cores, `google_atd` image); Ryzen 7 5700X, 64 GB, Windows 11, emulator 37.1.11.0. The CLI rows include starting `npx tsx`.
+Setup: Android 16 (API 36); the Studio side is a `pixel_9` AVD from `google_apis_playstore` with default 2 GB RAM and 4 cores, window on, `-gpu auto`, quickboot; the crewdroid side is `up` with no flags (headless, 2 cores, `google_atd` image); Ryzen 7 5700X, 64 GB, Windows 11, emulator 37.1.11.0. The CLI rows include starting node.
 
 ## What only crewdroid does
 
@@ -197,9 +219,10 @@ Every command takes `--json` and exits non-zero on failure.
 |---|---|
 | `crewdroid up --count N [--profiles a,b] [--screen WxH[@dpi],...] [--profiles-file f.json]` | boot N emulators with Galaxy profiles or your own screens (any size, e.g. `--screen 3840x2160@320`) |
 | `crewdroid up [--cores 1\|2\|4\|6\|8] [--ram 896..8192]` | pick the guest CPU count and RAM like a real device spec (also `cores`/`ramMB` in a profile, e.g. `a16-lowend`); default 2 cores / 896 MB; a new spec builds its own base snapshot on first use (`docs/measurements/spec.md`) |
+| `crewdroid up [--count N] --wifi` | each device can get its own Wi-Fi address; measured on Windows: 31 of 33 device boots got Wi-Fi from `net wifi`, the 2 misses were API 34 clones (wlan0 never associated), so `net wifi` asks for the access point again after 30 s (`docs/adr/0009-wifi.md`) (adds `-feature -WiFiPacketStream` to the clones, +9.4 % idle RAM; MCP `up` input `wifi: true`). Without it Wi-Fi gets an address on one device at a time. Each clone then sits on its own Wi-Fi network: clones cannot reach each other over Wi-Fi and wlan0 addresses can repeat. Untested on macOS and Linux (`docs/adr/0009-wifi.md`) |
 | `crewdroid down` | kill every `crew-*` emulator |
 | `crewdroid net <serial> airplane\|nodata\|slow\|flaky\|online` | set one device's network state |
-| `crewdroid net <serial> wifi\|cellular\|both\|none` | which link is up: the emulator's "AndroidWifi" access point, mobile data, both, neither; `slow` and `flaky` then act on the chosen link. Every `net` call returns the transport apps see (`default: wifi\|cellular\|none`, `metered`). Wi-Fi gets an address on one device at a time (`docs/adr/0009-wifi.md`) |
+| `crewdroid net <serial> wifi\|cellular\|both\|none` | which link is up: the emulator's "AndroidWifi" access point, mobile data, both, neither; `slow` and `flaky` then act on the chosen link. Every `net` call returns the transport apps see (`default: wifi\|cellular\|none`, `metered`). By default Wi-Fi gets an address on one device at a time; with `up --wifi` each device can (31 of 33 measured device boots), at +9.4 % idle RAM (`docs/adr/0009-wifi.md`) |
 | `crewdroid net <serial> handover [--to wifi\|cellular] [--during <ms>]` | move the default network to the other link while the app keeps running; `--during` = ms with no link in between (default 0: new link first) |
 | `crewdroid net <serial> metered on\|off` | mark the Wi-Fi network metered, so apps that sync only on unmetered networks hold back |
 | `crewdroid fold <serial>` / `unfold <serial>` | cover <-> main screen on a Fold/Flip profile |

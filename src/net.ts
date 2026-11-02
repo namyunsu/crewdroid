@@ -66,7 +66,15 @@ const REACHED: Record<Exclude<NetState, "flaky"> | LinkState, (l: Links) => bool
 // NOTE (T45): svc/airplane switches are asynchronous, and after `up` (makeDistinct restarts the framework) the API 31
 // cellular link appears 20-80 s late and flaps; returning before the guest shows the state let uploads run in the wrong one.
 // Waits until the state holds for 3 s in a row.
-async function settle(serial: string, state: keyof typeof REACHED, timeoutS: number, reached = REACHED[state]) {
+// T83: the failure hint depends on the device. wifiBoot = booted with `up --wifi` (guest property below); retried = the
+// 30 s reconnect of `net wifi|both` already ran. Only `net wifi|both` retries, so handover/slow/metered on a --wifi
+// device get no advice (neither "boot with up --wifi" nor "after the retry").
+export function wifiHint(state: string, wifiUp: boolean, wifiBoot: boolean, retried: boolean) {
+  if (!(/wifi|both/.test(state) || (state === "slow" && wifiUp))) return "";
+  if (!wifiBoot) return "; by default Wi-Fi gets an address on one crewdroid device at a time; boot with `up --wifi` to give every device Wi-Fi (ADR 0009)";
+  return retried ? "; Wi-Fi association failed even after the retry (ADR 0009: 31 of 33 device boots get it); re-run `net` or re-boot" : "";
+}
+async function settle(serial: string, state: keyof typeof REACHED, timeoutS: number, reached = REACHED[state], retried = false) {
   const t0 = Date.now();
   let since = 0, l: Links = { def: "none", nets: [], transport: "none", metered: false };
   while (Date.now() - t0 < timeoutS * 1000) {
@@ -77,8 +85,8 @@ async function settle(serial: string, state: keyof typeof REACHED, timeoutS: num
     await sleep(500);
   }
   // NOTE (T63): read-only clones of one snapshot share the virtio-wifi MAC on the emulator's shared Wi-Fi medium, so
-  // with 2+ devices only one gets a Wi-Fi address (ADR 0009).
-  const hint = /wifi|both/.test(state) || (state === "slow" && l.nets.includes("WIFI")) ? "; Wi-Fi gets an address on one crewdroid device at a time (ADR 0009)" : "";
+  // with 2+ devices only one gets a Wi-Fi address unless booted with `up --wifi` (T74, ADR 0009).
+  const hint = wifiHint(state, l.nets.includes("WIFI"), (await sh(serial, "getprop debug.crewdroid.wifi")).trim() === "1", retried);
   throw new Error(`net ${state}: ${serial} not in that state after ${timeoutS} s (default network ${l.transport}, connected: ${l.nets.join(",") || "none"})${hint}`);
 }
 const SSID = "AndroidWifi"; // the emulator's built-in open access point
@@ -125,7 +133,7 @@ export async function setNet(serial: string, state: NetCommand, seed = 1, opt: N
   assertSerial(serial);
   if (!(NET_COMMANDS as readonly string[]).includes(state)) throw new Error(`unknown state '${state}' (${NET_COMMANDS.join("|")})`);
   stopFlaky(serial);
-  let seconds = 0;
+  let seconds = 0, wifiRetry = false;
   if ((LINK_STATES as string[]).includes(state)) {
     const st = state as LinkState;
     const [w, d] = [st === "wifi" || st === "both", st === "cellular" || st === "both"];
@@ -137,11 +145,18 @@ export async function setNet(serial: string, state: NetCommand, seed = 1, opt: N
     if (w) await wifi(serial, true);
     if (d) await data(serial, true);
     await choose(serial, st);
-    seconds = await settle(serial, st, 120);
+    // T74: with `up --wifi` an API 34 clone sometimes stays "Wifi is not connected" (wlan0 NO-CARRIER, never associates;
+    // 2 of 24 device boots); after 30 s ask for the built-in AP once more, then wait out the rest of the 120 s.
+    if (w) seconds = await settle(serial, st, 30).catch(async () => {
+      wifiRetry = true;
+      await sh(serial, `cmd wifi connect-network ${SSID} open`);
+      return 30 + (await settle(serial, st, 90, REACHED[st], true));
+    });
+    else seconds = await settle(serial, st, 120);
   } else if (state === "handover") seconds = await handover(serial, opt.to, opt.during ?? 0);
   else if (state === "metered") seconds = await metered(serial, opt.metered);
   else seconds = await setState(serial, state as NetState, seed);
-  return { serial, state, seed, settledSeconds: seconds, schedule: state === "flaky" ? flakySchedule(serial, seed, 6) : undefined, link: (await chosen(serial)) || "default", transport: await transport(serial) };
+  return { serial, state, seed, settledSeconds: seconds, schedule: state === "flaky" ? flakySchedule(serial, seed, 6) : undefined, link: (await chosen(serial)) || "default", transport: await transport(serial), ...(wifiRetry ? { wifiRetry } : {}) };
 }
 
 async function setState(serial: string, state: NetState, seed: number) {

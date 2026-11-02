@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 
 // Rules file: {"rules":[{"table":"uploads","rule":"unique(key)"}, ...]}
 //   unique(f)               no two rows of `table` share field f
@@ -132,7 +132,11 @@ export function checkLog(log: LogEntry[], rule: Rule, now = Date.now()): Violati
 export const readLog = (file: string): LogEntry[] => readFileSync(file, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
 
 // source = server data (/export URL or JSON file) for table rules; log = proxy JSONL for request-log rules. A rules file may mix both.
+// a rules path missing from the current folder falls back to the package, so `judge/proxy.rules.json` works from any project
+export const rulesPath = (f: string) => (existsSync(f) ? f : join(import.meta.dirname, "..", f));
+
 export async function judge(rulesFile: string, source?: string, log?: string) {
+  rulesFile = rulesPath(rulesFile);
   const { rules } = JSON.parse(readFileSync(rulesFile, "utf8")) as { rules: Rule[] };
   const data = source ? (await load(source)) as Data : undefined;
   const entries = log ? readLog(log) : undefined;

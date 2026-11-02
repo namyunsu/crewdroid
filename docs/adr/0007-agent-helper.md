@@ -30,7 +30,7 @@ Android 는 UiAutomation 클라이언트를 한 번에 하나만 받는다. 도�
 | `up` 이 끝난 뒤 첫 `/health` 까지 | 97 ms | 59 ms | 5650 ms | — |
 | 20 x `/tree` p50 / p90 (호스트 왕복 포함) | 22 / 36 ms | 23 / 47 ms | 63 / 111 ms | ≤ 300 / 600 ms |
 | 쉰 뒤(UiAutomation 다시 잡기) `/tree` | 135~145 ms | 188~197 ms | 166~490 ms | ≤ 600 ms |
-| CLI `tap --text "New note"` (node 기동 포함) | 377 ms | 410 ms | 483 ms | ≤ 1.5 s |
+| CLI `tap --text "New note" --no-screen` (node 기동 포함; 화면을 돌려주는 기본 `tap` 은 약 2~3 s 이고 게이트가 없다. 이 칸이 초록이어도 "tap 이 빠르다"는 뜻이 아니다) | 377 ms | 410 ms | 483 ms | ≤ 1.5 s |
 | MCP `tap` 도구 호출 | 73 ms | 117 ms | 57 ms | ≤ 0.5 s |
 | 텍스트 parity (목록 / 에디터 시트) | 21/21, 8/8 | 22/22, 8/8 | 22/22, 8/8 | dump 텍스트 전부 |
 | `type "안녕 pump"` | 그대로 | 그대로 | 그대로 | |

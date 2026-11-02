@@ -39,6 +39,13 @@ test("noLostUpdate flags two writes based on the same version", async () => {
   assert.deepEqual(await check({ writes: data.writes.slice(0, 2) }, { table: "writes", rule: "noLostUpdate(id,baseVersion)" }), []);
 });
 
+test("judge finds a bundled rules file from a folder that has no judge/ of its own", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "judge-")), cwd = process.cwd();
+  writeFileSync(join(dir, "p.jsonl"), "");
+  process.chdir(dir);
+  try { assert.equal((await judge("judge/proxy.rules.json", undefined, join(dir, "p.jsonl"))).ok, true); } finally { process.chdir(cwd); }
+});
+
 test("judge runs a rules file against a file source; bad rule / table throw", async () => {
   const dir = mkdtempSync(join(tmpdir(), "judge-"));
   writeFileSync(join(dir, "src.json"), JSON.stringify(data));

@@ -21,13 +21,15 @@ export function checkPoint(x: number, y: number, s: { width: number; height: num
 }
 
 // --text matches text or content-desc, --id the resource-id (full `pkg:id/name` or just `name`); `any` = both (type --into).
-// Exact matches win; only when there is none, case-insensitive contains.
+// Exact matches win; only when there is none, case-insensitive contains. `any` prefers editable nodes: a Material field's
+// label box carries the same text as its input.
 export function findNodes(nodes: UiNode[], query: string, by: "text" | "id" | "any"): UiNode[] {
   const vals = (n: UiNode) => [...(by !== "text" ? [n.id, n.id.replace(/^.*:id\//, "")] : []), ...(by !== "id" ? [n.text, n.desc] : [])].filter(Boolean);
+  const prefer = (hits: UiNode[]) => (by === "any" && hits.some((n) => n.editable) ? hits.filter((n) => n.editable) : hits);
   const exact = nodes.filter((n) => vals(n).includes(query));
-  if (exact.length) return exact;
+  if (exact.length) return prefer(exact);
   const lq = query.toLowerCase();
-  return nodes.filter((n) => vals(n).some((v) => v.toLowerCase().includes(lq)));
+  return prefer(nodes.filter((n) => vals(n).some((v) => v.toLowerCase().includes(lq))));
 }
 
 const show = (n: UiNode) => `${JSON.stringify(n.text || n.desc)} id=${n.id || "-"} [${n.bounds}]`;

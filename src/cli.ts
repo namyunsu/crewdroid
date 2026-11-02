@@ -1,29 +1,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { measure } from "./measure.ts";
-import { judge } from "./judge.ts";
-import { prepare } from "./snapshot.ts";
-import { identity } from "./identity.ts";
-import { hammer } from "./hammer.ts";
-import { flakyLoop, setNet, type NetCommand, type Transport } from "./net.ts";
-import { claimEmulators, down, measureUp, up, upDefaults } from "./up.ts";
-import { runScenario } from "./scenario.ts";
-import { flagScenario, scenarioFile } from "./scenario-actions.ts";
-import { slim } from "./slim.ts";
-import { triage } from "./triage.ts";
-import { screen, screenText } from "./screen.ts";
-import { perf } from "./perf.ts";
-import { apk } from "./apk.ts";
-import { fold } from "./fold.ts";
-import { envSet } from "./env.ts";
-import { appRun } from "./app.ts";
-import { setup, type StepName } from "./setup.ts";
-import { install, launch, logLine, logs, logsHint } from "./appctl.ts";
-import { actionLine, key, swipe, tap, type, withScreen } from "./input.ts";
-import { shot } from "./shot.ts";
-import { setLoad } from "./load.ts";
-import { proxyLog, proxyServe, proxyStart, proxyStop } from "./proxy.ts";
-import { layout, layoutText } from "./layout.ts";
+import type { NetCommand, Transport } from "./net.ts";
+import type { StepName } from "./setup.ts";
+// NOTE (T79): each command imports its own module inside its branch; a top-level import of every module cost ~190 ms per call.
 
 // NOTE: `env` takes negative numbers (geo -122.08 37.4) that parseArgs would read as options, so its args are parsed by hand.
 const envArgs = process.argv[2] === "env" ? process.argv.slice(3) : undefined;
@@ -35,7 +14,7 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" }, log: { type: "string" }, target: { type: "string" }, port: { type: "string" }, devices: { type: "string" }, proxy: { type: "string" }, "lose-acks": { type: "string" },
-    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string" }, api: { type: "string" }, profile: { type: "string" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false }, cores: { type: "string" }, ram: { type: "string" }, load: { type: "string" }, "keep-apps": { type: "boolean", default: false },
+    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string" }, api: { type: "string" }, profile: { type: "string" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false }, cores: { type: "string" }, ram: { type: "string" }, load: { type: "string" }, wifi: { type: "boolean", default: false }, "keep-apps": { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false }, version: { type: "boolean", default: false },
@@ -54,12 +33,13 @@ const COMMANDS = "up, devices, down, slim, measure, judge, proxy, prepare, ident
 
 async function main() {
   const [cmd] = positionals;
-  if (values.help || cmd === "help") return console.log(`usage: crewdroid <command> [options]\ncommands: ${COMMANDS}\nexample: crewdroid up (one device) | crewdroid up --count 3 | crewdroid up --api 31 | crewdroid up --cores 4 --ram 2048 | crewdroid up --load mid`);
+  if (values.help || cmd === "help") return console.log(`usage: crewdroid <command> [options]\ncommands: ${COMMANDS}\nexample: crewdroid up (one device) | crewdroid up --count 3 | crewdroid up --api 31 | crewdroid up --cores 4 --ram 2048 | crewdroid up --load mid | crewdroid up --count 3 --wifi (each device can get Wi-Fi, +9.4 % idle RAM; default one at a time)`);
   if (values.version || cmd === "version") {
     const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
     return console.log(values.json ? JSON.stringify({ version }) : version);
   }
   if (cmd === "measure") {
+    const [{ measure }, { measureUp }] = await Promise.all([import("./measure.ts"), import("./up.ts")]);
     if (!values.avd && !values.up) throw new Error("--avd a,b,c or --up N required");
     const r = values.up
       ? await measureUp(Number(values.up), Number(values["base-port"]), Number(values["idle-seconds"]), values.profiles?.split(","))
@@ -70,6 +50,7 @@ async function main() {
     return;
   }
   if (cmd === "judge") {
+    const { judge } = await import("./judge.ts");
     if (!values.rules || (!values.source && !values.log)) throw new Error("--rules <file> and --source <url|file> (server data) and/or --log <proxy.jsonl> (request log) required");
     const r = await judge(values.rules, values.source, values.log);
     if (values.json) console.log(JSON.stringify(r, null, 2));
@@ -81,6 +62,7 @@ async function main() {
     return;
   }
   if (cmd === "proxy") {
+    const { proxyLog, proxyServe, proxyStart, proxyStop } = await import("./proxy.ts");
     const [, action] = positionals;
     const num = (k: "port" | "lose-acks" | "seed") => (values[k] === undefined ? undefined : Number(values[k]));
     const o = { target: values.target!, port: num("port"), devices: values.devices?.split(","), log: values.log, loseAcks: num("lose-acks"), seed: num("seed") };
@@ -99,6 +81,7 @@ async function main() {
     return;
   }
   if (cmd === "prepare" || cmd === "identity") {
+    const [{ prepare }, { identity }, { claimEmulators }] = await Promise.all([import("./snapshot.ts"), import("./identity.ts"), import("./up.ts")]);
     if (!values.image) throw new Error("--image android-34/google_atd required");
     const port = Number(values["base-port"]);
     claimEmulators();
@@ -109,12 +92,13 @@ async function main() {
     return;
   }
   if (cmd === "up") {
+    const { up, upDefaults } = await import("./up.ts");
     const screens = values.screen?.flatMap((x) => x.split(","));
     const api = values.api === undefined ? undefined : Number(values.api);
     if (api !== undefined && !Number.isInteger(api)) throw new Error(`--api must be a number like 31|34|36, got '${values.api}'`);
     const num = (k: "cores" | "ram") => (values[k] === undefined ? undefined : Number(values[k]));
     const d = upDefaults({ count: values.count === undefined ? undefined : Number(values.count), profiles: (values.profiles ?? values.profile)?.split(","), api, screens, profilesFile: values["profiles-file"] });
-    const r = await up(d.count, Number(values["base-port"]), d.names, values.window, { screens, profilesFile: values["profiles-file"], api: d.api, cores: num("cores"), ramMB: num("ram"), load: values.load });
+    const r = await up(d.count, Number(values["base-port"]), d.names, values.window, { screens, profilesFile: values["profiles-file"], api: d.api, cores: num("cores"), ramMB: num("ram"), load: values.load, wifi: values.wifi });
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density} ${d.cores} cores ${d.ramMB} MB${d.load ? ` load ${d.load.level} MemAvailable ${d.load.guest.memAvailablePct}%` : ""}`).join("\n"));
     return;
   }
@@ -124,6 +108,7 @@ async function main() {
     return;
   }
   if (cmd === "slim") {
+    const { slim } = await import("./slim.ts");
     const r = await slim(Number(values["base-port"]));
     const text = JSON.stringify(r, null, 2);
     if (values.out) writeFileSync(values.out, text + "\n");
@@ -131,11 +116,13 @@ async function main() {
     return;
   }
   if (cmd === "down") {
+    const { down } = await import("./up.ts");
     const r = await down();
     console.log(values.json ? JSON.stringify(r) : `killed ${r.killed.length} processes (ports: ${r.ports.join(",") || "none"})`);
     return;
   }
   if (cmd === "net") {
+    const { flakyLoop, setNet } = await import("./net.ts");
     const [, serial, state, onOff] = positionals;
     if (!serial || !state) throw new Error("usage: net <serial> airplane|nodata|slow|flaky|online [--seed N] | wifi|cellular|both|none | handover [--to wifi|cellular] [--during <ms>] | metered on|off");
     if (state === "flaky-loop") return flakyLoop(serial, Number(values.seed)); // internal: detached worker started by `net flaky`
@@ -145,6 +132,7 @@ async function main() {
     return;
   }
   if (cmd === "load") {
+    const { setLoad } = await import("./load.ts");
     const [, serial, level] = positionals;
     if (!serial || !level) throw new Error("usage: load <serial> off|low|mid|high [--keep-apps]");
     const r = await setLoad(serial, level, { keepApps: values["keep-apps"] });
@@ -153,6 +141,7 @@ async function main() {
     return;
   }
   if (cmd === "hammer") {
+    const { hammer } = await import("./hammer.ts");
     if (!values.url) throw new Error("--url <base> required");
     const r = await hammer({ url: values.url, users: Number(values.users), repeat: Number(values.repeat), jitter: Number(values.jitter), retryRate: Number(values["retry-rate"]), seed: Number(values.seed), rules: values.rules });
     if (values.json) console.log(JSON.stringify(r, null, 2));
@@ -165,6 +154,7 @@ async function main() {
     return;
   }
   if (cmd === "run") {
+    const [{ runScenario }, { flagScenario, scenarioFile }] = await Promise.all([import("./scenario.ts"), import("./scenario-actions.ts")]);
     const [, file] = positionals;
     if (file && values.apk) throw new Error(`run: give a scenario file or --apk, not both (got ${file} and --apk ${values.apk})`);
     if (!file && !values.apk) throw new Error("usage: run <scenario.json> [--seed N] [--count N (default: the file's devices.count, else 3)] [--server-port 5599] [--out file] [--proxy 5590 --log proxy.jsonl [--lose-acks 0..1]]\n   or: run --apk <app.apk> --flow <flow.yaml> [--flow ...] [--setup-flow <flow.yaml>] --server <http://host:port> [--count 3] [--repeat 5] [--no-network] [--seed N] [--lose-acks P] [--print-scenario]");
@@ -188,6 +178,7 @@ async function main() {
     return;
   }
   if (cmd === "triage") {
+    const { triage } = await import("./triage.ts");
     const [, serial] = positionals;
     if (!serial) throw new Error("usage: triage <serial> [--app <pkg>] [--heap <out.hprof>]");
     const r = await triage(serial, values.app, values.heap);
@@ -200,6 +191,7 @@ async function main() {
     return;
   }
   if (cmd === "screen") {
+    const { screen, screenText } = await import("./screen.ts");
     const [, serial] = positionals;
     if (!serial) throw new Error("usage: screen <serial> [--png <file>] [--bounds]");
     const r = await screen(serial, values.png);
@@ -207,6 +199,7 @@ async function main() {
     return;
   }
   if (cmd === "perf") {
+    const { perf } = await import("./perf.ts");
     const [, serial, pkg, ...extras] = positionals; // extras after `--` go to am start, e.g. `-- --es check jank`
     if (!serial || !pkg) throw new Error("usage: perf <serial> <pkg> [--activity .Main] [-- <am start extras>]");
     const r = await perf(serial, pkg, values.activity, extras);
@@ -214,6 +207,7 @@ async function main() {
     return;
   }
   if (cmd === "apk") {
+    const { apk } = await import("./apk.ts");
     const [, file] = positionals;
     if (!file) throw new Error("usage: apk <file.apk>");
     const r = await apk(file);
@@ -221,6 +215,7 @@ async function main() {
     return;
   }
   if (cmd === "fold" || cmd === "unfold") {
+    const { fold } = await import("./fold.ts");
     const [, serial] = positionals;
     if (!serial) throw new Error(`usage: ${cmd} <serial>  (fold = cover screen, unfold = main screen; fold/flip profiles only)`);
     const r = await fold(serial, cmd === "fold" ? "cover" : "main");
@@ -228,6 +223,7 @@ async function main() {
     return;
   }
   if (cmd === "env") {
+    const { envSet } = await import("./env.ts");
     const a = envArgs!.filter((x) => x !== "--json"), hi = a.indexOf("--hold");
     const hold = hi >= 0 ? Number(a.splice(hi, 2)[1]) : undefined;
     const [serial, what, ...rest] = a;
@@ -237,6 +233,7 @@ async function main() {
     return;
   }
   if (cmd === "app") {
+    const { appRun } = await import("./app.ts");
     const [, serial, pkg, what, ...rest] = positionals;
     if (!serial || !pkg || !what) throw new Error("usage: app <serial> <pkg> perm|open|links|clear|backup|restore|pressure|fill-storage [args] [--pkg]");
     const r = await appRun(serial, pkg, what, rest, { pkg: values.pkg });
@@ -244,12 +241,14 @@ async function main() {
     return;
   }
   if (cmd === "setup") {
+    const { setup } = await import("./setup.ts");
     const r = await setup({ sdk: values.sdk, images: values.images?.split(","), only: values.only?.split(",") as StepName[] | undefined, dryRun: values["dry-run"], yes: values.yes });
     const mb = (n?: number) => (n ? ` ${Math.round(n / 2 ** 20)} MB` : "");
     console.log(values.json ? JSON.stringify(r, null, 2) : [`sdk: ${r.sdk}`, ...r.steps.map((s: any) => `${s.step}: ${s.status}${mb(s.downloadBytes)}`), `accel: ${r.host.accel.ok === null ? "unknown" : r.host.accel.ok ? "ok" : "FAILED"} (${r.host.accel.detail}); free disk: ${r.host.freeDiskGB ?? "?"} GB`, ...(r.envLine ? [`add to your environment: ${r.envLine}`] : [])].join("\n"));
     return;
   }
   if (cmd === "install") {
+    const { install } = await import("./appctl.ts");
     const [, target, file] = positionals;
     if (!target || !file) throw new Error("usage: install <serial|all> <apk> [--grant]");
     const r = await install(target, file, values.grant);
@@ -258,6 +257,7 @@ async function main() {
     return;
   }
   if (cmd === "launch") {
+    const { launch } = await import("./appctl.ts");
     const [, serial, pkg, ...extras] = positionals; // extras after `--` go to am start, e.g. `-- --es check crash`
     if (!serial || !pkg) throw new Error("usage: launch <serial> <pkg> [--activity .Main] [--restart] [-- <am start extras>]");
     const r = await launch(serial, pkg, { activity: values.activity, restart: values.restart, extras });
@@ -265,6 +265,7 @@ async function main() {
     return;
   }
   if (cmd === "logs") {
+    const { logLine, logs, logsHint } = await import("./appctl.ts");
     const [, serial, pkg] = positionals;
     if (!serial || !pkg) throw new Error("usage: logs <serial> <pkg> [--since 60s|2m] [--level V|D|I|W|E] [--seconds N] [--all]");
     const r = await logs(serial, pkg, { since: values.since, level: values.level, seconds: values.seconds ? Number(values.seconds) : undefined, all: values.all });
@@ -273,6 +274,7 @@ async function main() {
     return;
   }
   if (cmd === "shot") {
+    const { shot } = await import("./shot.ts");
     const [, serial, file] = positionals;
     if (!serial) throw new Error("usage: shot <serial> [file.png]");
     const r = await shot(serial, file);
@@ -280,6 +282,7 @@ async function main() {
     return;
   }
   if (cmd === "tap") {
+    const { actionLine, key, swipe, tap, type, withScreen } = await import("./input.ts");
     const [, serial, x, y] = positionals;
     // `tap <serial> [3]` / `tap <serial> 3` / `tap <serial> --index 3` alone = line [3] of the last screen outline
     const n = y === undefined && x !== undefined ? x.replace(/^\[(\d+)\]$/, "$1") : values.text === undefined && values.id === undefined && x === undefined ? values.index : undefined;
@@ -290,6 +293,7 @@ async function main() {
     return;
   }
   if (cmd === "type") {
+    const { actionLine, key, swipe, tap, type, withScreen } = await import("./input.ts");
     const [, serial, text] = positionals;
     if (!serial || text === undefined) throw new Error("usage: type <serial> <text> [--into <text|id>] [--no-screen]  (non-ASCII needs the on-device helper)");
     const r = await withScreen(serial, (s) => type(serial, text, values.into, s), values["no-screen"]);
@@ -297,6 +301,7 @@ async function main() {
     return;
   }
   if (cmd === "swipe") {
+    const { actionLine, key, swipe, tap, type, withScreen } = await import("./input.ts");
     const [, serial, ...rest] = positionals;
     if (!serial || !rest.length) throw new Error("usage: swipe <serial> up|down|left|right [--times N] | swipe <serial> x1 y1 x2 y2 [ms]");
     const coords = rest.length >= 4;
@@ -305,6 +310,7 @@ async function main() {
     return;
   }
   if (cmd === "key") {
+    const { actionLine, key, swipe, tap, type, withScreen } = await import("./input.ts");
     const [, serial, k] = positionals;
     if (!serial || !k) throw new Error("usage: key <serial> back|home|enter|delete|tab|menu|KEYCODE_*");
     const r = await withScreen(serial, (s) => key(serial, k, s), values["no-screen"]);
@@ -312,6 +318,7 @@ async function main() {
     return;
   }
   if (cmd === "layout") {
+    const { layout, layoutText } = await import("./layout.ts");
     const [, serial, pkg, ...extras] = positionals; // extras after `--` go to am start, e.g. `-- --es check layout-bad`
     if (!serial || !pkg) throw new Error("usage: layout <serial> <pkg> [--activity .X] [--flow flow.yaml] [--profiles a,b] [--fonts 1.0,1.3,2.0] [--out dir] [-- <am start extras>]");
     const fonts = values.fonts?.split(",").map(Number);

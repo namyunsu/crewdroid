@@ -6,11 +6,28 @@ crewdroid 는 앱을 개발하는 동안 빌드하고 확인하는 루프에 쓰
 
 [![15초 소개: S24·폴드5·플립7 에뮬레이터를 안드로이드 14·16 으로 띄우고, 한 폰만 네트워크를 끊어 메모가 오프라인으로 기다렸다 동기화되는 장면, 서버 데이터 판정(FAIL: 7 violations), 폴드 접기와 다크 모드](docs/demo/hero.gif)](docs/demo/hero.mp4)
 
-- **가볍다.** 기기 1대에 호스트 RAM 1426 MB, 디스크 2.09 GiB. Android Studio 기본 AVD 는 3479 MB, 6.78 GiB. 콜드 부팅 23.7초(기본 AVD 39.3초).
+- **테스트까지 더 빠르다.** 양쪽 각 1회 비교에서 AI 에이전트가 같은 앱을 만들어 3대로 시험하는 데 crewdroid 는 13분 42초, Android Studio 기본 AVD 는 40분 30초가 걸렸다. 비용은 비슷하고 결과는 같았다 ([자세히](#앱-하나를-에이전트가-양쪽에서-만들어-보기)).
+- **가볍다.** 기기 1대에 호스트 RAM 1472 MB, 디스크 2.09 GiB. Android Studio 기본 AVD 는 3388 MB, 7.29 GiB. CLI 화면 읽기 370.7 ms(기본 AVD 2074.1 ms).
 - **에이전트용.** `screen` 은 화면을 글자 목록(`[3] btn "Send" #send @540,1210`)으로 돌려줘 스크린샷 토큰의 약 3분의 1(작업당 1882 대 6183), `tap --text Send` 는 화면 크기와 상관없이 이름으로 누른다. 모든 명령이 `--json` CLI 이자 MCP 도구.
 - **환경을 마음대로.** 기기마다 `net airplane|nodata|slow|flaky`, `env` 배터리·위치·다크 모드·글꼴 크기·언어·회전, 갤럭시 S24·폴드·플립 화면과 접기/펴기, 안드로이드 12/14/16, 오래 쓴 폰 부하(`load`).
 
 그 밖에: 여러 대로 돌린 뒤 서버 데이터에서 중복·누락·덮어쓰기 판정, 화면·글꼴 조합 레이아웃 점검, 크래시·ANR 분석.
+
+## 앱 하나를 에이전트가 양쪽에서 만들어 보기
+
+같은 빈 프로젝트, 명세, 버그가 있는 서버를 AI 에이전트에게 두 번 줬다. 일은 대리기사 앱을 만들고, 기능을 화면에서 하나씩 확인해 고치고, 기사 3명 상황을 서버로 시험하는 것이다. 모델도 같고 사람은 개입하지 않았다. 양쪽 각 1회, 2026-11-02 ([방법과 한계](docs/measurements/daeri-trial.md), [다시 해 볼 자료](examples/daeri/)).
+
+| | Android Studio 기본 AVD + adb + mobile-mcp | crewdroid |
+|---|---|---|
+| 빈 프로젝트부터 3대 시험 완료까지 | 40분 30초 | **13분 42초** |
+| 3대 띄우기 | 759 s | **41 s** |
+| 비용 | 3.00 달러 | 3.15 달러 |
+| 찾은 서버 문제 | 4건 | 4건 |
+| 완성한 앱, 같은 채점 | 통과 | 통과 |
+
+결과는 같고 시간은 약 3분의 1, 비용은 비슷하다. 시간 차이의 절반 가까이가 부팅이다. 759 s 를 빼면 Studio 쪽은 약 28분이고, 켜 둔 에뮬레이터를 다시 쓰는 에이전트라면 이 시간을 다 내지는 않는다. 양쪽 각 1회이며 벤치마크가 아니다.
+
+이어서 `crewdroid run` 은 3대 5회를 망 장애까지 넣어 약 5분에 끝냈다. 버그 서버는 2회 모두 실패로, 고친 서버는 2회 모두 통과로 판정했다.
 
 ## 1대 기준: Android Studio 기본 에뮬레이터와 비교
 
@@ -18,14 +35,19 @@ AI 에이전트가 기본 에뮬레이터에서 느리다고 찾아왔다면 여
 
 | | Android Studio 기본 AVD | crewdroid `up` |
 |---|---|---|
-| 콜드 부팅 (`sys.boot_completed` 까지) | 39.3 s | 23.7 s |
-| 스냅샷 시작 (`sys.boot_completed` 까지) | 5.4 s | 5.6 s (더 낫지 않음) |
-| 스냅샷 시작 후 첫 화면 읽기까지 | 10 s | 14.4 s (더 낫지 않음: CLI 시작 시간 포함) |
-| 준비 후 호스트 RAM | 3479 MB | 1426 MB |
-| 유휴 CPU, 60 s (100 % = 코어 1개) | 215.1 % (회차별 48.4 ~ 362.2) | 170 % |
-| 디스크 (AVD + 시스템 이미지) | 6.78 GiB | 2.09 GiB |
-| 화면 읽기 (`adb uiautomator dump` 대 `crewdroid screen`) | 2137.5 ms | CLI 947.1 ms, MCP 서버 안 176.6 ms |
-| 스크린샷 (`adb screencap` 대 `crewdroid shot`) | 814.1 ms | CLI 1041.4 ms (더 낫지 않음), MCP 서버 안 290.3 ms |
+| 디스크 (AVD + 시스템 이미지) | 7.29 GiB | **2.09 GiB** |
+| 준비 후 호스트 RAM | 3388 MB | **1472 MB** |
+| 화면 읽기, MCP 서버 안 (Studio 쪽은 `adb uiautomator dump`) | 2074.1 ms | **175.2 ms** |
+| 화면 읽기, CLI | 2074.1 ms | **370.7 ms** |
+| 스크린샷, MCP 서버 안 (Studio 쪽은 `adb screencap`) | 723.7 ms | **286.3 ms** |
+| 스크린샷, CLI | 723.7 ms | **445.6 ms** |
+| 콜드 부팅 (`sys.boot_completed` 까지) | 25.1 s | 24.6 s |
+| 유휴 CPU, 60 s (100 % = 코어 1개) | 200.5 % (회차별 42.5 ~ 383.1) | 213.3 % |
+| 스냅샷 시작 (`sys.boot_completed` 까지) | 5.3 s | 5.5 s |
+| 스냅샷 시작 후 첫 화면 읽기까지, CLI (`up` 후 `adb uiautomator dump`) | 8.7 s | 12.7 s |
+| 스냅샷 시작 후 첫 화면 읽기까지, MCP 서버 (`up` 후 `screen`) | 8.7 s | 13.7 s |
+
+굵은 글씨는 crewdroid 가 확실히 앞선 항목이다. 콜드 부팅과 스냅샷 부팅은 비슷하고, 유휴 CPU 는 회차별 차이가 커서 판단하기 어려우며, 마지막 두 행은 crewdroid 가 뒤진다. CLI 행은 설치된 `crewdroid` 명령(`node bin/crewdroid.mjs`, 호출마다 node 프로세스를 새로 띄움; 시작 79 ms, `--version`)으로 쟀고, MCP 행은 계속 떠 있는 `crewdroid mcp` 서버 하나에 보낸 호출로 쟀다. `npx crewdroid` 는 호출마다 약 0.4 s 를 더 쓴다 ([`cli-speed.json`](docs/measurements/cli-speed.json)). 한 번 설치하거나 (`npm i -g crewdroid`) MCP 서버를 쓰면 된다. 첫 화면 읽기가 느린 이유는 `screen` 이 쓰는 기기 안 도우미가 부팅 뒤에 시작되고, 스냅샷 시작 직후에는 응답까지 약 6 s 가 걸리기 때문이다 (안정된 기기에서는 1.2 ~ 1.5 s). 단계별 수치는 [`single-vs-studio.md`](docs/measurements/single-vs-studio.md).
 
 AI 에이전트가 기기 1대를 조작할 때 (Field Notes 데모 앱, "메모를 추가하고 목록에서 확인", 경로마다 5회, API 34, s24ultra; 원본 [`docs/measurements/agent-bench.json`](docs/measurements/agent-bench.json)): A 는 crewdroid 의 텍스트 화면 요약을 읽고 글자로 누르고, B 는 동작마다 스크린샷을 읽고 x,y 로 누른다.
 
@@ -37,7 +59,7 @@ AI 에이전트가 기기 1대를 조작할 때 (Field Notes 데모 앱, "메모
 
 mobile-mcp + 기본 에뮬레이터에 비해 crewdroid 가 더하는 것: 더 가벼운 기기 (위 표, [`single-vs-studio.json`](docs/measurements/single-vs-studio.json)), 기기별 네트워크 장애 (`net`), 화면·글자 크기별 레이아웃 검사 ([`layout.md`](docs/measurements/layout.md)), 서버 데이터 판정 ([`run-app.json`](docs/measurements/run-app.json)). 더하지 않는 것: 탭·입력 속도는 같다 ([`agent-bench.json`](docs/measurements/agent-bench.json); mobile-mcp 자체는 재지 않았고, B 경로가 스크린샷으로 조작하는 에이전트를 대신한다).
 
-조건: 안드로이드 16 (API 36). Studio 쪽은 `google_apis_playstore` 이미지의 `pixel_9` AVD, 기본값 RAM 2 GB·코어 4개, 창 켬, `-gpu auto`, 퀵부트. crewdroid 쪽은 플래그 없는 `up` (창 없음, 코어 2개, `google_atd` 이미지). Ryzen 7 5700X, 64 GB, Windows 11, 에뮬레이터 37.1.11.0. CLI 행에는 `npx tsx` 시작 시간이 들어 있다.
+조건: 안드로이드 16 (API 36). Studio 쪽은 `google_apis_playstore` 이미지의 `pixel_9` AVD, 기본값 RAM 2 GB·코어 4개, 창 켬, `-gpu auto`, 퀵부트. crewdroid 쪽은 플래그 없는 `up` (창 없음, 코어 2개, `google_atd` 이미지). Ryzen 7 5700X, 64 GB, Windows 11, 에뮬레이터 37.1.11.0. CLI 행에는 node 시작 시간이 들어 있다.
 
 ## crewdroid 만 하는 것
 
@@ -60,7 +82,7 @@ npx crewdroid run --apk app.apk --flow flows/add-item.yaml --server http://127.0
 | | Android Emulator / AVD Manager | crewdroid |
 |---|---|---|
 | 다자 버그 | 기능 없음 | `run` 이 기기마다 다른 타이밍으로 흐름을 반복하고 `judge` 가 서버를 검사: `unique`·`count`·`noLostUpdate` |
-| 네트워크 | Extended Controls 토글 1개 | 기기별 `airplane`·`nodata`·`slow`·`flaky` 를 무작위 일정으로, 업로드 도중에도 |
+| 네트워크 | Extended Controls 토글 1개 | 기기별 `airplane`·`nodata`·`slow`·`flaky` 를 무작위 일정으로, 업로드 도중에도. `net wifi\|cellular\|both` 로 링크 선택: 기본은 Wi-Fi 주소를 한 번에 한 대만 받고, `up --wifi` 면 기기마다 받을 수 있다(측정 33대 중 31대, 못 받은 2대는 API 34, 유휴 RAM +9.4 %, 클론마다 따로 된 Wi-Fi 망이라 클론끼리 Wi-Fi 로 닿지 않고 wlan0 주소가 겹칠 수 있음, macOS·Linux 미시험, [ADR 0009](docs/adr/0009-wifi.md)) |
 | 기기 | AVD 1개 = 창 1개, 디스크 이미지 각각 | 베이스 이미지 1개의 읽기 전용 클론 N대, 화면(S/Fold/Flip/임의 `WxH@dpi`)·API 혼합 |
 | 조작 | 창에서 클릭 | 모든 명령 `--json` + 종료 코드 |
 | 기기 상태 | GUI 패널 | `env`(GPS·배터리·회전·다크·글자·로케일·GSM·SMS·통화), `app`(권한·딥링크·Doze·트림·저장공간) — 설정 후 되읽어 확인 |

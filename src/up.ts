@@ -74,7 +74,7 @@ function pickImages(api?: number | "latest") {
   return hit;
 }
 
-export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest"; cores?: number; ramMB?: number; load?: string } = {}) {
+export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest"; cores?: number; ramMB?: number; load?: string; wifi?: boolean } = {}) {
   // Validate every input before taking the lock or launching anything.
   const screens = (custom.screens ?? []).map(parseScreen);
   const all = [...loadProfiles(), ...(custom.profilesFile ? loadProfilesFile(custom.profilesFile) : [])];
@@ -105,7 +105,7 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   try {
     const t0s: number[] = [];
     for (const [i, s] of slots.entries()) {
-      await start(s.avd, ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window);
+      await start(s.avd, ports[i], true, ["-no-boot-anim", ...skinFor(s.profile)], window, custom.wifi);
       t0s.push(Date.now());
       if (i < slots.length - 1) await sleep(3000); // stagger launches; nothing to stagger after the last
     }
@@ -129,6 +129,8 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
         await sleep(3000);
       }
       mark("root");
+      // T83: net.ts words its Wi-Fi failure hint by this marker (guest property, dies with the device; same pattern as debug.crewdroid.link)
+      if (custom.wifi) await adb(serial, ["shell", "setprop", "debug.crewdroid.wifi", "1"]);
       // T42: clones of one snapshot share android_id, serial, MAC, hostname; makeDistinct (framework restart + probe
       // reinstall, ~27 s) only matters when two clones run side by side. A single device keeps the snapshot's identity.
       const distinctNotes = slots.length > 1 ? await makeDistinct(serial, i + 1) : [];

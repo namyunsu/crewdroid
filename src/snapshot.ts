@@ -14,11 +14,15 @@ export const probeApk = () => join(import.meta.dirname, "..", "probe-app/app/bui
 export const SNAPSHOT = "default_boot"; // quickboot snapshot name; -read-only instances load it automatically
 
 // NOTE: no -no-snapshot here (avd.ts launchArgs has it): snapshots must stay enabled to save/load default_boot.
-export function start(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false) {
-  const args = ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", KNOBS.gpu, "-camera-back", "emulated", "-cores", String(coresOf(name)), "-memory", String(ramMB(name)),
-    "-feature", `${KNOBS.fileBacked ? "" : "-"}QuickbootFileBacked,${KNOBS.vulkan ? "" : "-"}Vulkan`, ...(KNOBS.lowRam ? ["-lowram"] : []),
+// T74: wifi = `up --wifi`: per-emulator Wi-Fi instead of the shared netsim medium, so every clone gets a Wi-Fi address
+// (idle RAM +9.4 %, ADR 0009). Only on -read-only clones; without it the args are unchanged.
+export function emulatorArgs(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false, wifi = false) {
+  return ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", KNOBS.gpu, "-camera-back", "emulated", "-cores", String(coresOf(name)), "-memory", String(ramMB(name)),
+    "-feature", `${KNOBS.fileBacked ? "" : "-"}QuickbootFileBacked,${KNOBS.vulkan ? "" : "-"}Vulkan${wifi && readOnly ? ",-WiFiPacketStream" : ""}`, ...(KNOBS.lowRam ? ["-lowram"] : []),
     ...(readOnly ? ["-read-only", ...(KNOBS.coldBoot ? ["-no-snapshot-load"] : [])] : ["-no-snapshot-save"]), ...extra];
-  return launchEmulator(args, join(tmpdir(), `crewdroid-${name}-${port}.log`), window);
+}
+export function start(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false, wifi = false) {
+  return launchEmulator(emulatorArgs(name, port, readOnly, extra, window, wifi), join(tmpdir(), `crewdroid-${name}-${port}.log`), window);
 }
 
 export async function killAll(name: string, serials: string[]) {

@@ -26,7 +26,8 @@ crewdroid run scenarios/photo-upload.json --seed 1 --server-port 5595 --json
 crewdroid judge --rules <rules.json> --source <url|file> --json   # re-judge server data
 crewdroid down --json                                # always, when finished
 ```
-In a checkout without the package installed, replace `crewdroid` with `npx tsx src/cli.ts`.
+In a checkout without the package installed, replace `crewdroid` with `node bin/crewdroid.mjs`.
+Install it once (`npm i -g crewdroid`) or use the MCP server: `npx crewdroid` adds about 0.4 s to every call (`docs/measurements/cli-speed.json`).
 
 ## Rules
 - adb only on `emulator-<port>`; one run at a time; never add a "press at the same moment" barrier.

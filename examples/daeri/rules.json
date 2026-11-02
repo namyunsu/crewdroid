@@ -1,0 +1,7 @@
+{ "rules": [
+  { "rule": "dupSuccess()" },
+  { "rule": "lostUpdate(/calls/:id/driver, /version)" },
+  { "rule": "lostWrite(120)" },
+  { "table": "accepts", "rule": "unique(callId)" },
+  { "table": "ledger", "rule": "unique(tripKey)" }
+] }

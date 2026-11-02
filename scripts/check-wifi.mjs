@@ -1,6 +1,8 @@
-// T63 verify: node scripts/check-wifi.mjs [--api 36] [--count N] [--server-port 5599] [--out file]
+// T63 verify: node scripts/check-wifi.mjs [--api 36] [--count N] [--wifi] [--diag dir] [--server-port 5599] [--out file]
+// --count N: a device that misses Wi-Fi gets `cmd wifi status`, wlan0, connectivity and Wi-Fi logcat saved to --diag (default %TEMP%).
+// T74: --wifi boots like `up --wifi` (-feature -WiFiPacketStream on the clones), so every device can get Wi-Fi.
 // T74: --count N (> 1) boots N mixed devices (`up --count N`) and only checks that `net <serial> wifi` gets Wi-Fi on every
-// one of them (readback + probe); ADR 0009.
+// one of them (readback + probe + a 1 KB upload to the host 10.0.2.2 with Wi-Fi as the only link); ADR 0009.
 // Default (1 device): boots 1 emulator and proves the Wi-Fi / cellular / handover / metered claims with what the probe app sees
 // (ConnectivityManager: "CrewProbe TRANSPORT wifi|cellular|none metered=<bool>") and a 2 MB upload to the sample server.
 // Exit 0 only if every claim holds; always kills its emulator (down) at the end.
@@ -11,10 +13,11 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { adb } from "../src/adb.ts";
 import { down, up, upDefaults } from "../src/up.ts";
+import { CREW_RE, listProcesses } from "../src/platform.ts";
 import { PKG, probeApk, sleep } from "../src/snapshot.ts";
 import { startApp } from "../sample/server/app.ts";
 
-const { values: v } = parseArgs({ options: { api: { type: "string" }, count: { type: "string", default: "1" }, "server-port": { type: "string", default: "5599" }, out: { type: "string" } } });
+const { values: v } = parseArgs({ options: { api: { type: "string" }, count: { type: "string", default: "1" }, wifi: { type: "boolean", default: false }, diag: { type: "string" }, "server-port": { type: "string", default: "5599" }, out: { type: "string" } } });
 const sport = Number(v["server-port"]), count = Number(v.count), SIZE = 2 * 1048576;
 const cli = join(import.meta.dirname, "..", "src", "cli.ts");
 const lines = [], errs = [];
@@ -93,9 +96,14 @@ try {
   await down();
   server = await startApp({ port: sport, dir: mkdtempSync(join(tmpdir(), "crewwifi-")) });
   if (!(count >= 1)) throw new Error(`--count must be a number >= 1 (got ${v.count})`);
-  // same devices as plain `crewdroid up [--api N]` / `up --count N [--api N]`
+  // same devices as plain `crewdroid up [--api N] [--wifi]` / `up --count N [--api N] [--wifi]`
   const d = upDefaults({ api: v.api ? Number(v.api) : undefined, count: count > 1 ? count : undefined });
-  const r = await up(d.count, 5580, d.names, false, { api: d.api });
+  const r = await up(d.count, 5580, d.names, false, { api: d.api, wifi: v.wifi });
+  const cmds = await listProcesses(CREW_RE);
+  for (const x of r.devices) {
+    const has = cmds.some((p) => new RegExp(`-port ${x.port}([ "]|$)`).test(p.cmd) && p.cmd.includes("-WiFiPacketStream"));
+    claim(has === v.wifi, `${x.serial} launched ${has ? "with" : "without"} -feature -WiFiPacketStream (${v.wifi ? "up --wifi" : "default up"})`);
+  }
   for (const x of r.devices) say(`device ${x.serial} API ${x.api} ${x.profile}`);
   await Promise.all(r.devices.map((x) => adb(x.serial, ["install", "-r", probeApk()], 120000)));
   if (count > 1) {
@@ -103,7 +111,25 @@ try {
     const ws = await Promise.all(r.devices.map((x) => net(x.serial, "wifi").catch((e) => ({ error: e.message.trim().split("\n").pop() }))));
     for (const [i, x] of r.devices.entries()) {
       const tw = ws[i].error ? "(not checked)" : await seen(x.serial);
-      claim(ws[i].transport?.default === "wifi" && tw === "TRANSPORT wifi metered=false", `${x.serial} API ${x.api} net wifi: ${ws[i].error ?? `readback ${JSON.stringify(ws[i].transport)}`}, probe "${tw}"`);
+      claim(ws[i].transport?.default === "wifi" && tw === "TRANSPORT wifi metered=false", `${x.serial} API ${x.api} net wifi: ${ws[i].error ?? `readback ${JSON.stringify(ws[i].transport)} in ${ws[i].settledSeconds} s${ws[i].wifiRetry ? " (after the 30 s reconnect)" : ""}`}, probe "${tw}"`);
+      if (ws[i].error) {
+        // T74: keep the guest's view of the miss before down() kills the device
+        const diag = [];
+        for (const c of ["cmd wifi status", "cmd wifi list-networks", "cmd wifi list-scan-results", "ip addr show wlan0", "logcat -d -v time -t 80", "dumpsys connectivity | grep -E 'Active default network|NetworkAgentInfo|NetworkRequest' | head -40", "logcat -d -v time | grep -iE 'wifi|dhcp|wpa_supplicant|wificond|hostapd|netsim' | tail -300"])
+          diag.push(`$ ${c}\n${await adb(x.serial, ["shell", c], 60000).catch((e) => String(e))}`);
+        const f = join(v.diag ?? tmpdir(), `wifi-miss-${x.serial}-api${x.api}-${Date.now()}.txt`);
+        writeFileSync(f, diag.join("\n\n") + "\n");
+        say(`diag ${f}`);
+        continue;
+      }
+      // Wi-Fi is the only link now, so a stored upload means the host 10.0.2.2 answered over Wi-Fi
+      const key = `wifi-${x.serial}-${Date.now()}`;
+      await adb(x.serial, ["shell", "am", "force-stop", PKG]); await sleep(2000);
+      await adb(x.serial, ["logcat", "-c"]);
+      await start(x.serial, ["--es", "check", "upload", "--es", "url", `http://10.0.2.2:${sport}/upload`, "--ei", "size", "1024", "--es", "key", key, "--es", "client", x.serial]);
+      const u = await probeLine(x.serial, /UPLOAD (ok|fail)/, 30);
+      const stored = (await fetch(`http://127.0.0.1:${sport}/export`).then((q) => q.json())).uploads.filter((q) => q.key === key).length;
+      claim(/^UPLOAD ok/.test(u) && stored === 1, `${x.serial} API ${x.api} host 10.0.2.2 over Wi-Fi only: probe "${u}", server stored ${stored}`);
     }
   } else await single(r.devices[0].serial);
 } catch (e) {

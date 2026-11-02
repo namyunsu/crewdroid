@@ -1,0 +1,64 @@
+{
+  "name": "daeri-3-drivers",
+  "app": {
+    "apk": "app/build/outputs/apk/debug/daeri-debug.apk",
+    "package": "dev.crewdroid.daeri"
+  },
+  "devices": {
+    "count": 3,
+    "profiles": [
+      "s24ultra",
+      "fold5-main",
+      "flip7-main"
+    ]
+  },
+  "repeat": 5,
+  "delayMs": [
+    500,
+    2000
+  ],
+  "network": {
+    "states": [
+      "airplane",
+      "slow",
+      "flaky"
+    ],
+    "badMs": [
+      4000,
+      8000
+    ],
+    "onlineMs": [
+      5000,
+      10000
+    ]
+  },
+  "server": {
+    "target": "http://127.0.0.1:5596"
+  },
+  "setup": [
+    {
+      "intent": {
+        "component": "dev.crewdroid.daeri/.MainActivity"
+      }
+    },
+    {
+      "maestro": "flows/login.yaml"
+    }
+  ],
+  "actions": [
+    {
+      "intent": {
+        "component": "dev.crewdroid.daeri/.MainActivity"
+      }
+    },
+    {
+      "maestro": "flows/take-call.yaml"
+    }
+  ],
+  "drain": {
+    "idleSeconds": 15,
+    "timeoutSeconds": 120
+  },
+  "rules": "rules.json",
+  "source": "http://127.0.0.1:5596/export"
+}

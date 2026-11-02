@@ -1,0 +1,9 @@
+appId: dev.crewdroid.daeri
+---
+- extendedWaitUntil:
+    visible: "근무 시작"
+    timeout: 30000
+- tapOn: "기사 이름"
+- inputText: "driver${CREW_DEVICE}"
+- tapOn: "근무 시작"
+- pressKey: Home

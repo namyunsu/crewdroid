@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-01T16:23:53.924Z",
+  "runs": 6,
+  "node": "v24.18.0",
+  "os": "win32",
+  "versionMs": {
+    "nodeBare": 44,
+    "crewdroidBin": 79,
+    "npxTsxSrcCli": 604,
+    "installedCrewdroid": 97,
+    "npxCrewdroid": 525,
+    "npxExtra": 428
+  },
+  "method": "median wall ms of 6 runs after one warm-up. crewdroidBin = node bin/crewdroid.mjs --version in the checkout; installedCrewdroid = the node_modules/.bin/crewdroid shim of the packed package installed in a temp project; npxCrewdroid = npx crewdroid --version in that project (package already there, so no download; a first npx call also downloads)"
+}
