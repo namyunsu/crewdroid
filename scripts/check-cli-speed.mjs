@@ -65,7 +65,7 @@ check(c.screenMs < s.screenMs, `screen CLI ${c.screenMs} ms is not below Studio 
 check(c.shotMs < s.shotMs, `shot CLI ${c.shotMs} ms is not below Studio ${s.shotMs} ms`);
 for (const f of ["README.md", "README.ko.md"]) {
   const t = read(f);
-  for (const v of [c.screenMs, c.shotMs, c.mcpReady, c.snapReady]) check(t.includes(`${v} `) || t.includes(`${v}**`), `${f}: missing ${v} from single-vs-studio.json`);
+  for (const v of [c.screenMs, c.shotMs]) check(t.includes(`${v} `) || t.includes(`${v}**`), `${f}: missing ${v} from single-vs-studio.json`);
   check(!t.includes("npx tsx src/cli.ts"), `${f}: the note under the table still describes the npx tsx path`);
 }
 

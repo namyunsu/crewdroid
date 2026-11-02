@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1] - 2026-11-02
+
+### Added
+- `up --wifi`: each device can get its own Wi-Fi (31 of 33 measured device boots, +9.4 % idle RAM; default stays one at a time). `net wifi` retries the connection when it fails (T74, T83).
+- `examples/daeri/` and `docs/measurements/daeri-trial.md`: one app built by an agent on both sides, with the files to repeat it.
+
+### Changed
+- CLI commands load on demand, so `crewdroid --version` starts in 79 ms; README rows now time the installed command (T79).
+
+### Fixed
+- `judge --rules judge/proxy.rules.json` failed with `ENOENT` outside this repo; it now falls back to the bundled file.
+- `type --into "<label>"` failed with `2 matches` on Material fields; it now prefers the editable node.
+
 ## [0.2.0] - 2026-10-29
 
 ### Added

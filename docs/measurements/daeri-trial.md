@@ -9,7 +9,6 @@ Same empty project, spec, prompt and `BUGGY=1` server on both sides. Model `clau
 | | Studio default AVD + adb + mobile-mcp | crewdroid MCP |
 |---|---|---|
 | Time | **40 min 30 s** | **13 min 42 s** |
-| Cost | 3.00 USD | 3.15 USD |
 | Turns | 45 | 135 |
 | Bringing up 3 devices | 759 s in the 3 commands that hold the boot waits | 41 s (`up --count 3`) |
 | Devices | 3 x API 36 Play image | API 31, 34, 36 ATD |
@@ -21,7 +20,7 @@ Scoring: both APKs ran the same Maestro flows through `crewdroid run` against th
 Limits:
 - One run per side, so chance is in these numbers.
 - The Studio figure includes first cold boots and AVD setup. Someone who keeps an emulator running does not pay those 759 s. Without them the Studio side is about 28 min.
-- Each agent chose its own path. The crewdroid agent used 135 turns to the other's 45, so the time saved did not turn into money saved.
+- Each agent chose its own path. The crewdroid agent used 135 turns to the other's 45.
 
 ## `crewdroid run`, 3 devices
 

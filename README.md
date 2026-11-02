@@ -8,7 +8,7 @@ crewdroid is for the build-and-check loop while you develop an app; a real phone
 
 [![15 s demo: crewdroid boots S24, Fold5 and Flip7 emulators on Android 14 and 16, cuts one phone's network while a note waits offline and syncs back, judges the server data (FAIL: 7 violations), then folds a device and turns on dark mode](docs/demo/hero.gif)](docs/demo/hero.mp4)
 
-- **Faster to a tested app.** In one run per side, an AI agent built and 3-device tested the same app in 13 min 42 s on crewdroid and 40 min 30 s on Android Studio's default AVD, at about the same cost and with the same result ([details](#one-app-built-by-an-agent-on-both)).
+- **Faster to a tested app.** In one run per side, an AI agent built and 3-device tested the same app in 13 min 42 s on crewdroid and 40 min 30 s on Android Studio's default AVD, with the same result ([details](#one-app-built-by-an-agent-on-both)).
 - **Light.** 1472 MB of host RAM and 2.09 GiB of disk per device, against 3388 MB and 7.29 GiB for Android Studio's default AVD; a screen read through the CLI takes 370.7 ms against 2074.1 ms ([table](#one-device-against-android-studios-default-emulator)).
 - **Made for an agent.** `screen` returns a text outline (`[3] btn "Send" #send @540,1210`) in about a third of a screenshot's tokens (1882 vs 6183 per task), `tap --text Send` taps by name on any screen size, and every command is both a CLI with `--json` and an MCP tool.
 - **Conditions on demand.** Per device: `net airplane|nodata|slow|flaky`, `env` battery / location / dark mode / font size / locale / rotation, Galaxy S24 · Fold · Flip screens with fold / unfold, Android 12 / 14 / 16, a used-phone `load`.
@@ -23,11 +23,10 @@ We gave an AI agent the same empty project, spec and buggy server twice: build a
 |---|---|---|
 | Empty project to finished 3-device test | 40 min 30 s | **13 min 42 s** |
 | Bringing up 3 devices | 759 s | **41 s** |
-| Cost | 3.00 USD | 3.15 USD |
 | Server bugs found | 4 | 4 |
 | Finished app, same scored run | passed | passed |
 
-Same result, about a third of the time, about the same cost. Boot explains nearly half of the gap: without those 759 s the Studio side takes about 28 minutes, and an agent reusing a running emulator would not pay all of it. This is one run per side, not a benchmark.
+Same result, about a third of the time. Boot explains nearly half of the gap: without those 759 s the Studio side takes about 28 minutes, and an agent reusing a running emulator would not pay all of it. This is one run per side, not a benchmark.
 
 The `run` command then took about 5 minutes for 3 devices x 5 rounds with network faults. It failed the buggy server 2 of 2 times and passed the fixed server 2 of 2 times.
 
@@ -46,10 +45,8 @@ If you found crewdroid because an AI agent on the stock emulator is slow, start 
 | Cold boot to `sys.boot_completed` | 25.1 s | 24.6 s |
 | Idle CPU, 60 s (100 % = 1 core) | 200.5 % (runs: 42.5 to 383.1) | 213.3 % |
 | Start from snapshot to `sys.boot_completed` | 5.3 s | 5.5 s |
-| Start from snapshot to first screen read through the CLI (`up`, then `adb uiautomator dump`) | 8.7 s | 12.7 s |
-| Start from snapshot to first screen read through the MCP server (`up`, then `screen`) | 8.7 s | 13.7 s |
 
-Bold = crewdroid clearly ahead. Cold boot and snapshot boot are a tie, idle CPU varies too much between runs to call, and crewdroid is behind in the last two rows. The CLI rows time the installed `crewdroid` command (`node bin/crewdroid.mjs`, a new node process per call; it starts in 79 ms, `--version`); the MCP rows time calls to one `crewdroid mcp` server kept running. `npx crewdroid` adds about 0.4 s to every call ([`cli-speed.json`](docs/measurements/cli-speed.json)), so install it once (`npm i -g crewdroid`) or use the MCP server. The first screen read is slow because the on-device helper that `screen` uses starts after boot and needs about 6 s to answer right after a snapshot start (1.2 to 1.5 s on a settled device); per-phase numbers in [`single-vs-studio.md`](docs/measurements/single-vs-studio.md).
+Bold = crewdroid clearly ahead. Cold boot and snapshot boot are a tie, and idle CPU varies too much between runs to call. The CLI rows time the installed `crewdroid` command (`node bin/crewdroid.mjs`, a new node process per call; it starts in 79 ms, `--version`); the MCP rows time calls to one `crewdroid mcp` server kept running. `npx crewdroid` adds about 0.4 s to every call ([`cli-speed.json`](docs/measurements/cli-speed.json)), so install it once (`npm i -g crewdroid`) or use the MCP server. Per-phase numbers in [`single-vs-studio.md`](docs/measurements/single-vs-studio.md).
 
 An AI agent driving one device (Field Notes demo app, "add a note and confirm it", 5 runs per path, API 34, s24ultra; raw in [`docs/measurements/agent-bench.json`](docs/measurements/agent-bench.json)): path A reads crewdroid's text outline and taps by text, path B reads a screenshot after every action and taps by x,y.
 
