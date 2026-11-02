@@ -28,5 +28,9 @@ const imgs = Object.entries(JSON.parse(src.match(/images: (\{[^}]*\})/)[1].repla
 const compatOk = !!em && md.includes(`| emulator | ${em} `) && imgs.length === 3 && imgs.every(([a, r]) => md.includes(`| google_atd android-${a} (x86_64) | revision ${r} |`));
 console.log(`${compatOk ? "PASS" : "FAIL"} docs/compat.md matches src/compat.ts VERIFIED`);
 
-if (bad.length || !compatOk) { console.error(`FAIL: ${bad.length} version mismatches${compatOk ? "" : ", compat.md out of step"}`); process.exit(1); }
+// the MCP Registry refuses longer descriptions (422), after npm has already taken the version
+const descOk = server.description.length <= 100;
+console.log(`${descOk ? "PASS" : "FAIL"} server.json description: ${server.description.length} chars (max 100)`);
+
+if (bad.length || !compatOk || !descOk) { console.error(`FAIL: ${bad.length} version mismatches${compatOk ? "" : ", compat.md out of step"}${descOk ? "" : ", server.json description too long"}`); process.exit(1); }
 console.log(`OK: all versions agree (${want})`);

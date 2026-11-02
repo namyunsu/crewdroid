@@ -1,0 +1,23 @@
+# Retry only the MCP Registry step of release.yml for the version already on npm: Actions -> registry -> Run workflow.
+name: registry
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    if: github.repository == 'namyunsu/crewdroid'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      MCP_PUBLISHER_VERSION: 1.8.4
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/check-versions.mjs
+      - run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
