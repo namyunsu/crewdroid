@@ -5,7 +5,7 @@ import { cpus, freemem, release, tmpdir, totalmem } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
 import { avdHome, avdName, checkSpec, coresOf, ramMB } from "./avd.ts";
-import { startHelper } from "./helper.ts";
+import { buildHelper, helperFresh, startHelper } from "./helper.ts";
 import { checkLevel, setLoad } from "./load.ts";
 import { makeDistinct } from "./identity.ts";
 import { dirBytes, procs, sysImageDir, waitBoot } from "./measure.ts";
@@ -75,7 +75,7 @@ function pickImages(api?: number | "latest") {
   return hit;
 }
 
-export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest"; cores?: number; ramMB?: number; load?: string; wifi?: boolean } = {}) {
+export async function up(count: number, basePort = 5580, names?: string[], window = false, custom: { screens?: string[]; profilesFile?: string; api?: number | "latest"; cores?: number; ramMB?: number; load?: string; wifi?: boolean; allowNoHelper?: boolean } = {}) {
   // Validate every input before taking the lock or launching anything.
   const screens = (custom.screens ?? []).map(parseScreen);
   const all = [...loadProfiles(), ...(custom.profilesFile ? loadProfilesFile(custom.profilesFile) : [])];
@@ -97,6 +97,9 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
   const serials = ports.map((p) => `emulator-${p}`);
   trayState("starting", slots.map((s, i) => ({ serial: serials[i], port: ports[i], profile: s.profile.name, api: s.api })));
   startTray();
+  // A source checkout has no helper APK until it is built (npm ships one): build it alongside the boot, once.
+  const helperBuilt = helperFresh() ? Promise.resolve() : (console.error("building the agent helper APK (first run or changed source)"), buildHelper());
+  helperBuilt.catch(() => {}); // awaited per device below; this only keeps an early failure from being an unhandled rejection
   try {
     // Each (image, spec) needs a base AVD with a quickboot snapshot saved with the current knobs (avd.ts KNOBS); prepare() makes it
     // (boots writable on basePort) on first use and after a knob change.
@@ -138,7 +141,7 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
       // reinstall, ~27 s) only matters when two clones run side by side. A single device keeps the snapshot's identity.
       const distinctNotes = slots.length > 1 ? await makeDistinct(serial, i + 1) : [];
       mark("identity");
-      const helper = startHelper(serial); // T52: on-device helper for screen/tap/type, alongside the wm steps
+      const helper = helperBuilt.then(() => startHelper(serial), (e) => ({ ok: false, seconds: 0, note: e.message })); // T52: on-device helper for screen/tap/type, alongside the wm steps
       await adb(serial, ["shell", "wm", "size", `${s.profile.width}x${s.profile.height}`]);
       await adb(serial, ["shell", "wm", "density", String(s.profile.density)]);
       mark("wm");
@@ -153,6 +156,16 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
         relaunchBlack: relaunchBlackApis().includes(s.api), phases, helper: helperStart,
       };
     }));
+    // Without the helper screen/tap/type fall back to uiautomator/input (seconds per call), so that is a failed up unless asked for.
+    const noHelper = devices.filter((d) => !d.helper.ok);
+    if (noHelper.length) {
+      const why = `agent helper not running on ${noHelper.map((d) => d.serial).join(", ")}: ${[...new Set(noHelper.map((d) => d.helper.note))].join("; ")}`;
+      if (!custom.allowNoHelper) {
+        console.error(`ERROR ${why}; devices stopped. Fix it and run up again, or pass --allow-no-helper to use the slower uiautomator/input path`);
+        throw new Error(`${why}; pass --allow-no-helper to continue without it`);
+      }
+      console.error(`WARN ${why}; --allow-no-helper: screen/tap/type use uiautomator/input`);
+    }
     if (custom.load && custom.load !== "off") await Promise.all(devices.map(async (d) => { d.load = await setLoad(d.serial, custom.load!); }));
     const compat = compatWarning(sdkRoot());
     if (compat) console.error(compat);

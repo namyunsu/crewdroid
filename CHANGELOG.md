@@ -8,6 +8,14 @@ All notable changes to this project are documented here. The format follows [Kee
 - `up` from an npm install failed on first use with `probe apk missing`: the package shipped without the probe APK that base-image preparation installs. `npm pack` now builds it and the package includes it.
 - `load` from an npm install failed: the package had neither the load app and filler APKs nor the sources to build them. They are now built by `npm pack` and shipped; without them `load` says so instead of failing in Gradle. The filler generator takes `javac` and `jar` from `JAVA_HOME` when it is set.
 
+## [0.2.4] - 2026-11-03
+
+### Fixed
+- `up` from a source checkout started without the on-device helper (no APK) and still reported success. It now builds the helper APK while the devices boot (skipped when the APK is newer than its source), and a helper that does not start stops the devices and exits non-zero with the reason; `--allow-no-helper` (MCP `allowNoHelper`) keeps the slower uiautomator/input path.
+
+### Added
+- `setup` has a `helper` step that builds the helper APK in a source checkout.
+
 ## [0.2.3] - 2026-11-03
 
 ### Fixed

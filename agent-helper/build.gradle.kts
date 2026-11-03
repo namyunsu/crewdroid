@@ -25,3 +25,5 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
+// Kotlin otherwise targets the JDK running Gradle (21 on macOS CI) and fails against Java's 17
+kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
