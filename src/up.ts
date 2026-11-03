@@ -34,7 +34,7 @@ export interface UpDevice {
 // The owner is the first process that calls up()/down(); child processes inherit CREWDROID_OWNER and share it.
 // A dead owner PID frees the lock (e.g. after `crewdroid up` exits with its emulators left running).
 export const LOCK = () => process.env.CREWDROID_LOCK || join(tmpdir(), "crewdroid-emulators.lock");
-const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch (e: any) { return e.code === "EPERM"; } };
+export const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch (e: any) { return e.code === "EPERM"; } };
 export function claimEmulators() {
   const me = process.env.CREWDROID_OWNER || String(process.pid);
   const owner = existsSync(LOCK()) ? readFileSync(LOCK(), "utf8").trim() : "";

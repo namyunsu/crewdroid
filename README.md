@@ -332,6 +332,8 @@ Clones of one base AVD (`-read-only`), system images rewritten sparse + NTFS-com
 
 Hidden emulators leave nothing in the taskbar, so on Windows `up` adds one tray icon: a badge with the device count, green when ready. Click it for each device and the last command (command and serial only, never typed text). It holds 51 MB and 0.17 % of one core while devices run, and exits on `down` or when the emulators die, so nothing stays behind. `CREWDROID_NO_TRAY=1` turns it off.
 
+Devices an agent forgot are stopped for you: `up` leaves a small watcher (70 MB, 0.02 % of one core) that runs `down` after 60 minutes without a crewdroid command, or as soon as the MCP server that ran `up` exits. A long command such as `run` or `layout` counts as use while it runs. `up --idle-minutes 120` changes the time (MCP `idleMinutes`, env `CREWDROID_IDLE_MINUTES`); `0` keeps the devices until `down`.
+
 Korean docs: [README.ko.md](README.ko.md) · License: MIT
 
 *Keywords: android emulator, headless, multi-device testing, concurrency testing, race condition, idempotency, lost update, offline-first sync, flaky network, Galaxy Fold Flip profiles, MCP server, AI agent, Claude Code plugin, agent skills, mobile QA automation.*

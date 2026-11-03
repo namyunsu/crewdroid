@@ -18,7 +18,7 @@ export function trayState(status: "starting" | "ready", devices: TrayDevice[], p
 
 // Command and serial only: `type` arguments can be passwords and these files are plain text.
 export function trayAction(cmd: string, target?: string) {
-  if (["devices", "mcp", "up", "down"].includes(cmd) || !existsSync(TRAY_STATE())) return;
+  if (["devices", "mcp", "up", "down", "reap"].includes(cmd) || !existsSync(TRAY_STATE())) return;
   writeFileSync(TRAY_ACTIVITY(), target ? `${cmd} ${target}` : cmd);
 }
 
