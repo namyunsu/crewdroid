@@ -1,7 +1,7 @@
 {
   "name": "crewdroid",
   "description": "Multi-user Android field lab: N headless emulators with mixed Galaxy profiles, per-device network states, concurrency judging.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": { "name": "Yunsu Nam" },
   "license": "MIT",
   "repository": "https://github.com/namyunsu/crewdroid",

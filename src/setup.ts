@@ -27,15 +27,16 @@ export const adoptiumOs = (p: string) => (win(p) ? "windows" : p === "darwin" ? 
 export const adoptiumArch = (a: string) => (a === "arm64" ? "aarch64" : "x64");
 export { imageAbi };
 export const jreUrl = (p: string, a: string) => `https://api.adoptium.net/v3/binary/latest/17/ga/${adoptiumOs(p)}/${adoptiumArch(a)}/jre/hotspot/normal/eclipse`;
-export const cmdlineUrl = (build: string, p: string) => `https://dl.google.com/android/repository/commandlinetools-${win(p) ? "win" : p === "darwin" ? "mac" : "linux"}-${build}_latest.zip`;
+// NOTE: since cmdline-tools 22 the Mac zips are per CPU (commandlinetools-mac_arm64-...) and the plain -mac- name is a 404, so take the name from the repository.
+export function cmdlineUrl(xml: string, p: string, a: string) {
+  const os = win(p) ? "win" : p === "darwin" ? "mac" : "linux";
+  const block = xml.match(/<remotePackage path="cmdline-tools;latest">[\s\S]*?<\/remotePackage>/)?.[0];
+  const zip = block?.match(new RegExp(`commandlinetools-${os}(?:_${a === "arm64" ? "arm64" : "x86_64"})?-\\d+_latest\\.zip`))?.[0];
+  return `https://dl.google.com/android/repository/${zip ?? `commandlinetools-${os}-${PINNED_CMDLINE_BUILD}_latest.zip`}`;
+}
 export const imagePackage = (api: string, a: string) => `system-images;android-${api};google_atd;${imageAbi(a)}`;
 export const imageDir = (sdk: string, api: string, a: string) => join(sdk, "system-images", `android-${api}`, "google_atd", imageAbi(a));
 const exe = (n: string, p: string = process.platform) => (win(p) ? `${n}.exe` : n);
-
-export function parseCmdlineBuild(xml: string): string | undefined {
-  const block = xml.match(/<remotePackage path="cmdline-tools;latest">[\s\S]*?<\/remotePackage>/)?.[0];
-  return block?.match(/commandlinetools-\w+-(\d+)_latest\.zip/)?.[1];
-}
 
 // Download size of the first revision of `path` for this host (sizes of one archive, compressed).
 export function parseSize(xml: string, path: string, hostOs: string, arch = "x64"): number | null {
@@ -69,7 +70,7 @@ const q = (s: string) => (win(process.platform) ? `"${s}"` : s);
 
 function javaMajor(bin: string): number {
   const r = spawnSync(bin, ["-version"], { encoding: "utf8", windowsHide: true });
-  const v = (r.stderr + r.stdout).match(/version "(\d+)(?:\.(\d+))?/);
+  const v = `${r.stderr}${r.stdout}`.match(/version "(\d+)(?:\.(\d+))?/); // both are null when no java exists at all
   return r.error || !v ? 0 : v[1] === "1" ? Number(v[2]) : Number(v[1]);
 }
 const jreHome = (sdk: string) => (existsSync(join(sdk, "jre", "Contents", "Home")) ? join(sdk, "jre", "Contents", "Home") : join(sdk, "jre"));
@@ -167,12 +168,12 @@ export async function setup(o: SetupOpts = {}) {
 
   if (o.dryRun) {
     const [repo, img] = missing.length ? await Promise.all([text(REPO_XML).catch(() => ""), text(IMG_XML).catch(() => "")]) : ["", ""];
-    const build = parseCmdlineBuild(repo) ?? PINNED_CMDLINE_BUILD, hostOs = repoOs(platform), hostArch = arch === "arm64" ? "aarch64" : "x64";
+    const hostOs = repoOs(platform), hostArch = arch === "arm64" ? "aarch64" : "x64";
     for (const { step, present } of plan) {
       if (present) { set(step, "present"); continue; }
       let size: number | null = null;
       if (step === "jdk") size = await headSize(jreUrl(platform, arch));
-      else if (step === "cmdline-tools") size = await headSize(cmdlineUrl(build, platform));
+      else if (step === "cmdline-tools") size = await headSize(cmdlineUrl(repo, platform, arch));
       else if (step === "images") size = imgMissing.reduce((n, api) => n + (parseSize(img, imagePackage(api, arch), hostOs) ?? 0), 0) || null;
       else size = parseSize(repo, step, hostOs, hostArch);
       set(step, "missing", { downloadBytes: size });
@@ -195,9 +196,8 @@ export async function setup(o: SetupOpts = {}) {
           rmSync(tmp, { recursive: true, force: true }); rmSync(zip, { force: true });
           javaHome = findJava(sdk);
         } else if (step === "cmdline-tools") {
-          const build = parseCmdlineBuild(await text(REPO_XML).catch(() => "")) ?? PINNED_CMDLINE_BUILD;
           const zip = join(sdk, "cmdline-tools.zip"), tmp = join(sdk, ".cmdline-tmp");
-          await download(cmdlineUrl(build, platform), zip);
+          await download(cmdlineUrl(await text(REPO_XML).catch(() => ""), platform, arch), zip);
           rmSync(tmp, { recursive: true, force: true });
           extract(zip, tmp);
           mkdirSync(join(sdk, "cmdline-tools"), { recursive: true });

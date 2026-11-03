@@ -2,7 +2,7 @@ import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
-import { KNOBS, type Spec, avdHome, coresOf, createAvd, imageDir, imageInstalled, installImage, ramMB } from "./avd.ts";
+import { KNOBS, type Spec, avdHome, coresOf, createAvd, imageDir, imageInstalled, installImage, ramMB, vulkanOn } from "./avd.ts";
 import { launchEmulator } from "./emulator.ts";
 import { waitBoot } from "./measure.ts";
 import { killMatching } from "./platform.ts";
@@ -18,7 +18,7 @@ export const SNAPSHOT = "default_boot"; // quickboot snapshot name; -read-only i
 // (idle RAM +9.4 %, ADR 0009). Only on -read-only clones; without it the args are unchanged.
 export function emulatorArgs(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false, wifi = false) {
   return ["-avd", name, "-port", String(port), ...(window ? [] : ["-no-window"]), "-no-audio", "-gpu", KNOBS.gpu, "-camera-back", "emulated", "-cores", String(coresOf(name)), "-memory", String(ramMB(name)),
-    "-feature", `${KNOBS.fileBacked ? "" : "-"}QuickbootFileBacked,${KNOBS.vulkan ? "" : "-"}Vulkan${wifi && readOnly ? ",-WiFiPacketStream" : ""}`, ...(KNOBS.lowRam ? ["-lowram"] : []),
+    "-feature", `${KNOBS.fileBacked ? "" : "-"}QuickbootFileBacked,${vulkanOn() ? "" : "-"}Vulkan${wifi && readOnly ? ",-WiFiPacketStream" : ""}`, ...(KNOBS.lowRam ? ["-lowram"] : []),
     ...(readOnly ? ["-read-only", ...(KNOBS.coldBoot ? ["-no-snapshot-load"] : [])] : ["-no-snapshot-save"]), ...extra];
 }
 export function start(name: string, port: number, readOnly: boolean, extra: string[] = [], window = false, wifi = false) {

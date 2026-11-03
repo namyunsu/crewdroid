@@ -60,6 +60,8 @@ claim(m.node?.includes(22) && m.node?.includes(24), `test matrix node: ${m.node}
 const runs = (j) => (j?.steps ?? []).map((s) => s.run ?? "").join("\n");
 claim(["npm ci", "npx tsc --noEmit", "npm test"].every((c) => runs(jobs.test).includes(c)), "test runs npm ci, tsc --noEmit, npm test");
 
+claim(jobs["mac-setup"]?.["runs-on"] === "macos-latest" && runs(jobs["mac-setup"]).includes("setup --yes"), "mac-setup runs the real setup on macos-latest");
+
 const smoke = jobs["emulator-smoke"] ?? {};
 claim(smoke["runs-on"] === "ubuntu-latest", "emulator-smoke runs on ubuntu-latest");
 claim(runs(smoke).includes("kvm") && runs(smoke).includes("udevadm"), "emulator-smoke enables KVM with the udev rule");

@@ -39,6 +39,25 @@ jobs:
       - name: Skill files have valid front matter (name, description)
         run: node scripts/check-agent-files.mjs
 
+  # GitHub's Apple Silicon runners have no HVF, so up is only tried: setup and the AVD are the real check on a Mac here.
+  mac-setup:
+    if: github.repository == 'namyunsu/crewdroid'
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node bin/crewdroid.mjs setup --yes --images 34 --json
+      - run: node --import tsx -e "import('./src/avd.ts').then(async (m) => console.log(await m.createAvd('android-34/google_atd')))"
+      - name: up (needs HVF, informative)
+        continue-on-error: true
+        timeout-minutes: 12
+        run: node bin/crewdroid.mjs up --api 34 --json
+
   emulator-smoke:
     if: github.repository == 'namyunsu/crewdroid'
     runs-on: ubuntu-latest

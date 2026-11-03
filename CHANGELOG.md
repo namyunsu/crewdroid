@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.3] - 2026-11-03
+
+### Fixed
+- `setup` on macOS downloaded a cmdline-tools URL that no longer exists (since cmdline-tools 22 the Mac zips are per CPU); it now takes the file name from Google's repository.
+- `setup` failed at once on a machine with no `java` on PATH, and `up` then failed creating the AVD ("JAVA_HOME is not set"); both now use the JRE `setup` installed.
+- Emulator 37.2 never finished booting with `-gpu host` and Vulkan off; from 37.2 on Vulkan stays on (3 devices +668 MB idle, about +220 MB each). 37.1 and older keep the old flags.
+- The tray badge counted every started device; it now counts the ones still running.
+
+### Added
+- CI runs the real `setup` and AVD creation on macOS.
+
 ## [0.2.2] - 2026-11-02
 
 ### Added

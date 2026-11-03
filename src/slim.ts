@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { closeSync, existsSync, ftruncateSync, openSync, readFileSync, readSync, readdirSync, renameSync, rmSync, statSync, utimesSync, writeFileSync, writeSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DATA_PARTITION, KNOBS, avdHome, avdName, imageDir } from "./avd.ts";
+import { DATA_PARTITION, KNOBS, avdHome, avdName, imageDir, vulkanOn } from "./avd.ts";
 import { allocBytes, listProcesses, ntfs, ntfsCompress, ntfsSparseFlag } from "./platform.ts";
 import { atdImages } from "./profiles.ts";
 import { SNAPSHOT, prepare } from "./snapshot.ts";
@@ -59,7 +59,7 @@ export async function slimImage(dir: string) {
 
 export const MARK = "crewdroid-slim.json";
 // coldBoot only changes how clones start, not the snapshot
-export const slimSettings = () => ({ ...KNOBS, coldBoot: undefined, dataPartition: DATA_PARTITION, zeroFreeRam: "MemFree-512MB", ntfsCompressed: ntfs() });
+export const slimSettings = () => ({ ...KNOBS, vulkan: vulkanOn(), coldBoot: undefined, dataPartition: DATA_PARTITION, zeroFreeRam: "MemFree-512MB", ntfsCompressed: ntfs() });
 
 // Base AVD after prepare() saved its snapshot (emulator stopped): compress every file (snapshot RAM, userdata qcow2, ...).
 // Clones only read these files. The marker records the settings the snapshot was made with.

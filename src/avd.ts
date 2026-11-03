@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { hostAbi } from "./platform.ts";
 import { sdkRoot } from "./sdk.ts";
+import { findJava } from "./setup.ts";
 
 export const avdHome = () => process.env.ANDROID_AVD_HOME || join(process.env.USERPROFILE || process.env.HOME || "", ".android", "avd");
 process.env.ANDROID_AVD_HOME = avdHome(); // avdmanager and emulator (children) then use the same folder crewdroid reads; newer avdmanager may pick another home otherwise
@@ -27,7 +28,9 @@ const bat = (n: string) => join(sdkRoot(), "cmdline-tools", "latest", "bin", pro
 function exec(cmd: string, args: string[], stdin?: string): Promise<string> {
   return new Promise((res, rej) => {
     // NOTE: .bat files need a shell on Windows (node refuses to spawn them directly since CVE-2024-27980)
-    const p = spawn(cmd, args, { shell: process.platform === "win32", windowsHide: true });
+    // NOTE: on a machine with no Java only setup's <sdk>/jre exists, and avdmanager needs it as JAVA_HOME too
+    const java = findJava(sdkRoot());
+    const p = spawn(cmd, args, { shell: process.platform === "win32", windowsHide: true, env: java ? { ...process.env, JAVA_HOME: java } : process.env });
     let out = "";
     p.stdout.on("data", (d) => (out += d));
     p.stderr.on("data", (d) => (out += d));
@@ -54,6 +57,15 @@ export async function installImage(image: string) {
 // ("Could not start renderer"), so it falls back to software. CREWDROID_GPU overrides.
 function hostGpu(): string {
   return process.env.CREWDROID_GPU || (process.platform === "linux" && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY ? "swiftshader_indirect" : "host");
+}
+// NOTE: emulator 37.2 with -gpu host plus -feature -Vulkan never finishes booting (Windows, NVIDIA, 2026-11-03; either flag
+// alone boots in 30 s), so there the Vulkan saving is given up: +175 MB per device (docs/measurements/features.md).
+export function vulkanOn(): boolean {
+  if (KNOBS.vulkan || KNOBS.gpu !== "host") return KNOBS.vulkan;
+  try {
+    const [maj, min] = (readFileSync(join(sdkRoot(), "emulator", "source.properties"), "utf8").match(/^Pkg\.Revision=(\d+)\.(\d+)/m) ?? []).slice(1).map(Number);
+    return maj > 37 || (maj === 37 && min >= 2);
+  } catch { return false; }
 }
 export const KNOBS: { ramMB: number; ramMBByApi: Record<string, number>; lowRam: boolean; heapMB: number; audio: boolean; sensors: boolean; gpu: string; fileBacked: boolean; vulkan: boolean; coldBoot: boolean } = {
   ramMB: 896, ramMBByApi: { "31": 768 }, lowRam: true, heapMB: 0, audio: true, sensors: true, gpu: hostGpu(), fileBacked: false, vulkan: false, coldBoot: false,

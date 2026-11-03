@@ -69,7 +69,7 @@ function Update {
     $script:misses = if ($script:running.Count) { 0 } else { $script:misses + 1 }
     if ($script:misses -ge 2) { Quit; return }
   } elseif (-not (Get-Process -Id $script:s.pid -ErrorAction SilentlyContinue)) { Quit; return } # up died before it was ready
-  Set-Badge @($script:s.devices).Count $ready
+  Set-Badge $(if ($ready) { $script:running.Count } else { @($script:s.devices).Count }) $ready # ready: only the ones still alive
   $tip = "$(Get-Headline)`n$(Get-Last)"
   $icon.Text = $tip.Substring(0, [Math]::Min(63, $tip.Length))
 }
