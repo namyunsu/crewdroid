@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.4] - 2026-11-03
+
+### Fixed
+- `up` from a source checkout started without the on-device helper (no APK) and still reported success. It now builds the helper APK while the devices boot (skipped when the APK is newer than its source), and a helper that does not start stops the devices and exits non-zero with the reason; `--allow-no-helper` (MCP `allowNoHelper`) keeps the slower uiautomator/input path.
+
+### Added
+- `setup` has a `helper` step that builds the helper APK in a source checkout.
+
 ## [0.2.3] - 2026-11-03
 
 ### Fixed

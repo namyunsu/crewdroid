@@ -1,8 +1,10 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { existsSync, readdirSync, readFileSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb, assertSerial } from "./adb.ts";
+import { sdkRoot } from "./sdk.ts";
+import { findJava } from "./setup.ts";
 
 // On-device helper (T52, ADR 0007): agent-helper/ is an instrumentation APK that keeps a UiAutomation connection and answers
 // GET /tree, /size, /health and POST /tap, /swipe, /key, /text on the device's 127.0.0.1:DEVICE_PORT, reached through
@@ -150,9 +152,37 @@ export async function orFallback<T extends object>(serial: string, fast: () => P
   return { ...out, via: "fallback", fallbackReason };
 }
 
-// Builds agent-helper/ with the probe's Gradle wrapper (npm prepack, check-helper).
-export function buildHelper() {
+// The APK is there and newer than every agent-helper/ source file (an npm install ships the APK without the sources).
+export function helperFresh(apk = helperApk(), dir = join(import.meta.dirname, "..", "agent-helper")): boolean {
+  if (!existsSync(apk)) return false;
+  if (!existsSync(join(dir, "src"))) return true;
+  const files = [...readdirSync(join(dir, "src"), { recursive: true, withFileTypes: true }).filter((d) => d.isFile()).map((d) => join(d.parentPath, d.name)),
+    ...readdirSync(dir).filter((f) => /\.(kts|pro|properties)$/.test(f)).map((f) => join(dir, f))];
+  const built = statSync(apk).mtimeMs;
+  return files.every((f) => statSync(f).mtimeMs <= built);
+}
+
+// Builds agent-helper/ with the probe's Gradle wrapper (npm prepack, setup, up, check-helper). Gradle's output goes to
+// stderr (stdout carries --json) and its tail into the error. JAVA_HOME = setup's JRE when that is the JDK findJava picks.
+export function buildHelper(): Promise<string> {
   const root = join(import.meta.dirname, "..");
-  execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, "agent-helper"), "assembleRelease", "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
-  return helperApk();
+  let sdk: string | undefined;
+  try { sdk = sdkRoot(); } catch { /* AGP reports the missing SDK itself */ }
+  const java = sdk ? findJava(sdk) : undefined;
+  const env = { ...process.env, ...(sdk ? { ANDROID_HOME: sdk } : {}), ...(java ? { JAVA_HOME: java } : {}) };
+  const gradlew = join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew");
+  return new Promise((res, rej) => {
+    const p = spawn(process.platform === "win32" ? `"${gradlew}"` : gradlew, ["-p", join(root, "agent-helper"), "assembleRelease", "--console=plain", "-q"], { cwd: join(root, "probe-app"), shell: process.platform === "win32", windowsHide: true, env });
+    let out = "";
+    const keep = (d: Buffer) => { process.stderr.write(d); out = (out + d).slice(-2000); };
+    p.stdout.on("data", keep);
+    p.stderr.on("data", keep);
+    p.on("error", (e) => rej(new Error(`helper build could not start: ${e.message}`)));
+    p.on("close", (c) => {
+      if (c !== 0 || !existsSync(helperApk())) return rej(new Error(`helper build failed (gradle exit ${c}): ${out.split(/\r?\n/).filter((l) => l.trim()).slice(-6).join(" | ").slice(-600)}`));
+      const now = new Date();
+      utimesSync(helperApk(), now, now); // Gradle leaves an up-to-date APK untouched; without this a touched source would rebuild every time
+      res(helperApk());
+    });
+  });
 }

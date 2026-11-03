@@ -53,7 +53,7 @@ test("no java anywhere: findJava says so instead of throwing", () => {
 
 test("step planning without network", () => {
   const sdk = join("/s");
-  const none = planSteps(sdk, [...STEPS], ["34"], "x64", "linux", false, () => false);
+  const none = planSteps(sdk, [...STEPS], ["34"], "x64", "linux", false, () => false, false);
   assert.deepEqual(none.map((p) => p.step), [...STEPS]);
   assert.ok(none.every((p) => !p.present));
   const have = new Set([join(sdk, "platform-tools", "adb"), join(sdk, "system-images", "android-34", "google_atd", "x86_64", "system.img")]);
