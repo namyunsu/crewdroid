@@ -70,7 +70,11 @@ const manifest = (i) => `<?xml version="1.0" encoding="utf-8"?>
 `;
 
 const ks = join(homedir(), ".android", "debug.keystore");
-if (missing.length && !existsSync(ks)) throw new Error(`${ks} missing: build any app once with Gradle (it creates the debug keystore)`);
+// a fresh machine or CI runner may never have built a debug APK: make the same debug keystore Android's tools would
+if (missing.length && !existsSync(ks)) {
+  mkdirSync(dirname(ks), { recursive: true });
+  await run(jdk("keytool"), ["-genkeypair", "-keystore", ks, "-storepass", "android", "-alias", "androiddebugkey", "-keypass", "android", "-keyalg", "RSA", "-keysize", "2048", "-validity", "10950", "-dname", "CN=Android Debug,O=Android,C=US"], { windowsHide: true });
+}
 async function one(i) {
   const d = join(work, name(i));
   mkdirSync(d, { recursive: true });
