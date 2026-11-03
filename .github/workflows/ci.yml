@@ -81,10 +81,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - run: npm ci
-      - name: Build probe and helper APKs (runner SDK)
-        run: |
-          (cd probe-app && ./gradlew assembleDebug --console=plain -q)
-          node --import tsx -e "import('./src/helper.ts').then((m) => m.buildHelper())"
+      - name: Build every bundled APK as npm publish does (prepack; 0.2.5's release failed here first)
+        run: npm pack --dry-run > /dev/null
       - uses: actions/cache@v4
         with:
           path: ${{ env.CRESDK }}
