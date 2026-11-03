@@ -44,6 +44,7 @@ test("no java anywhere: findJava says so instead of throwing", () => {
   const { PATH, Path, JAVA_HOME } = process.env;
   try {
     for (const k of ["PATH", "Path", "JAVA_HOME"]) delete process.env[k];
+    process.env.PATH = join("/no", "such", "bin"); // an unset PATH makes Linux/macOS spawn search /usr/bin, where CI runners have java
     assert.equal(findJava(join("/no", "such", "sdk")), undefined);
   } finally {
     Object.assign(process.env, PATH === undefined ? {} : { PATH }, Path === undefined ? {} : { Path }, JAVA_HOME === undefined ? {} : { JAVA_HOME });
