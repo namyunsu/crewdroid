@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { forwardPort, HELPER_VERSION } from "../src/helper.ts";
 
 test("HELPER_VERSION matches the APK's versionCode (an outdated helper on a device gets reinstalled)", () => {
@@ -14,4 +14,12 @@ test("forwardPort finds this serial's forward to the helper port only", () => {
   assert.equal(forwardPort(list, "emulator-5580"), 50003);
   assert.equal(forwardPort(list, "emulator-5584"), undefined);
   assert.equal(forwardPort("", "emulator-5580"), undefined);
+});
+
+test("the npm package ships every APK the CLI installs at run time", async () => {
+  const { files } = JSON.parse(readFileSync(join(import.meta.dirname, "..", "package.json"), "utf8"));
+  const { helperApk } = await import("../src/helper.ts");
+  const { probeApk } = await import("../src/snapshot.ts");
+  const root = join(import.meta.dirname, "..");
+  for (const apk of [probeApk(), helperApk()]) assert.ok(files.includes(relative(root, apk).replaceAll("\\", "/")), `${apk} not in package.json files`);
 });

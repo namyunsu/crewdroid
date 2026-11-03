@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+- `up` from an npm install failed on first use with `probe apk missing`: the package shipped without the probe APK that base-image preparation installs. `npm pack` now builds it and the package includes it.
+
 ## [0.2.3] - 2026-11-03
 
 ### Fixed

@@ -39,7 +39,7 @@ export async function prepare(image: string, port = 5580, tries = 3, spec: Spec 
   const name = await createAvd(image, spec);
   const dir = join(avdHome(), `${name}.avd`);
   const serial = `emulator-${port}`;
-  if (!existsSync(probeApk())) throw new Error(`probe apk missing: ${probeApk()} (run gradlew assembleDebug in probe-app/)`);
+  if (!existsSync(probeApk())) throw new Error(`probe apk missing: ${probeApk()} (from a git checkout: npm run prepack; from npm: reinstall crewdroid)`);
   rmSync(join(dir, MARK), { force: true });
   rmSync(join(dir, "snapshots"), { recursive: true, force: true }); // stale snapshots + file-backed ram.img (2.5 GB each)
   let bootSeconds: number;

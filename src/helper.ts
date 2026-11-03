@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb, assertSerial } from "./adb.ts";
+import { probeApk } from "./snapshot.ts";
 
 // On-device helper (T52, ADR 0007): agent-helper/ is an instrumentation APK that keeps a UiAutomation connection and answers
 // GET /tree, /size, /health and POST /tap, /swipe, /key, /text on the device's 127.0.0.1:DEVICE_PORT, reached through
@@ -151,8 +152,17 @@ export async function orFallback<T extends object>(serial: string, fast: () => P
 }
 
 // Builds agent-helper/ with the probe's Gradle wrapper (npm prepack, check-helper).
-export function buildHelper() {
+const gradle = (project: string, task: string) => {
   const root = join(import.meta.dirname, "..");
-  execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, "agent-helper"), "assembleRelease", "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
+  execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, project), task, "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
+};
+export function buildHelper() {
+  gradle("agent-helper", "assembleRelease");
   return helperApk();
+}
+// `npm pack` (prepack): every APK the installed package needs at run time. The probe APK is installed by prepare() on the
+// first `up`; 0.2.2 shipped without it, so `up` from an npm install failed with "probe apk missing".
+export function buildBundledApks() {
+  gradle("probe-app", "assembleDebug");
+  return [probeApk(), buildHelper()];
 }
