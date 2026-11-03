@@ -1,9 +1,11 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync, spawn } from "node:child_process";
+import { existsSync, readdirSync, readFileSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb, assertSerial } from "./adb.ts";
 import { RECIPES, loadApk } from "./load.ts";
+import { sdkRoot } from "./sdk.ts";
+import { findJava } from "./setup.ts";
 import { probeApk } from "./snapshot.ts";
 
 // On-device helper (T52, ADR 0007): agent-helper/ is an instrumentation APK that keeps a UiAutomation connection and answers
@@ -152,23 +154,49 @@ export async function orFallback<T extends object>(serial: string, fast: () => P
   return { ...out, via: "fallback", fallbackReason };
 }
 
-// Builds agent-helper/ with the probe's Gradle wrapper (npm prepack, check-helper).
-const gradle = (project: string, task: string) => {
+// The APK is there and newer than every agent-helper/ source file (an npm install ships the APK without the sources).
+export function helperFresh(apk = helperApk(), dir = join(import.meta.dirname, "..", "agent-helper")): boolean {
+  if (!existsSync(apk)) return false;
+  if (!existsSync(join(dir, "src"))) return true;
+  const files = [...readdirSync(join(dir, "src"), { recursive: true, withFileTypes: true }).filter((d) => d.isFile()).map((d) => join(d.parentPath, d.name)),
+    ...readdirSync(dir).filter((f) => /\.(kts|pro|properties)$/.test(f)).map((f) => join(dir, f))];
+  const built = statSync(apk).mtimeMs;
+  return files.every((f) => statSync(f).mtimeMs <= built);
+}
+
+// Builds agent-helper/ with the probe's Gradle wrapper (npm prepack, setup, up, check-helper). Gradle's output goes to
+// stderr (stdout carries --json) and its tail into the error. JAVA_HOME = setup's JRE when that is the JDK findJava picks.
+export function buildHelper(): Promise<string> {
   const root = join(import.meta.dirname, "..");
-  execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, project), task, "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
-};
-export function buildHelper() {
-  gradle("agent-helper", "assembleRelease");
-  return helperApk();
+  let sdk: string | undefined;
+  try { sdk = sdkRoot(); } catch { /* AGP reports the missing SDK itself */ }
+  const java = sdk ? findJava(sdk) : undefined;
+  const env = { ...process.env, ...(sdk ? { ANDROID_HOME: sdk } : {}), ...(java ? { JAVA_HOME: java } : {}) };
+  const gradlew = join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew");
+  return new Promise((res, rej) => {
+    const p = spawn(process.platform === "win32" ? `"${gradlew}"` : gradlew, ["-p", join(root, "agent-helper"), "assembleRelease", "--console=plain", "-q"], { cwd: join(root, "probe-app"), shell: process.platform === "win32", windowsHide: true, env });
+    let out = "";
+    const keep = (d: Buffer) => { process.stderr.write(d); out = (out + d).slice(-2000); };
+    p.stdout.on("data", keep);
+    p.stderr.on("data", keep);
+    p.on("error", (e) => rej(new Error(`helper build could not start: ${e.message}`)));
+    p.on("close", (c) => {
+      if (c !== 0 || !existsSync(helperApk())) return rej(new Error(`helper build failed (gradle exit ${c}): ${out.split(/\r?\n/).filter((l) => l.trim()).slice(-6).join(" | ").slice(-600)}`));
+      const now = new Date();
+      utimesSync(helperApk(), now, now); // Gradle leaves an up-to-date APK untouched; without this a touched source would rebuild every time
+      res(helperApk());
+    });
+  });
 }
 // `npm pack` (prepack): every APK the installed package needs at run time. The probe APK is installed by prepare() on the
 // first `up`; 0.2.2 shipped without it, so `up` from an npm install failed with "probe apk missing". 0.2.2 also shipped
 // neither the load app nor its sources, so `load` failed the same way.
 // The load app and its filler APKs (`load`) are shipped prebuilt too: building them needs Gradle and a JDK (javac, jar).
-export function buildBundledApks() {
+export async function buildBundledApks() {
+  const root = join(import.meta.dirname, "..");
+  const gradle = (project: string, task: string) => execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, project), task, "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
   gradle("probe-app", "assembleDebug");
   gradle("load-app", "assembleRelease");
-  const root = join(import.meta.dirname, "..");
   execFileSync(process.execPath, ["--import", "tsx", join(root, "scripts", "gen-filler-apks.mjs"), "--count", String(RECIPES.high.fillers)], { cwd: root, stdio: "inherit" });
-  return [probeApk(), loadApk(), buildHelper()];
+  return [probeApk(), loadApk(), await buildHelper()];
 }

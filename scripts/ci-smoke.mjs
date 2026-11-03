@@ -42,7 +42,7 @@ function pngDistinct(file) {
 let upped = false;
 try {
   if (!existsSync(probeApk())) buildProbe();
-  if (!existsSync(helperApk())) buildHelper();
+  if (!existsSync(helperApk())) await buildHelper();
 
   const s = cli("setup", "--yes", "--images", "34");
   claim(s.steps.every((x) => ["present", "installed"].includes(x.status)), `setup: ${s.steps.map((x) => `${x.step}=${x.status}`).join(" ")}`);

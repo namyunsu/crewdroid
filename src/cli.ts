@@ -15,7 +15,7 @@ const { positionals, values } = parseArgs({
     out: { type: "string" }, json: { type: "boolean", default: false },
     "idle-seconds": { type: "string", default: "60" },
     rules: { type: "string" }, source: { type: "string" }, log: { type: "string" }, target: { type: "string" }, port: { type: "string" }, devices: { type: "string" }, proxy: { type: "string" }, "lose-acks": { type: "string" },
-    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string" }, api: { type: "string" }, profile: { type: "string" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false }, cores: { type: "string" }, ram: { type: "string" }, load: { type: "string" }, wifi: { type: "boolean", default: false }, "keep-apps": { type: "boolean", default: false },
+    image: { type: "string" }, screen: { type: "string", multiple: true }, "profiles-file": { type: "string" }, profiles: { type: "string" }, up: { type: "string" }, count: { type: "string" }, api: { type: "string" }, profile: { type: "string" }, "no-distinct": { type: "boolean", default: false }, window: { type: "boolean", default: false }, cores: { type: "string" }, ram: { type: "string" }, load: { type: "string" }, wifi: { type: "boolean", default: false }, "allow-no-helper": { type: "boolean", default: false }, "keep-apps": { type: "boolean", default: false },
     url: { type: "string" }, users: { type: "string", default: "10" }, repeat: { type: "string", default: "5" },
     jitter: { type: "string", default: "50" }, "retry-rate": { type: "string", default: "0.1" }, seed: { type: "string", default: "1" },
     "server-port": { type: "string", default: "5599" }, help: { type: "boolean", default: false }, version: { type: "boolean", default: false },
@@ -100,7 +100,7 @@ async function main() {
     if (api !== undefined && !Number.isInteger(api)) throw new Error(`--api must be a number like 31|34|36, got '${values.api}'`);
     const num = (k: "cores" | "ram") => (values[k] === undefined ? undefined : Number(values[k]));
     const d = upDefaults({ count: values.count === undefined ? undefined : Number(values.count), profiles: (values.profiles ?? values.profile)?.split(","), api, screens, profilesFile: values["profiles-file"] });
-    const r = await up(d.count, Number(values["base-port"]), d.names, values.window, { screens, profilesFile: values["profiles-file"], api: d.api, cores: num("cores"), ramMB: num("ram"), load: values.load, wifi: values.wifi });
+    const r = await up(d.count, Number(values["base-port"]), d.names, values.window, { screens, profilesFile: values["profiles-file"], api: d.api, cores: num("cores"), ramMB: num("ram"), load: values.load, wifi: values.wifi, allowNoHelper: values["allow-no-helper"] });
     console.log(values.json ? JSON.stringify(r, null, 2) : r.devices.map((d) => `${d.serial} ${d.profile} API ${d.api} ${d.width}x${d.height}@${d.density} ${d.cores} cores ${d.ramMB} MB${d.load ? ` load ${d.load.level} MemAvailable ${d.load.guest.memAvailablePct}%` : ""}`).join("\n"));
     return;
   }

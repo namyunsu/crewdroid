@@ -37,7 +37,7 @@ const crew = (args, env = process.env) => new Promise((ok) => {
 const kindsOf = (r) => [...new Set((r.json?.combos ?? []).flatMap((c) => c.findings.map((f) => f.kind)))].sort();
 
 console.log("building agent-helper and probe-app");
-buildHelper();
+await buildHelper();
 execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, "probe-app"), "assembleDebug", "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
 
 try {

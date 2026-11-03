@@ -28,7 +28,7 @@ const crew = (...args) => new Promise((ok) => {
 });
 const show = (out) => out.split("\n").map((l) => `    | ${l}`).join("\n");
 
-buildHelper();
+await buildHelper();
 execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, "demo-app"), "assembleDebug", "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
 const apk = join(root, "demo-app/build/outputs/apk/debug/crewdroid-demo-debug.apk");
 
