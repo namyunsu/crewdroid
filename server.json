@@ -3,12 +3,12 @@
   "name": "io.github.namyunsu/crewdroid",
   "description": "Light Android emulators for AI agents: text screen outline, per-device network, battery, location.",
   "repository": { "url": "https://github.com/namyunsu/crewdroid", "source": "github" },
-  "version": "0.2.4",
+  "version": "0.2.5",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "crewdroid",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "runtimeHint": "npx",
       "packageArguments": [{ "type": "positional", "value": "mcp" }],
       "transport": { "type": "stdio" }
