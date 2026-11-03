@@ -20,6 +20,9 @@ test("the npm package ships every APK the CLI installs at run time", async () =>
   const { files } = JSON.parse(readFileSync(join(import.meta.dirname, "..", "package.json"), "utf8"));
   const { helperApk } = await import("../src/helper.ts");
   const { probeApk } = await import("../src/snapshot.ts");
+  const { loadApk, fillerDir } = await import("../src/load.ts");
   const root = join(import.meta.dirname, "..");
-  for (const apk of [probeApk(), helperApk()]) assert.ok(files.includes(relative(root, apk).replaceAll("\\", "/")), `${apk} not in package.json files`);
+  const rel = (p: string) => relative(root, p).replaceAll("\\", "/");
+  for (const apk of [probeApk(), helperApk(), loadApk()]) assert.ok(files.includes(rel(apk)), `${apk} not in package.json files`);
+  assert.ok(files.includes(`${rel(fillerDir())}/*.apk`), "load filler APKs not in package.json files");
 });

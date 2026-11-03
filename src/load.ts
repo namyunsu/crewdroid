@@ -77,6 +77,8 @@ async function readState(serial: string): Promise<State | undefined> {
 
 // ---- host-side artifacts ----
 function ensureArtifacts(fillers: number) {
+  const missing = [...(existsSync(loadApk()) ? [] : [loadApk()]), ...(fillers && !existsSync(join(fillerDir(), `${fillerName(fillers)}.apk`)) ? [fillerDir()] : [])];
+  if (missing.length && !existsSync(join(root, "load-app", "build.gradle.kts"))) throw new Error(`load app missing: ${missing.join(", ")} (from npm: reinstall crewdroid; from a git checkout: npm run prepack)`);
   if (!existsSync(loadApk())) {
     console.error("building the load app (load-app/, first use)");
     execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, "load-app"), "assembleRelease", "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });

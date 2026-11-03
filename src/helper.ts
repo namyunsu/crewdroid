@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb, assertSerial } from "./adb.ts";
+import { RECIPES, loadApk } from "./load.ts";
 import { probeApk } from "./snapshot.ts";
 
 // On-device helper (T52, ADR 0007): agent-helper/ is an instrumentation APK that keeps a UiAutomation connection and answers
@@ -161,8 +162,13 @@ export function buildHelper() {
   return helperApk();
 }
 // `npm pack` (prepack): every APK the installed package needs at run time. The probe APK is installed by prepare() on the
-// first `up`; 0.2.2 shipped without it, so `up` from an npm install failed with "probe apk missing".
+// first `up`; 0.2.2 shipped without it, so `up` from an npm install failed with "probe apk missing". 0.2.2 also shipped
+// neither the load app nor its sources, so `load` failed the same way.
+// The load app and its filler APKs (`load`) are shipped prebuilt too: building them needs Gradle and a JDK (javac, jar).
 export function buildBundledApks() {
   gradle("probe-app", "assembleDebug");
-  return [probeApk(), buildHelper()];
+  gradle("load-app", "assembleRelease");
+  const root = join(import.meta.dirname, "..");
+  execFileSync(process.execPath, ["--import", "tsx", join(root, "scripts", "gen-filler-apks.mjs"), "--count", String(RECIPES.high.fillers)], { cwd: root, stdio: "inherit" });
+  return [probeApk(), loadApk(), buildHelper()];
 }

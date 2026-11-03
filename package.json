@@ -4,7 +4,7 @@
   "description": "Android emulator for AI agents: light (1.4 GB RAM per device), a text screen outline instead of screenshots, per-device network, battery, location, screen and Android version. CLI + MCP server.",
   "type": "module",
   "bin": { "crewdroid": "bin/crewdroid.mjs" },
-  "files": ["bin", "src", "profiles", "judge", "scenarios", "sample/server", "agent-helper/build/outputs/apk/release/crewdroid-agent-release.apk", "probe-app/app/build/outputs/apk/debug/app-debug.apk", "LICENSE", "README.md", "README.ko.md", "server.json"],
+  "files": ["bin", "src", "profiles", "judge", "scenarios", "sample/server", "agent-helper/build/outputs/apk/release/crewdroid-agent-release.apk", "probe-app/app/build/outputs/apk/debug/app-debug.apk", "load-app/build/outputs/apk/release/crewdroid-load-release.apk", "load-app/build/fillers/*.apk", "LICENSE", "README.md", "README.ko.md", "server.json"],
   "keywords": ["android", "emulator", "mcp", "mcp-server", "claude-code", "agent-skills", "mobile-testing", "concurrency"],
   "repository": { "type": "git", "url": "git+https://github.com/namyunsu/crewdroid.git" },
   "license": "MIT",
