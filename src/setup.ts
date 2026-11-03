@@ -8,10 +8,11 @@ import { pipeline } from "node:stream/promises";
 import { z } from "zod";
 import { imageAbi } from "./platform.ts";
 import { defaultSdk } from "./sdk.ts";
+import { buildHelper, helperFresh } from "./helper.ts";
 import { compatWarning } from "./compat.ts";
 import type { Tool } from "./mcp.ts";
 
-export const STEPS = ["jdk", "cmdline-tools", "platform-tools", "emulator", "images"] as const;
+export const STEPS = ["jdk", "cmdline-tools", "platform-tools", "emulator", "images", "helper"] as const;
 export type StepName = (typeof STEPS)[number];
 const REPO_XML = "https://dl.google.com/android/repository/repository2-3.xml";
 const IMG_XML = "https://dl.google.com/android/repository/sys-img/google_atd/sys-img2-3.xml";
@@ -52,14 +53,15 @@ export function parseSize(xml: string, path: string, hostOs: string, arch = "x64
 }
 
 export interface Planned { step: StepName; present: boolean }
-// Which of the wanted steps are already there. `has` answers a path probe; javaOk says a JDK >= 17 is usable.
-export function planSteps(sdk: string, only: StepName[], images: string[], arch: string, platform: string, javaOk: boolean, has: (p: string) => boolean): Planned[] {
+// Which of the wanted steps are already there. `has` answers a path probe; javaOk says a JDK >= 17 is usable; helperOk = helperFresh().
+export function planSteps(sdk: string, only: StepName[], images: string[], arch: string, platform: string, javaOk: boolean, has: (p: string) => boolean, helperOk = true): Planned[] {
   const present: Record<StepName, boolean> = {
     jdk: javaOk,
     "cmdline-tools": has(join(sdk, "cmdline-tools", "latest", "bin", win(platform) ? "sdkmanager.bat" : "sdkmanager")),
     "platform-tools": has(join(sdk, "platform-tools", exe("adb", platform))),
     emulator: has(join(sdk, "emulator", exe("emulator", platform))),
     images: images.every((api) => has(join(imageDir(sdk, api, arch), "system.img"))),
+    helper: helperOk,
   };
   return STEPS.filter((s) => only.includes(s)).map((step) => ({ step, present: present[step] }));
 }
@@ -160,7 +162,7 @@ export async function setup(o: SetupOpts = {}) {
   for (const s of only) if (!STEPS.includes(s)) throw new Error(`unknown step "${s}" (steps: ${STEPS.join(", ")})`);
   const images = o.images ?? ["34"];
   const platform = process.platform, arch = osArch();
-  const plan = planSteps(sdk, only, images, arch, platform, findJava(sdk) !== undefined, existsSync);
+  const plan = planSteps(sdk, only, images, arch, platform, findJava(sdk) !== undefined, existsSync, helperFresh());
   const missing = plan.filter((p) => !p.present).map((p) => p.step);
   const imgMissing = images.filter((api) => !existsSync(join(imageDir(sdk, api, arch), "system.img")));
   const result: Record<string, any> = { sdk, dryRun: !!o.dryRun, steps: [] as any[] };
@@ -175,6 +177,7 @@ export async function setup(o: SetupOpts = {}) {
       if (step === "jdk") size = await headSize(jreUrl(platform, arch));
       else if (step === "cmdline-tools") size = await headSize(cmdlineUrl(repo, platform, arch));
       else if (step === "images") size = imgMissing.reduce((n, api) => n + (parseSize(img, imagePackage(api, arch), hostOs) ?? 0), 0) || null;
+      else if (step === "helper") size = null; // built here by Gradle, which downloads its own pieces
       else size = parseSize(repo, step, hostOs, hostArch);
       set(step, "missing", { downloadBytes: size });
     }
@@ -204,6 +207,11 @@ export async function setup(o: SetupOpts = {}) {
           rmSync(join(sdk, "cmdline-tools", "latest"), { recursive: true, force: true });
           renameSync(join(tmp, "cmdline-tools"), join(sdk, "cmdline-tools", "latest"));
           rmSync(tmp, { recursive: true, force: true }); rmSync(zip, { force: true });
+        } else if (step === "helper") {
+          // the agent helper APK (source checkout only; npm ships it). Gradle takes JAVA_HOME and ANDROID_HOME from sdkRoot()
+          if (javaHome === undefined) throw new Error("no JDK >= 17 found: include the jdk step (drop --only or add jdk to it)");
+          process.env.ANDROID_SDK_ROOT ??= sdk;
+          await buildHelper();
         } else {
           // sdkmanager needs a JDK 17; none found means the jdk step was left out by --only
           if (javaHome === undefined) throw new Error("no JDK >= 17 found: include the jdk step (drop --only or add jdk to it)");
