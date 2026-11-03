@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Fixed
 - `up` from an npm install failed on first use with `probe apk missing`: the package shipped without the probe APK that base-image preparation installs. `npm pack` now builds it and the package includes it.
 - `load` from an npm install failed: the package had neither the load app and filler APKs nor the sources to build them. They are now built by `npm pack` and shipped; without them `load` says so instead of failing in Gradle. The filler generator takes `javac` and `jar` from `JAVA_HOME` when it is set.
+- On macOS, cellular data never came up on 2+ devices: the framework restart that makes clones distinct left the RIL without an answer to its data call (MOBILE stuck CONNECTING), so a clone without Wi-Fi had no network and `run` failed at `net online`. `up` now restarts the RIL daemon when cellular is not up 15 s after that restart.
 
 ## [0.2.3] - 2026-11-03
 

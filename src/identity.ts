@@ -51,6 +51,23 @@ export async function withClones<T>(image: string, count: number, basePort: numb
   }
 }
 
+// A CONNECTED cellular network in `dumpsys connectivity` NetworkAgentInfo lines.
+export const cellConnected = (out: string) => /ni\{MOBILE(\[\w*\])? CONNECTED\b/.test(out);
+// NOTE: on macOS (arm64 API 34 image, emulator 37.1) the cellular data call never completes after the framework restart below:
+// the RIL gets SETUP_DATA_CALL and never answers, MOBILE stays CONNECTING for minutes, and a clone without Wi-Fi has no network
+// at all (`net online` times out, so `run` fails). Data/airplane toggles, the console's `gsm data`, killing com.android.phone
+// and `cmd phone restart-modem` did not help; restarting the RIL daemon brought MOBILE to CONNECTED at once (1-device repro,
+// 2026-11-03). Only done when cellular is not up 15 s after the restart and the image has that service.
+async function reviveCellular(serial: string) {
+  for (let i = 0; i < 10; i++) {
+    if (cellConnected(await adb(serial, ["shell", "dumpsys connectivity | grep -E '^ *NetworkAgentInfo\\{'; true"]))) return false;
+    await sleep(1500);
+  }
+  if (!(await adb(serial, ["shell", "getprop init.svc.vendor.ril-daemon"])).trim()) return false;
+  await adb(serial, ["shell", "setprop ctl.restart vendor.ril-daemon"]);
+  return true;
+}
+
 // Makes this clone's values distinct. Returns notes about values that could not be changed.
 export async function makeDistinct(serial: string, idx: number): Promise<string[]> {
   const notes: string[] = [];
@@ -70,6 +87,7 @@ export async function makeDistinct(serial: string, idx: number): Promise<string[
     await sleep(5000);
     await adb(serial, ["root"], 20000).catch(() => {});
     await sleep(3000);
+    if (await reviveCellular(serial)) notes.push("cellular: restarted the RIL daemon after the framework restart");
     await adb(serial, ["uninstall", PKG]); // drops the cached per-app entry so it is regenerated from the new userkey
     await adb(serial, ["install", probeApk()], 120000);
   }
