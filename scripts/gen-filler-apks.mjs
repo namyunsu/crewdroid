@@ -22,6 +22,8 @@ const androidJar = join(platforms, readdirSync(platforms).sort((a, b) => b.local
 const tool = (n) => (win ? join(dirname(buildTool("aapt2")), `${n}.bat`) : buildTool(n)); // d8 / apksigner are .bat on Windows
 const name = (i) => `dev.crewdroid.filler.f${String(i).padStart(3, "0")}`;
 const hasCode = (i) => i % 3 === 0;
+// javac / jar from JAVA_HOME when set (macOS: the /usr/bin stubs only offer to install a JDK), else from PATH
+const jdk = (n) => (process.env.JAVA_HOME ? join(process.env.JAVA_HOME, "bin", n) : n);
 
 const work = join(FILLER_DIR, ".work");
 mkdirSync(work, { recursive: true });
@@ -50,7 +52,7 @@ public class Job extends JobService {
 `);
   const cls = join(work, "classes");
   rmSync(cls, { recursive: true, force: true });
-  await run("javac", ["--release", "11", "-cp", androidJar, "-d", cls, join(src, "Boot.java"), join(src, "Job.java")], { windowsHide: true });
+  await run(jdk("javac"), ["--release", "11", "-cp", androidJar, "-d", cls, join(src, "Boot.java"), join(src, "Job.java")], { windowsHide: true });
   mkdirSync(dexDir, { recursive: true });
   await sh(tool("d8"), ["--release", "--min-api", "31", "--lib", androidJar, "--output", dexDir, join(cls, "dev", "crewdroid", "filler", "Boot.class"), join(cls, "dev", "crewdroid", "filler", "Job.class")]);
 }
@@ -75,7 +77,7 @@ async function one(i) {
   writeFileSync(join(d, "AndroidManifest.xml"), manifest(i));
   const raw = join(d, "raw.apk"), aligned = join(d, "aligned.apk");
   await run(buildTool("aapt2"), ["link", "-o", raw, "-I", androidJar, "--manifest", join(d, "AndroidManifest.xml"), "--min-sdk-version", "31", "--target-sdk-version", "34"], { windowsHide: true });
-  if (hasCode(i)) await run("jar", ["--update", "--no-manifest", "--file", raw, "-C", dexDir, "classes.dex"], { windowsHide: true });
+  if (hasCode(i)) await run(jdk("jar"), ["--update", "--no-manifest", "--file", raw, "-C", dexDir, "classes.dex"], { windowsHide: true });
   await run(buildTool("zipalign"), ["-f", "-p", "4", raw, aligned], { windowsHide: true });
   await sh(tool("apksigner"), ["sign", "--ks", ks, "--ks-pass", "pass:android", "--min-sdk-version", "31", aligned]);
   renameSync(aligned, join(FILLER_DIR, `${name(i)}.apk`));

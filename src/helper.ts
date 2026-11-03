@@ -1,10 +1,12 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { adb, assertSerial } from "./adb.ts";
+import { RECIPES, loadApk } from "./load.ts";
 import { sdkRoot } from "./sdk.ts";
 import { findJava } from "./setup.ts";
+import { probeApk } from "./snapshot.ts";
 
 // On-device helper (T52, ADR 0007): agent-helper/ is an instrumentation APK that keeps a UiAutomation connection and answers
 // GET /tree, /size, /health and POST /tap, /swipe, /key, /text on the device's 127.0.0.1:DEVICE_PORT, reached through
@@ -185,4 +187,16 @@ export function buildHelper(): Promise<string> {
       res(helperApk());
     });
   });
+}
+// `npm pack` (prepack): every APK the installed package needs at run time. The probe APK is installed by prepare() on the
+// first `up`; 0.2.2 shipped without it, so `up` from an npm install failed with "probe apk missing". 0.2.2 also shipped
+// neither the load app nor its sources, so `load` failed the same way.
+// The load app and its filler APKs (`load`) are shipped prebuilt too: building them needs Gradle and a JDK (javac, jar).
+export async function buildBundledApks() {
+  const root = join(import.meta.dirname, "..");
+  const gradle = (project: string, task: string) => execFileSync(join(root, "probe-app", process.platform === "win32" ? "gradlew.bat" : "gradlew"), ["-p", join(root, project), task, "--console=plain", "-q"], { cwd: join(root, "probe-app"), stdio: "inherit", shell: process.platform === "win32" });
+  gradle("probe-app", "assembleDebug");
+  gradle("load-app", "assembleRelease");
+  execFileSync(process.execPath, ["--import", "tsx", join(root, "scripts", "gen-filler-apks.mjs"), "--count", String(RECIPES.high.fillers)], { cwd: root, stdio: "inherit" });
+  return [probeApk(), loadApk(), await buildHelper()];
 }
