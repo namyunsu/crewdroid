@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.6] - 2026-11-03
+
+### Added
+- Devices nobody uses are stopped: CLI and MCP `up` start a small watcher (70 MB, 0.02 % of one core) that runs `down` after 60 minutes without a crewdroid command, and right after the MCP server that ran `up` exits (an agent session that ended without `down`). A running command counts as use. `up --idle-minutes N` (MCP `idleMinutes`, env `CREWDROID_IDLE_MINUTES`) changes the time; 0 keeps the devices.
+
 ## [0.2.5] - 2026-11-03
 
 ### Fixed

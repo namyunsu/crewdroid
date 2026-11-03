@@ -12,6 +12,7 @@ import { CREW_RE, listProcesses } from "./platform.ts";
 import { loadProfiles } from "./profiles.ts";
 import { runScenario } from "./scenario.ts";
 import { flagScenario } from "./scenario-actions.ts";
+import { busy, idleMinutes, startReaper } from "./reaper.ts";
 import { trayAction } from "./tray.ts";
 import { down, up, upDefaults } from "./up.ts";
 
@@ -50,8 +51,13 @@ const core: Tool[] = [
   { name: "devices", description: "Use to find the emulator-<port> serial every other tool needs, or to check what is already running. Returns [{serial, avd, api, profile, screen, cores, ramMB, booted}]; empty = call up.", input: {}, run: () => devices() },
   {
     name: "up", long: true, description: "Start of the loop: boot headless emulators (1-3 min). No args = ONE device (s24ultra, newest API <= 36), the right choice for building/checking an app; count > 1 mixes Galaxy profiles and Android versions. Returns {devices:[{serial, api, profile, wmSize}]}; pass serial to every other tool.",
-    input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), cores: z.number().int().optional().describe("guest CPUs, e.g. 1|2|4|6|8 (default 2; <= host CPUs)"), ram: z.number().int().optional().describe("guest RAM MB, 896..8192 (default 896, API 31 768)"), load: z.enum(["off", "low", "mid", "high"]).optional().describe("used-phone load applied after boot (see the load tool)"), wifi: z.boolean().optional().describe("true = each device can get its own Wi-Fi address (31 of 33 measured device boots; default: one device at a time; +9.4 % idle RAM)"), allowNoHelper: z.boolean().optional().describe("true = keep the devices when the on-device helper fails (screen/tap/type then use the slower uiautomator/input)"), basePort: z.number().int().default(5580) },
-    run: (a) => { const d = upDefaults(a); return up(d.count, a.basePort, d.names, false, { api: d.api, cores: a.cores, ramMB: a.ram, load: a.load, wifi: a.wifi, allowNoHelper: a.allowNoHelper }); },
+    input: { count: z.number().int().min(1).optional(), api: z.number().int().optional().describe("pin the image API, e.g. 31|34|36"), profiles: z.array(z.string()).optional().describe("profile names from profiles/galaxy.json"), cores: z.number().int().optional().describe("guest CPUs, e.g. 1|2|4|6|8 (default 2; <= host CPUs)"), ram: z.number().int().optional().describe("guest RAM MB, 896..8192 (default 896, API 31 768)"), load: z.enum(["off", "low", "mid", "high"]).optional().describe("used-phone load applied after boot (see the load tool)"), wifi: z.boolean().optional().describe("true = each device can get its own Wi-Fi address (31 of 33 measured device boots; default: one device at a time; +9.4 % idle RAM)"), allowNoHelper: z.boolean().optional().describe("true = keep the devices when the on-device helper fails (screen/tap/type then use the slower uiautomator/input)"), idleMinutes: z.number().int().min(0).optional().describe("devices stop after this many minutes without a crewdroid call, and when this MCP server exits (default 60; 0 = never)"), basePort: z.number().int().default(5580) },
+    run: async (a) => {
+      const d = upDefaults(a), idle = idleMinutes(a.idleMinutes);
+      const r = await up(d.count, a.basePort, d.names, false, { api: d.api, cores: a.cores, ramMB: a.ram, load: a.load, wifi: a.wifi, allowNoHelper: a.allowNoHelper });
+      await startReaper(r.devices.map((x) => x.port), idle, process.pid);
+      return r;
+    },
   },
   { name: "down", description: "End of the loop: kill every crewdroid (crew-*) emulator. Always call it when finished. Returns {killed: pids, ports}.", input: {}, run: () => down() },
   {
@@ -113,9 +119,10 @@ export async function serve() {
   for (const t of [...core, ...(await moduleTools())]) {
     const input = t.long ? { ...t.input, timeoutSec: z.number().int().min(1).default(900) } : t.input;
     server.registerTool(t.name, { description: t.description, inputSchema: input }, async (a: any) => {
-      let timer: NodeJS.Timeout | undefined;
+      let timer: NodeJS.Timeout | undefined, done: (() => void) | undefined;
       try {
         trayAction(t.name, a.serial);
+        if (t.name !== "down") done = busy();
         const work = t.run(a);
         const r = t.long
           ? await Promise.race([work, new Promise((_, no) => { timer = setTimeout(() => no(new Error(`${t.name} timed out after ${a.timeoutSec}s (emulators may still run; call down)`)), a.timeoutSec * 1000); })])
@@ -125,6 +132,7 @@ export async function serve() {
         return text(`error: ${e instanceof Error ? e.message : String(e)}`, true);
       } finally {
         clearTimeout(timer);
+        done?.();
       }
     });
   }

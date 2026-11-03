@@ -15,7 +15,7 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 ## Commands
 | Command | What it does | Status |
 |---|---|---|
-| `up` | no flags = 1 device (s24ultra, newest API <= 36); `--count N` mixed profiles from `profiles/galaxy.json`; `--api 31\|34\|36` pins the image; `--profile` = `--profiles`; `Windows: a tray icon shows devices and the last command until `down` (`CREWDROID_NO_TRAY=1` = off); `--wifi` = each device can get its own Wi-Fi (31 of 33 measured device boots; default: one at a time; +9.4 % idle RAM, clones on separate Wi-Fi networks, untested on macOS/Linux; ADR 0009); from a source checkout it builds the on-device helper APK first, and a helper that does not start fails `up` unless `--allow-no-helper` | implemented |
+| `up` | no flags = 1 device (s24ultra, newest API <= 36); `--count N` mixed profiles from `profiles/galaxy.json`; `--api 31\|34\|36` pins the image; `--profile` = `--profiles`; `Windows: a tray icon shows devices and the last command until `down` (`CREWDROID_NO_TRAY=1` = off); `--wifi` = each device can get its own Wi-Fi (31 of 33 measured device boots; default: one at a time; +9.4 % idle RAM, clones on separate Wi-Fi networks, untested on macOS/Linux; ADR 0009); from a source checkout it builds the on-device helper APK first, and a helper that does not start fails `up` unless `--allow-no-helper`; devices stop by themselves after 60 min without a crewdroid command or when the MCP server that ran `up` exits (`--idle-minutes N`, 0 = keep) | implemented |
 | `devices` | list running crew emulators: serial, api, profile, screen, booted | implemented |
 | `down` | kill every `crew-*` emulator | implemented |
 | `net` | per-device network state: airplane / nodata / slow / flaky / online | implemented |
@@ -44,6 +44,7 @@ After publishing: `npx crewdroid <cmd>`. Every command takes `--json` and exits 
 | `setup` | install SDK pieces (JDK 17, cmdline-tools, platform-tools, emulator, google_atd images); `--dry-run`, `--yes` | implemented |
 | `mcp` | stdio MCP server wrapping the commands above | implemented |
 | `prepare`, `identity`, `slim`, `measure` | base-image maintenance and measurement | implemented |
+| `reap` | internal: the idle watcher `up` starts (not for people) | implemented |
 | `version` | print the package version (`crewdroid --version`, also `--json`) | implemented |
 | `help` | usage text | implemented |
 
