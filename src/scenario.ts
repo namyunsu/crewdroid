@@ -39,6 +39,16 @@ function hostPeak() {
 // Two kinds of scenario file (src/scenario-actions.ts): "preset": "probe" drives the bundled probe app through its test receiver
 // and reads its outbox (root); any other app is driven only by the file's own actions (Maestro flow, intent, adb) and judged on
 // the T69 proxy log, so a release build works as is. `src` = a scenario file, or the object flagScenario built from `run --apk` flags.
+// The probe preset judges the bundled sample server's GET /export, which `run` does not start. Checked before any device
+// boots: without it the run went through boot and every round and then failed at the judge with a bare "fetch failed".
+export async function checkSampleServer(port: number, timeoutMs = 3000) {
+  const url = `http://127.0.0.1:${port}/export`;
+  const r = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) }).catch(() => undefined);
+  if (r?.ok) return;
+  const main = join(import.meta.dirname, "..", "sample", "server", "main.ts");
+  throw new Error(`sample server not reachable at ${url}${r ? ` (HTTP ${r.status})` : ""}: start it first in another terminal, e.g. \`BUGGY=1 npx -y tsx "${main}" ${port}\` (BUGGY=1 = the version with the race condition; leave it out for the fixed one), or pass --server-port`);
+}
+
 export async function runScenario(src: string | ({ kind: "app" } & AppScenario), { count, basePort = 5580, seed = 1, serverPort = 5599, profiles, onReady, beforeDown, proxy }: RunOptions = {}) {
   const sc = typeof src === "string" ? loadScenario(src) : src; // every check before any device boots: bad file -> exit 1 here
   const file = typeof src === "string" ? src : "(flags)";
@@ -46,6 +56,7 @@ export async function runScenario(src: string | ({ kind: "app" } & AppScenario),
   const at = (p: string) => (isAbsolute(p) ? p : resolve(app ? app.dir : dirname(resolve(file)), p));
   const rules = app ? (app.rules ? at(app.rules) : PROXY_RULES) : at(probe!.rules);
   const server = app ? app.server?.target : `http://10.0.2.2:${serverPort}`;
+  if (probe) await checkSampleServer(serverPort);
   const t0 = Date.now();
   const stopPeak = hostPeak();
   let serials: string[] = [];
