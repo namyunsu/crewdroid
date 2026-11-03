@@ -127,6 +127,7 @@ Run your own app (a release APK is fine): `run --apk app.apk --flow flows/add-it
 Or try the bundled sample: the multi-user scenario against a server with a race condition (`BUGGY=1` in the bundled sample server), and read the verdict:
 
 ```bash
+$ BUGGY=1 npx -y tsx sample/server/main.ts 5599     # in another terminal; run checks it is up before booting
 $ crewdroid run scenarios/photo-upload.json --seed 1
 ...
 VIOLATION uploads unique(key): duplicate key="u13-1" (2 rows)

@@ -24,7 +24,7 @@ export async function load(src: string, base = process.cwd()): Promise<unknown> 
   if (/^https?:\/\//.test(src)) {
     const u = new URL(src);
     if (u.pathname === "/") u.pathname = "/export";
-    const r = await fetch(u);
+    const r = await fetch(u).catch((e) => { throw new Error(`GET ${u} failed: ${e?.cause?.code ?? e?.message ?? e}`); });
     if (!r.ok) throw new Error(`GET ${u} -> ${r.status}`);
     return r.json();
   }
