@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { assign, loadProfiles, relaunchBlackApis } from "../src/profiles.ts";
-import { avdName, checkSpec, coresOf, ramMB } from "../src/avd.ts";
+import { avdName, checkFleet, checkSpec, coresOf, ramMB } from "../src/avd.ts";
 
 const images = [31, 34, 36].map((api) => ({ image: `android-${api}/google_atd`, api }));
 
@@ -39,6 +39,12 @@ test("spec: default spec keeps the old AVD name; another spec gets its own, with
   assert.deepEqual([ramMB(a), coresOf(a)], [2048, 4]);
   assert.deepEqual([ramMB("crew-android-31-google_atd"), coresOf("crew-android-31-google_atd")], [768, 2]);
   assert.equal(avdName("android-31/google_atd", { cores: 1 }), "crew-android-31-google_atd-r768-c1");
+});
+
+test("checkFleet: refuses what the host cannot hold and says how many fit", () => {
+  checkFleet([896, 896, 768], 8000);
+  assert.throws(() => checkFleet(Array(8).fill(896), 6000), /8 devices need about 13568 MB.*use --count 3 or fewer/);
+  assert.throws(() => checkFleet([896], 1000), /close other apps first/);
 });
 
 test("checkSpec: limits fail with the reason, valid specs pass", () => {
