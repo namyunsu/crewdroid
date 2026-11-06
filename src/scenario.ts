@@ -68,7 +68,7 @@ export async function runScenario(src: string | ({ kind: "app" } & AppScenario),
     if (target) {
       const log = proxy?.log ?? join(tmpdir(), "crewdroid", `run-${Date.now()}.jsonl`);
       mkdirSync(dirname(resolve(log)), { recursive: true });
-      px = await startProxy({ target, port: proxy?.port ?? app?.server?.proxyPort ?? 5590, devices: serials, log, loseAcks: proxy?.loseAcks, seed });
+      px = await startProxy({ target, port: proxy?.port ?? app?.server?.proxyPort ?? Math.max(5590, basePort + 2 * serials.length), devices: serials, log, loseAcks: proxy?.loseAcks, seed });
       for (const x of px.ports) await setDeviceProxy(x.device, x.port);
     }
     for (const s of serials) {

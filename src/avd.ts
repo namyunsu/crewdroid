@@ -86,6 +86,13 @@ export function checkSpec(image: string, spec: Spec, host: { cpus: number; freeM
   }
   if (c !== undefined && (!Number.isInteger(c) || c < 1 || c > host.cpus)) throw new Error(`--cores ${c}: must be 1..${host.cpus} (host logical CPUs)`);
 }
+// Host RAM a device takes on top of its guest RAM: 1 device = 1472 MB at 896 MB guest (README), Vulkan on 37.2+ adds ~220 MB.
+export const HOST_OVERHEAD_MB = 800;
+// Refuses a fleet the host cannot hold before anything boots. guestMB = each device's guest RAM.
+export function checkFleet(guestMB: number[], availMB: number) {
+  const need = guestMB.reduce((a, r) => a + r + HOST_OVERHEAD_MB, 0), fits = Math.floor(availMB / (need / guestMB.length));
+  if (need > availMB) throw new Error(`${guestMB.length} devices need about ${need} MB of host RAM, ${Math.floor(availMB)} MB available: ${fits ? `use --count ${fits} or fewer` : "close other apps first"}`);
+}
 export const DATA_PARTITION = "2G"; // userdata size; was 10G. NOTE: emulator 37.1 rewrites it to 6G at boot (T15, slim.md)
 
 const SENSORS = ["hw.accelerometer_uncalibrated", "hw.gyroscope", "hw.sensors.gyroscope_uncalibrated", "hw.sensors.humidity", "hw.sensors.light",

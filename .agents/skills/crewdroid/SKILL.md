@@ -26,6 +26,8 @@ crewdroid run scenarios/photo-upload.json --seed 1 --server-port 5595 --json
 crewdroid judge --rules <rules.json> --source <url|file> --json   # re-judge server data
 crewdroid down --json                                # always, when finished
 ```
+How many devices: 1 to build or check an app; 2-3 to reproduce a multi-user bug; one per screen or Android version to check (`--profiles s24ultra,fold5-main,flip6-cover`, `--api 31|34|36`). A device takes about 1.5 GB of host RAM; `up` refuses a count the available RAM cannot hold and prints how many fit. The user's number wins.
+
 In a checkout without the package installed, replace `crewdroid` with `node bin/crewdroid.mjs`.
 Install it once (`npm i -g crewdroid`) or use the MCP server: `npx crewdroid` adds about 0.4 s to every call (`docs/measurements/cli-speed.json`).
 

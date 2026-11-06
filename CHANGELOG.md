@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.7] - 2026-11-06
+
+### Added
+- `up` refuses a device count the host's available RAM cannot hold (guest RAM + 800 MB each) before anything boots, and says how many fit. On macOS only total RAM is checked.
+- The MCP `up` description and the `crewdroid` skill say how many devices to boot: 1 to build an app, 2-3 for a multi-user bug, one per screen or Android version to check.
+
+### Fixed
+- `run` with 6 or more devices put its proxy on 5590, the 6th emulator's console port; it now starts above the emulator ports.
+
 ## [0.2.6] - 2026-11-03
 
 ### Added

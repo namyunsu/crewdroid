@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus, freemem, release, tmpdir, totalmem } from "node:os";
 import { join } from "node:path";
 import { adb } from "./adb.ts";
-import { avdHome, avdName, checkSpec, coresOf, ramMB } from "./avd.ts";
+import { avdHome, avdName, checkFleet, checkSpec, coresOf, ramMB } from "./avd.ts";
 import { buildHelper, helperFresh, startHelper } from "./helper.ts";
 import { checkLevel, setLoad } from "./load.ts";
 import { makeDistinct } from "./identity.ts";
@@ -89,6 +89,8 @@ export async function up(count: number, basePort = 5580, names?: string[], windo
     checkSpec(s.image, spec, { cpus: cpus().length, freeMB: freemem() / 2 ** 20 });
     return { ...s, spec, avd: avdName(s.image, spec) };
   });
+  // ponytail: macOS freemem() leaves out reclaimable pages (far too low), so there only the total is checked.
+  checkFleet(slots.map((s) => s.spec.ramMB ?? ramMB(s.image)), (process.platform === "darwin" ? totalmem() : freemem()) / 2 ** 20);
   claimEmulators();
   const ports = slots.map((_, i) => basePort + 2 * i);
   for (const p of ports) {
